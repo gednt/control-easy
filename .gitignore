@@ -240,12 +240,6 @@ docker-compose.local.yml
 *.ipr
 *.iws
 
-# -------- Tooling state (not source) --------
-# kilo editor local state — never commit
-/.kilo/
-# kilo writes session-path files at the repo root
-/-home-*.txt
-
 # VS Code (keep .vscode/ for shared settings)
 !.vscode/settings.json
 !.vscode/tasks.json
