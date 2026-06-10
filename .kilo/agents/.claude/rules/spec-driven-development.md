@@ -1,0 +1,6 @@
+---
+paths:
+  - "**/*"
+---
+
+Follow AGENTS.md

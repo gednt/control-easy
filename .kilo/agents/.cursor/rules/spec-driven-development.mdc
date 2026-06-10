@@ -1,0 +1,7 @@
+---
+description: "Spec Driven Development workflow and conventions"
+globs: "**/*"
+alwaysApply: true
+---
+
+Follow AGENTS.md

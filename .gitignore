@@ -246,6 +246,15 @@ docker-compose.local.yml
 !.vscode/launch.json
 !.vscode/extensions.json
 
+# -------- kilo editor — only the agents/ folder is tracked --------
+# Track ./kilo/agents (configuration), but never the embedded git repo,
+# the node_modules tree, or the kilo scratch files.
+**/.git
+/.kilo/node_modules/
+/.kilo/package.json
+/.kilo/package-lock.json
+/-home-*.txt
+
 # -------- OS --------
 .DS_Store
 Thumbs.db
