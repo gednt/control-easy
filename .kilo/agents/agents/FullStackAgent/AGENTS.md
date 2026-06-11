@@ -98,6 +98,16 @@ For each implementation, generate a folder with the implementation name in the f
             - [ ] 3. Task
             - [ ] etc...
             - Each task can have as many subtasks as needed.
+            - ## Task Dependency Graph
+            ```json
+            {
+              "waves": [
+                { "wave": 1, "tasks": ["<task_id>", "..."] },
+                { "wave": 2, "tasks": ["<task_id>", "..."] }
+              ]
+            }
+            ```
+            Task IDs reference the numbered tasks above. Tasks in the same wave have no dependencies on each other and can run in parallel. A wave only starts after all tasks in the previous wave are complete. Add as many waves as the task complexity demands.
         - After the conclusion of any task is completed, mark it as done.
         - Update AGENTS.md regularly to match the project architecture, code standards, build instructions and things as such.
 

@@ -26,6 +26,13 @@ This document is the single source of truth for **how** we build it. It defines 
 | **Reverse Proxy** | Traefik or Nginx in front of `web` and `api` to centralize TLS and routing. |
 | **CPM** | Central Package Management — `Directory.Packages.props` with pinned versions shared across modules. |
 | **Testcontainers** | xUnit fixture that spins up real containers (MySQL) for integration tests. |
+| **Tenant** | A single condominium (or other customer organization) running on the shared deployment; the unit of data isolation. Modeled as a `Tenants` row. |
+| **AttendantProfile** | A per-tenant assignment row tying a `User` to a `Tenant` with a shift, a gatehouse, an `Active` flag, and a permission set. One `User` can have many `AttendantProfile` rows across tenants. |
+| **ITenantContext** | Per-request scoped service that exposes the current `TenantId`, `ProfileId`, `Roles`, `Permissions`, and `IsPlatformAdmin` flag. Populated by `TenantResolutionMiddleware` from the JWT. |
+| **PlatformAdmin** | Platform-wide role provisioned at first boot; the only role allowed to create / suspend tenants and assign `TenantAdmin`s. |
+| **TenantAdmin** | Per-tenant administrative role created by `PlatformAdmin`; has full access within its tenant. |
+| **Attendant** | The role string used in the JWT `roles[]` claim for an attendant session (e.g. `["Attendant"]`). Distinct from `AttendantProfile`, which is the per-tenant data row that sources the role and permissions. |
+| **TenantResolutionStrategy** | The chosen approach to resolving the active tenant for each request — in this platform, JWT `tenant_id` claim only. |
 
 ## Architecture
 
@@ -50,11 +57,12 @@ ControlEasyReborn/
 │   │   └── ControlEasyReborn.Contracts/      # Cross-module DTOs / events
 │   │
 │   └── Modules/
+│       ├── Tenants/           # Tenants, Shifts, Gatehouses, ITenantContext, PlatformAdmin seed
 │       ├── Residents/         # Moradores + Apartamentos
 │       ├── Visits/            # Visitantes + Fluxo de portaria
 │       ├── Vehicles/          # Veículos
 │       ├── ServiceProviders/  # Prestadores de serviço
-│       ├── Security/          # Auth, Users, Roles, Privilégios
+│       ├── Security/          # Auth, Users, Roles, Privilégios, AttendantProfile
 │       └── Administration/    # Logs, Auditoria, Configurações
 │
 ├── tests/
@@ -87,24 +95,30 @@ ControlEasyReborn/
 ```
 Modules/Residents/
 ├── ControlEasyReborn.Modules.Residents.Domain/
-│   ├── Entities/Resident.cs                # POCO, no ORM attributes (provider-agnostic)
-│   ├── ValueObjects/                       # Cpf, Phone, Email
-│   └── Events/ResidentCreated.cs
+│   ├── Entities/Resident.cs                # { Id, TenantId, Name, Cpf, ... }
+│   │                                       # TenantId is a value object wrapping Guid,
+│   │                                       # never null, set by the repository from ITenantContext
+│   ├── ValueObjects/                       # Cpf, Phone, Email, TenantId
+│   └── Events/ResidentCreated.cs           # event payload now includes TenantId
 │
 ├── ControlEasyReborn.Modules.Residents.Application/
-│   ├── Abstractions/IResidentRepository.cs # exposes LINQ-friendly methods
-│   ├── Residents/Commands/CreateResident.cs
-│   ├── Residents/Queries/ListResidents.cs
-│   └── Validators/CreateResidentValidator.cs   # FluentValidation
+│   ├── Abstractions/IResidentRepository.cs
+│   └── ...
 │
 ├── ControlEasyReborn.Modules.Residents.Infrastructure/
-│   ├── Persistence/ResidentRepository.cs   # implements IResidentRepository
+│   ├── Persistence/ResidentRepository.cs   # ctor: (ITenantContext ctx, IAsyncSqlClient db,
+│   │                                       #       TenantAwareLinqFactory linqFactory)
+│   │                                       # every query goes through linqFactory.Create<Resident>(ctx, ...)
+│   │                                       # so the TenantFilterInterceptor is wired in automatically
 │   └── DI/ResidentsModuleServiceCollectionExtensions.cs
 │
 └── ControlEasyReborn.Modules.Residents.Api/
-    ├── Endpoints/CreateResidentEndpoint.cs # Minimal API
+    ├── Endpoints/CreateResidentEndpoint.cs # handler reads ITenantContext.TenantId
+    │                                       # (no longer trusts request body for tenant)
     └── Endpoints/ListResidentsEndpoint.cs
 ```
+
+**Architecture rule (C.6):** every module entity has a non-null `TenantId`; every repository receives `ITenantContext`; every integration test for the module includes a cross-tenant-access assertion.
 
 ```mermaid
 flowchart LR
@@ -227,13 +241,92 @@ internal sealed class ResidentRepository(Linq<Resident> residents, IAsyncSqlClie
 
 Only when a query needs a DB-specific feature not covered by the LINQ provider (e.g., MySQL window functions or a stored procedure). In that case, go through `IAsyncSqlClient.ExecuteAsync(sql, params)`, never raw `MySqlConnection`. This is documented as an ADR.
 
+### Multi-Tenancy
+
+- **Isolation strategy.** Shared schema, `tenant_id` discriminator on every business table, enforced by a `TenantFilterInterceptor : IQueryInterceptor` (DBTools_SQL) that injects `WHERE tenant_id = @ctx_tenant` into every `Linq<TModel>` / `LinqHelper<TModel>` query built against a `Linq<TModel>` constructed with the active `ITenantContext`. The interceptor is registered in `Host/Program.cs` and applied inside the `Modules/*/Infrastructure/Persistence/*Repository` constructors.
+
+- **Tenant resolution.** From the JWT `tenant_id` claim only (per decision 2). A `TenantResolutionMiddleware` runs after `UseAuthentication()`, reads `HttpContext.User.FindFirst("tenant_id")`, and calls `ITenantContext.Set(tenantId)`. `PlatformAdmin` endpoints are the only ones allowed to omit `tenant_id`; they set `ITenantContext.TenantId = null` and the interceptor allows the query to proceed unfiltered for those requests (and only those — enforced by a custom authorization policy `PlatformAdminOnly` plus a `IFeatureTenantBypass` marker on the `Linq<TModel>` factory used in the `Tenants` module's admin repository).
+
+- **JWT claim shape.** `sub` = `UserId` (GUID); `tenant_id` = `TenantId` (GUID, string); `profile_id` = `AttendantProfileId` (GUID, string, may be absent for `PlatformAdmin` / `TenantAdmin`); `roles` = `string[]` (e.g. `["TenantAdmin"]` or `["Attendant"]` or `["PlatformAdmin"]`); `permissions` = `string[]` (only for attendant profiles; sourced from `AttendantProfile.Permissions`); standard `iss`, `aud`, `exp`, `nbf`, `jti` per RFC 7519. Token TTL: 15 min access + 7 day refresh, refresh rotation on use.
+
+- **`ITenantContext` interface.** Lives in `BuildingBlocks/SharedKernel/MultiTenancy/ITenantContext.cs`.
+
+  ```csharp
+  public interface ITenantContext
+  {
+      Guid? TenantId { get; }                 // null only for PlatformAdmin scope
+      Guid? ProfileId { get; }                // null for non-attendant sessions
+      IReadOnlyCollection<string> Roles { get; }
+      IReadOnlyCollection<string> Permissions { get; }
+      bool IsPlatformAdmin { get; }
+      void Set(Guid? tenantId, Guid? profileId,
+               IReadOnlyCollection<string> roles,
+               IReadOnlyCollection<string> permissions);
+  }
+  ```
+
+  Implemented by `HttpTenantContext` (scoped, populated by the middleware) and a `NullTenantContext` (used in unit tests, throws on `Set`).
+
+- **`tenant_id` global filter in `Linq<T>`.** A small `TenantAwareLinqFactory` lives in `BuildingBlocks/Infrastructure/MultiTenancy/` and exposes `Linq<TModel> Create<TModel>(ITenantContext ctx, IAsyncSqlClient db, string table, string pk, bool autoIncrement)`. The factory builds the `Linq<TModel>` and registers a `TenantFilterInterceptor` keyed on the current `ctx.TenantId`. Repositories inject `TenantAwareLinqFactory`, never `Linq<TModel>` directly, so no module can forget the filter.
+
+- All per-tenant reads must go through `TenantAwareLinqFactory` / `Linq<TModel>`. Raw `IAsyncSqlClient.ExecuteAsync` is the documented escape hatch and is not covered by the global filter; code review and C.6 are the only guards.
+
+- **Per-tenant backup.** A `docker/cron/tenant-backup.Dockerfile` adds a nightly `mysqldump` job that runs `mysqldump --where='tenant_id=\'<guid>\''` per tenant to `s3://<bucket>/tenants/<slug>/<date>.sql.gz` (configurable). The job reads the `Tenants` table at start, iterates each active tenant, and writes one gzipped dump per tenant. `PlatformAdmin` can trigger an on-demand dump via `POST /api/v1/admin/backups/{tenantId}` (admin-only).
+
+- **`PlatformAdmin` role.** Provisioned at first boot by a hosted `IHostedService` (`PlatformAdminBootstrapService`) that runs once after migration. The seeded admin's temporary password is logged at `Warning` level with a `// CHANGE IMMEDIATELY` marker; the seed is idempotent (skips if a `PlatformAdmin` already exists). `TenantAdmin` is created by `PlatformAdmin` per tenant via `POST /api/v1/tenants/{id}/admins`.
+
+- **Default-tenant seeding.** On first boot, after the schema migration and before the `PlatformAdmin` bootstrap, a `DefaultTenantSeeder` ensures the `Tenants` row `00000000-0000-0000-0000-000000000001` (`Slug = "default"`, `DisplayName = "Condomínio Padrão"`) exists. The `03-tenant-backfill.sql` migration in `docker/mysql/init/` (see "Tenant Data Migration" below) populates `tenant_id` on every pre-existing business table.
+
+### Attendant Profiles (Security Module)
+
+- **`User` vs `AttendantProfile`.** `User` is the identity (login, password hash, email, MFA, display name) and is unique platform-wide. `AttendantProfile` is a per-tenant assignment row that ties a `User` to a `Tenant` and carries the per-tenant concerns: shift, gatehouse, permissions, active flag. A user can have zero or one profile per tenant; one user can have profiles in many tenants.
+
+- **Fields:**
+  - `User`: `Id` (GUID), `Email` (unique), `PasswordHash`, `DisplayName`, `MfaSecret?`, `Active` (bool), `CreatedAtUtc`.
+  - `AttendantProfile`: `Id`, `TenantId`, `UserId`, `DisplayName?`, `ShiftId?`, `GatehouseId?`, `Permissions` (`ICollection<string>`), `Active`, `CreatedAtUtc`, `UpdatedAtUtc`, `UpdatedBy`.
+  - `Shift`: `Id`, `TenantId`, `Name`, `StartTime` (`TimeSpan`), `EndTime` (`TimeSpan`), `CrossesMidnight` (bool).
+  - `Gatehouse`: `Id`, `TenantId`, `Name`, `Location?`.
+
+- **Shift model.** A `Shift` is a tenant-scoped lookup row (e.g. "morning 06:00–14:00", "afternoon 14:00–22:00", "overnight 22:00–06:00 crosses-midnight"). Attendant profiles reference one `Shift`. The `Visits` module's check-in flow uses the active profile's `ShiftId` to assert that the attendant is on shift at the moment of the action; off-shift check-ins are allowed but flagged in the audit log (out of scope for v1 — only the data model is in scope).
+
+- **Permission model.** `AttendantProfile.Permissions` is a `List<string>` of permission keys. The JWT carries them as a `permissions` claim. A centralized `Permissions` static class (`Security/Application/Permissions/Permissions.cs`) defines the canonical keys (`visits.checkin`, `visits.checkout`, `visits.read`, `residents.read`, `residents.write`, `vehicles.read`, `vehicles.write`, `service-providers.read`, `service-providers.write`, `reports.read`). Endpoints are decorated with a `RequirePermission("visits.checkin")` attribute (custom authorization handler) instead of role checks, so the role stays coarse (`Attendant`) and the per-tenant control is fine-grained.
+
+- **Gatehouse assignment.** `AttendantProfile.GatehouseId` is optional. Multi-gatehouse condominiums bind a profile to a specific physical entry point; the `Visits` module can then group "visits per gatehouse" in reports.
+
+- **Multi-tenant attendant support.** A `User` with `AttendantProfile` rows in tenants A and B logs in once with email+password, picks a tenant on the login screen (the lookup `GET /api/v1/security/tenants?email=...` returns the tenants the email belongs to, plus the user's display name per tenant), and receives a JWT bound to that tenant. Switching tenants = re-login or `POST /api/v1/security/tenant-switch { tenantId }` (re-issues the JWT, no password required, scoped to the user's known tenants).
+
+- **Repository methods** (`IAttendantProfileRepository`, in `Modules/Security/Application/Abstractions/`):
+
+  ```csharp
+  Task<AttendantProfile?> FindAsync(Guid id, CancellationToken ct);
+  Task<IReadOnlyList<AttendantProfile>> ListByTenantAsync(
+      Guid tenantId, bool? activeOnly, int skip, int take, CancellationToken ct);
+  Task<IReadOnlyList<AttendantProfile>> ListByUserAsync(
+      Guid userId, CancellationToken ct);
+  Task<AttendantProfile> CreateAsync(AttendantProfile p, CancellationToken ct);
+  Task<AttendantProfile> UpdateAsync(AttendantProfile p, CancellationToken ct);
+  Task DeactivateAsync(Guid id, CancellationToken ct);
+  ```
+
+- **API endpoints** (under `/api/v1/security/...`, all JWT-bearer, all subject to `tenant_id` global filter except the cross-tenant tenant-picker lookup):
+  - `POST   /api/v1/security/attendant-profiles` — create. Body: `{ userId, shiftId?, gatehouseId?, permissions[], displayName?, active }`. TenantAdmin only.
+  - `GET    /api/v1/security/attendant-profiles?activeOnly=&skip=&take=` — list for current tenant. TenantAdmin or `residents.read`+.
+  - `GET    /api/v1/security/attendant-profiles/{id}` — read one. TenantAdmin or self.
+  - `PUT    /api/v1/security/attendant-profiles/{id}` — update. TenantAdmin only.
+  - `POST   /api/v1/security/attendant-profiles/{id}/deactivate` — soft-delete. TenantAdmin only.
+  - `GET    /api/v1/security/attendant-profiles/me` — return the active profile for the current JWT. Any attendant.
+  - `POST   /api/v1/security/shifts` and `GET /api/v1/security/shifts` — shift lookup CRUD. TenantAdmin only for write.
+  - `POST   /api/v1/security/gatehouses` and `GET /api/v1/security/gatehouses` — gatehouse lookup CRUD. TenantAdmin only for write.
+  - `GET    /api/v1/security/tenants?email=...` — **public** (no auth), rate-limited to 10/min/IP, returns `[{ tenantId, slug, displayName, userDisplayName }]` for the email's known tenants; used by the login screen's tenant picker.
+  - `POST   /api/v1/security/tenant-switch` — re-issues a JWT for a different tenant the authenticated user belongs to (body: `{ tenantId }`); user is identified by the current JWT, no password required, scoped to the user's known tenants.
+
 ### API Design
 
 - **Style:** REST + JSON, versioned: `/api/v1/residents`, `/api/v1/visits`, ...
 - **Endpoints:** ASP.NET Core **Minimal APIs** grouped per module, mapped via `MapGroup("/api/v1/{module}")`.
 - **Routes:** kebab-case, plural nouns (`/api/v1/service-providers`, not `/api/v1/PrestadorServico`).
 - **Errors:** `ProblemDetails` (RFC 7807) returned by a global exception filter that maps `NotFoundException` → 404, `ValidationException` → 400, `ConflictException` → 409.
-- **Auth:** JWT bearer (`Microsoft.AspNetCore.Authentication.JwtBearer`) with claims `role`, `condominium_id`. Authorization policies: `AdminOnly`, `PorteiroOnly`, `ResidentSelfOrAdmin`.
+- **Auth:** JWT bearer (`Microsoft.AspNetCore.Authentication.JwtBearer`) with claims `sub` (UserId), `tenant_id` (TenantId), `profile_id` (AttendantProfileId, when present), `roles[]`, `permissions[]`. Authorization policies: `PlatformAdminOnly`, `TenantAdminOnly`, `ResidentSelfOrAdmin`, plus fine-grained `RequirePermission("visits.checkin")` for attendant-scoped endpoints.
 - **Docs:** `Swashbuckle.AspNetCore` exposing OpenAPI at `/swagger`.
 - **Versioning:** `Microsoft.AspNetCore.Mvc.Versioning` for the URL segment; old versions kept alive during the Strangler phase.
 
@@ -408,6 +501,12 @@ ENTRYPOINT ["dotnet", "ControlEasyReborn.Api.dll"]
 | Auth | JWT bearer | `Host/Program.cs` + `Modules/Security` |
 | Health checks | `AspNetCore.HealthChecks.MySql` | `Host/Program.cs` → `/health` |
 | Feature flags | `Microsoft.FeatureManagement` (Strangler toggle per module) | `Host/Program.cs` |
+
+### Tenant Data Migration
+
+- **Backfill SQL.** Committed as `docker/mysql/init/02-tenants-seed.sql` (create `Tenants` table + insert the default row) and `docker/mysql/init/03-tenant-backfill.sql` (alter every business table to add `tenant_id`, populate, set `NOT NULL`, index). The table list in the backfill file is generated by `scripts/generate-tenant-backfill.sql` and pinned — any new business table is added to the script in the same PR that introduces it, and CI fails otherwise (NetArchTest rule added in 1.15).
+- **Default-tenant row.** `00000000-0000-0000-0000-000000000001` (`Slug = "default"`, `DisplayName = "Condomínio Padrão"`, `Status = Active`). Hard-coded GUID is acceptable here because the row is the seed for the existing single-tenant deployment and is replaced by a per-deployment GUID when `PlatformAdmin` onboards a real second tenant.
+- **WPF compatibility shim.** `docker/mysql/init/04-tenant-views.sql` creates a `<TableName>_legacy` view per business table that hard-codes `WHERE tenant_id = '00000000-0000-0000-0000-000000000001'`. The WPF app's EF6 model is repointed at the views (the `.dbml`/EDMX is regenerated against the views; entity names are preserved). The shim is removed in task 4.4 (WPF decommission) along with the WPF project. An ADR (`docs/architecture/decisions/0003-multi-tenant-shared-schema.md`) records the choice.
 
 ## Success Criteria
 

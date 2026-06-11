@@ -183,6 +183,17 @@ After producing a review or analysis, create or update `tasks.md` in the same sp
 
 Mark each task done as you complete it.
 
+## Task Dependency Graph
+```json
+{
+  "waves": [
+    { "wave": 1, "tasks": ["<task_id>", "..."] },
+    { "wave": 2, "tasks": ["<task_id>", "..."] }
+  ]
+}
+```
+Task IDs reference the numbered tasks above. Tasks in the same wave have no dependencies on each other and can run in parallel. A wave only starts after all tasks in the previous wave are complete. Add as many waves as the task complexity demands.
+
 ## User Confirmation Before Proceeding
 
 Before publishing or submitting a review, you MUST:

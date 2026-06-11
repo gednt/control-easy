@@ -61,3 +61,36 @@ docker compose up -d            # starts api, web, db, reverse-proxy
 dotnet build src/ControlEasyReborn.sln
 dotnet test  tests/ControlEasyReborn.Tests.sln
 ```
+
+## Spec Structure
+
+```text
+.specs/
+└── <feature-or-bug-fix>/
+    ├── requirements.md   # User stories (UC[n]: As a user, I want/need to...)
+    ├── design.md         # Feature design (overview, glossary, architecture, diagrams)
+    ├── bugfix.md         # Bug analysis (overview, condition, examples, fix plan)
+    ├── review.md         # Branch review findings (Code Review Agent)
+    ├── analysis.md       # General code analysis (Code Review Agent)
+    ├── docplan.md       # New documentation structure plan (Documentation Agent)
+    ├── docchange.md     # Existing documentation update plan (Documentation Agent)
+    ├── orchestration.md  # Multi-agent coordination log (Orchestrator)
+    └── tasks.md          # Step-by-step implementation checklist with Task Dependency Graph
+```
+
+- Use **design.md** for features
+- Use **bugfix.md** for bug fixes
+- Use **docplan.md** for new documentation sets
+- Use **docchange.md** for updating existing docs
+- Use **review.md** for branch diff reviews
+- Use **analysis.md** for general code analysis
+- **tasks.md** is always required and lists implementation steps with verification gates. Includes a **Task Dependency Graph** section defining parallel execution waves:
+    ```json
+    {
+      "waves": [
+        { "wave": 1, "tasks": ["<task_id>", "..."] },
+        { "wave": 2, "tasks": ["<task_id>", "..."] }
+      ]
+    }
+    ```
+    Task IDs reference the numbered tasks. Tasks in the same wave have no dependencies on each other and can run in parallel. A wave only starts after all tasks in the previous wave are complete.
