@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ce-checkbox - States and sizes
+  Source: .specs/2 - visual-design-system/design.md (ce-checkbox section) - UC-042
+  Tokens: color-primary, color-surface, color-border, radius-sm, font-size-sm, color-text-secondary
+  A11y: focus ring, aria-checked, aria-label
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 520" width="1280" height="520" font-family="Inter, system-ui, sans-serif">
+  <title>ce-checkbox - Component Reference</title>
+  <desc>States: unchecked, checked, indeterminate, disabled, focus. A11y: aria-checked, aria-label, native checkbox with custom styling.</desc>
+
+  <rect width="1280" height="520" fill="#f8fafc"/>
+  <text x="40" y="48" font-size="24" font-weight="600" fill="#0f172a">ce-checkbox</text>
+  <text x="40" y="72" font-size="14" fill="#475569">selector: ce-checkbox  |  props: label, checked, disabled, indeterminate, name  |  UC-042</text>
+
+  <!-- Section: States -->
+  <text x="40" y="120" font-size="14" font-weight="600" fill="#0f172a">States</text>
+
+  <!-- Unchecked -->
+  <g transform="translate(40,140)">
+    <rect width="20" height="20" rx="4" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+    <text x="32" y="15" font-size="14" fill="#0f172a">Remember my email</text>
+    <text x="0" y="48" font-size="11" fill="#475569">unchecked (default)</text>
+  </g>
+
+  <!-- Checked -->
+  <g transform="translate(260,140)">
+    <rect width="20" height="20" rx="4" fill="#4f46e5" stroke="#4f46e5" stroke-width="1.5"/>
+    <polyline points="5,11 9,15 15,6" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="32" y="15" font-size="14" fill="#0f172a">Remember my email</text>
+    <text x="0" y="48" font-size="11" fill="#475569">checked (aria-checked=true)</text>
+  </g>
+
+  <!-- Indeterminate -->
+  <g transform="translate(520,140)">
+    <rect width="20" height="20" rx="4" fill="#4f46e5" stroke="#4f46e5" stroke-width="1.5"/>
+    <line x1="5" y1="10" x2="15" y2="10" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+    <text x="32" y="15" font-size="14" fill="#0f172a">Select all</text>
+    <text x="0" y="48" font-size="11" fill="#475569">indeterminate (aria-checked=mixed)</text>
+  </g>
+
+  <!-- Disabled unchecked -->
+  <g transform="translate(780,140)">
+    <rect width="20" height="20" rx="4" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1.5"/>
+    <text x="32" y="15" font-size="14" fill="#94a3b8">Disabled option</text>
+    <text x="0" y="48" font-size="11" fill="#475569">disabled (unchecked)</text>
+  </g>
+
+  <!-- Disabled checked -->
+  <g transform="translate(1020,140)">
+    <rect width="20" height="20" rx="4" fill="#4f46e5" opacity="0.4" stroke="#4f46e5" stroke-width="1.5" stroke-opacity="0.4"/>
+    <polyline points="5,11 9,15 15,6" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+    <text x="32" y="15" font-size="14" fill="#94a3b8">Disabled checked</text>
+    <text x="0" y="48" font-size="11" fill="#475569">disabled (checked)</text>
+  </g>
+
+  <!-- Focus ring -->
+  <text x="40" y="240" font-size="14" font-weight="600" fill="#0f172a">Focus ring</text>
+
+  <g transform="translate(40,260)">
+    <rect x="-4" y="-4" width="28" height="28" rx="6" fill="none" stroke="#4f46e5" stroke-width="2" stroke-opacity="0.15" stroke-dasharray="0"/>
+    <rect x="-4" y="-4" width="28" height="28" rx="6" fill="none" stroke="#4f46e5" stroke-width="2"/>
+    <rect width="20" height="20" rx="4" fill="#4f46e5" stroke="#4f46e5" stroke-width="1.5"/>
+    <polyline points="5,11 9,15 15,6" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="32" y="15" font-size="14" fill="#0f172a">Remember my email</text>
+    <text x="0" y="48" font-size="11" fill="#475569">focus-visible (2px primary ring, offset 2px, 3px color-mix at 15% alpha shown as outer ring)</text>
+  </g>
+
+  <!-- Login context -->
+  <text x="40" y="360" font-size="14" font-weight="600" fill="#0f172a">Login context usage</text>
+
+  <g transform="translate(40,380)">
+    <rect width="20" height="20" rx="4" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+    <text x="32" y="15" font-size="13" fill="#475569">Remember my email</text>
+    <text x="0" y="40" font-size="11" fill="#475569">Used on login page: stores email in localStorage, never stores password.</text>
+    <text x="0" y="56" font-size="11" fill="#475569">Touch target: 44x44px minimum on viewports &lt;640px (checkbox box is 20x20, tap target padded).</text>
+  </g>
+
+  <!-- A11y annotation block -->
+  <g transform="translate(40,460)">
+    <rect width="1200" height="48" rx="12" fill="#eef2ff" stroke="#4f46e5"/>
+    <text x="20" y="22" font-size="13" font-weight="600" fill="#0f172a">Accessibility (a11y)</text>
+    <text x="20" y="40" font-size="12" fill="#0f172a">role: checkbox (native input)  |  aria-checked: true/false/mixed  |  aria-label on checkbox  |  Focus ring: 2px primary + 3px tinted, offset 2px</text>
+  </g>
+
+  <!-- Dark theme -->
+  <g transform="translate(520,380)">
+    <rect width="700" height="120" rx="12" fill="#0b1020"/>
+    <text x="20" y="28" font-size="14" font-weight="600" fill="#f1f5f9">Dark theme (data-theme=dark)</text>
+
+    <g transform="translate(20,44)">
+      <rect width="20" height="20" rx="4" fill="#111827" stroke="#1f2937" stroke-width="1.5"/>
+      <text x="32" y="15" font-size="14" fill="#f1f5f9">Remember my email</text>
+      <text x="0" y="44" font-size="11" fill="#94a3b8">unchecked</text>
+    </g>
+
+    <g transform="translate(240,44)">
+      <rect width="20" height="20" rx="4" fill="#818cf8" stroke="#818cf8" stroke-width="1.5"/>
+      <polyline points="5,11 9,15 15,6" fill="none" stroke="#0b1020" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="32" y="15" font-size="14" fill="#f1f5f9">Remember my email</text>
+      <text x="0" y="44" font-size="11" fill="#94a3b8">checked</text>
+    </g>
+
+    <g transform="translate(460,44)">
+      <rect width="20" height="20" rx="4" fill="#111827" stroke="#1f2937" stroke-width="1.5"/>
+      <line x1="5" y1="10" x2="15" y2="10" stroke="#818cf8" stroke-width="2" stroke-linecap="round"/>
+      <text x="32" y="15" font-size="14" fill="#f1f5f9">Select all</text>
+      <text x="0" y="44" font-size="11" fill="#94a3b8">indeterminate</text>
+    </g>
+  </g>
+</svg>

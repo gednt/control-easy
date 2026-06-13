@@ -135,10 +135,13 @@ For each task, "exists" means: a standalone Angular component in `src/app/design
 - [ ] **C.16** **`ce-breadcrumbs`** — reads `data.breadcrumb` from each activated route; `<nav aria-label="Breadcrumb">`, `<ol>`, `aria-current="page"` on the last item.
   - **Acceptance criteria:** Spec covers a three-level route tree.
 
-- [ ] **C.17** Add a barrel `src/app/design-system/index.ts` re-exporting every component so feature pages can do `import { CeButtonComponent } from '@app/design-system';` (path alias configured in `tsconfig.json`).
+- [ ] **C.17** **`ce-checkbox`** — `label`, `checked` (two-way), `disabled`, `indeterminate`, `name`; custom styled box (20×20px, `var(--radius-sm)`, `var(--color-primary)` fill when checked); `:focus-visible` ring; `var(--color-text-secondary)` label.
+  - **Acceptance criteria:** Spec covers checked/unchecked, indeterminate, disabled, focus ring, and ARIA `aria-checked`.
+
+- [ ] **C.18** Add a barrel `src/app/design-system/index.ts` re-exporting every component (including `CeCheckboxComponent`) so feature pages can do `import { CeButtonComponent } from '@app/design-system';` (path alias configured in `tsconfig.json`).
   - **Acceptance criteria:** Importing from the barrel works from a feature page in Phase 3 of the modernization roadmap.
 
-- **Verification gate (Phase C):** `ng test` (or `npm test`) is green for all 16 component specs; the showcase page (Phase E) renders every component; no component references a hex literal or a px value (verified by `git grep -E "#[0-9a-fA-F]{3,8}" src/app/design-system/components/` returning no results).
+- **Verification gate (Phase C):** `ng test` (or `npm test`) is green for all 17 component specs; the showcase page (Phase E) renders every component; no component references a hex literal or a px value (verified by `git grep -E "#[0-9a-fA-F]{3,8}" src/app/design-system/components/` returning no results).
 
 ---
 
@@ -164,7 +167,35 @@ For each task, "exists" means: a standalone Angular component in `src/app/design
 - [ ] **D.6** Add a placeholder `DashboardComponent` (the showcase's "stats grid" + a "recent activity" card) so the shell is exercised end-to-end.
   - **Acceptance criteria:** `/` shows a `ce-stat-tile` × 4 grid and a `ce-card` with a "recent activity" list.
 
-- **Verification gate (Phase D):** Every route renders inside the shell; the responsive breakpoints work in Chrome DevTools (375 / 768 / 1280); the theme toggle persists across reload; no console errors; the skip-link works in a Playwright keyboard test.
+- [ ] **D.7** Implement `LoginPageComponent` at `src/app/features/auth/login/login.page.ts` — the only page rendered **outside** `AppShell`. Follows `design.md` Login page section and `requirements.md` UC-035 through UC-042.
+  - **D.7.1** Create the `LoginPageComponent` as a standalone component routed at `/login` (no parent layout). The host element uses `display: flex; align-items: center; justify-content: center; min-height: 100dvh; background: var(--color-background);`. Add a `<main id="login" tabindex="-1">` landmark. Add a skip-to-content link that jumps to `#login`.
+    - **Acceptance criteria:** Navigating to `/login` renders a centered card on the viewport background with no sidebar or topbar. The skip link jumps to `<main id="login">`.
+
+  - **D.7.2** Build the login form using design-system components: `ce-card` (container), brand mark (`h-12` on `md+`, `h-8` on `< sm`), `<h1>` ("Sign in to ControlEasy" with i18n key `LOGIN.HEADING`), error region (`aria-live="assertive"`), `ce-input` for email (type=email, autocomplete=email), `ce-input` for password (type=password, autocomplete=current-password) with a show/hide toggle button in the `[input-suffix]` slot, `ce-checkbox` for "Remember my email", primary `ce-button` for submit (shows `ce-spinner` during submission), and a "Forgot password?" link (`text-text-secondary`, `/forgot-password`).
+    - **Acceptance criteria:** The form renders with correct labels, types, autocomplete attributes, and the show/hide toggle switches `type` between `password` and `text`. The show/hide button has `aria-label="Show password"` / `aria-label="Hide password"`. All interactive targets are ≥ 44×44px.
+
+  - **D.7.3** Implement error handling per `requirements.md` UC-036. On HTTP 401/400: display a `ce-badge tone="danger"` above the form with the server's error message; set `aria-invalid="true"` on the password field; return focus to the email input. On HTTP 429: display `ce-badge tone="warning"` and disable the submit button for the `Retry-After` duration. On network error: display `ce-badge tone="danger"` with a network error message.
+    - **Acceptance criteria:** All three error states render correctly with the right tone and ARIA attributes. Focus management works (returns to email on error).
+
+  - **D.7.4** Implement the **tenant picker** per `requirements.md` UC-037. After a successful login, if `AuthService.login()` returns more than one tenant, fade-transition (200ms) the card content to a tenant picker grid. Each tenant card (`ce-card accent="primary"`) shows `tenant.displayName` and `userDisplayName`. Tapping a card calls `AuthService.selectTenant(tenantId)` which hits `POST /api/v1/security/tenant-switch`. If only one tenant, skip the picker and navigate directly.
+    - **Acceptance criteria:** The tenant picker renders for multi-tenant login responses; selecting a tenant navigates to the dashboard; single-tenant responses skip the picker.
+
+  - **D.7.5** Implement the theme toggle button on the login page (top-right, `position: fixed`, `z-index: 40`) using `ThemeService.toggle()`. The FOUC-prevention `<script>` from B.5 ensures no flash.
+    - **Acceptance criteria:** The theme toggle works on the login page; the page does not flash on reload with a stored theme preference.
+
+  - **D.7.6** Implement the **session-expired redirect** per `requirements.md` UC-041. `AuthInterceptor` redirects to `/login?reason=session-expired`. `LoginPageComponent` reads `reason` from `ActivatedRoute.queryParams`; if `reason === 'session-expired'`, fires `ToastService.info($localize`Your session has expired. Please sign in again.`)` on `ngOnInit`. Pre-fill email from `localStorage["ce.email"]` if the "Remember me" checkbox was previously checked.
+    - **Acceptance criteria:** Navigating to `/login?reason=session-expired` shows the toast and pre-fills the email (if stored). The toast respects `prefers-reduced-motion`.
+
+  - **D.7.7** Implement responsive layout per `requirements.md` UC-039. Below `sm`: card fills viewport width with `mx-4` padding; inputs and buttons stack vertically. Above `sm`: card centered at `max-w-md` (28rem). Brand mark scales from `h-8` to `h-12`. Tenant picker grid: 1-column below `sm`, 2-column on `md+`.
+    - **Acceptance criteria:** The login page looks correct at 375px, 768px, and 1440px widths. All touch targets ≥ 44×44px on mobile.
+
+  - **D.7.8** Implement `AuthGuard` that redirects unauthenticated users to `/login?returnUrl=<encoded URL>`. After successful login, `AuthService` navigates to `returnUrl` or `/`.
+    - **Acceptance criteria:** Visiting a protected route while unauthenticated redirects to `/login` with the `returnUrl` param; after login, the user lands on the originally requested route.
+
+  - **D.7.9** Add Jasmine specs for `LoginPageComponent` covering: render, form validation (empty fields, invalid email), error display (401, 429, network), tenant picker flow (single-tenant vs multi-tenant), session-expired redirect toast, theme toggle, "Remember my email" round-trip in `localStorage`, and keyboard accessibility (tab order, focus management after error).
+    - **Acceptance criteria:** All specs green; no hex literals or inline styles in the component; all strings use i18n keys.
+
+- **Verification gate (Phase D):** Every route renders inside the shell (except `/login` which renders outside it); `/login` renders the login card centered with no sidebar/topbar; the login form submits and displays errors; the tenant picker appears for multi-tenant responses; the responsive breakpoints work in Chrome DevTools (375 / 768 / 1280); the theme toggle persists across reload; no console errors; the skip-link works in a Playwright keyboard test; the session-expired redirect shows the toast.
 
 ---
 
@@ -176,7 +207,7 @@ For each task, "exists" means: a standalone Angular component in `src/app/design
   - **Acceptance criteria:** Route loads; the page renders; the menu entry navigates to it.
 
 - [ ] **E.2** Build the page in named sections, one per component. Each section has a heading, a one-line description, and a live example with a code-snippet `<pre>` block (copy button is nice-to-have, not required).
-  - **Sections:** Buttons, Cards, Inputs, StatTiles, Badges, Modal (triggerable), Toast (triggerable buttons per tone), Table (one example row), EmptyState, Spinner, Avatar, Tabs, Dropdown (triggerable), Tooltip (hover the example button), Pagination, Breadcrumbs, Theme toggle demo.
+  - **Sections:** Buttons, Cards, Inputs, StatTiles, Badges, Modal (triggerable), Toast (triggerable buttons per tone), Table (one example row), EmptyState, Spinner, Avatar, Tabs, Dropdown (triggerable), Tooltip (hover the example button), Pagination, Breadcrumbs, Checkboxes, Theme toggle demo.
   - **Acceptance criteria:** Every component is visible; triggering the modal/toast/dropdown actually opens it.
 
 - [ ] **E.3** Add a "Theme" switcher at the top of the showcase page that flips between `light` and `dark` *for that page only* (so a designer can compare side-by-side). The switch is independent of the global `ThemeService` and uses a local `[data-theme]` attribute on a wrapper div.
@@ -225,3 +256,4 @@ For each task, "exists" means: a standalone Angular component in `src/app/design
 - [ ] **G.6** `git grep -E "#[0-9a-fA-F]{3,8}" src/app/design-system/components/` returns no results.
 - [ ] **G.7** `git grep -E "@angular/material" src/Web/` returns no results (assuming CR-1 is approved).
 - [ ] **G.8** Smoke-tested in Chrome via Playwright: page loads in both themes, theme toggle persists across reload, no FOUC, sidebar drawer opens on mobile width.
+- [ ] **G.9** Smoke-tested `/login` in Chrome via Playwright: login card renders centered with no sidebar/topbar; form validation works; error states display correctly; theme toggle works; session-expired redirect shows toast; tenant picker appears for multi-tenant mock responses.

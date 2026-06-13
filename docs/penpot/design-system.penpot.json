@@ -5,7 +5,7 @@
   "name": "ControlEasy Reborn Design System",
   "version": "0.1.0",
   "description": "Source-of-truth design library for the ControlEasy Reborn Angular SPA. Tokens and components are 1:1 with .specs/2 - visual-design-system/design.md and docs/penpot/tokens.json. Import this file into Penpot via 'Design library > Import library'.",
-  "generated": "2026-06-11",
+  "generated": "2026-06-12",
   "importInstructions": "In Penpot, go to Libraries > Import library and select this file. Each top-level entry below becomes a page. Components inside the components page become draggable Penpot components. Colors and typographies become shared assets.",
   "pages": [
     {
@@ -335,6 +335,31 @@
         "aria": "aria-label=Breadcrumb, <ol> ordered list, aria-current=page on last"
       },
       "svgFallback": "docs/penpot/svg/components/breadcrumbs.svg"
+    },
+    {
+      "id": "ce-checkbox",
+      "name": "Checkbox",
+      "selector": "ce-checkbox",
+      "description": "Styled native checkbox with custom 20x20px box, primary fill when checked, focus ring. Used on login page (Remember my email) and in future filter/settings pages. See UC-042.",
+      "states": ["unchecked", "checked", "indeterminate", "disabled-unchecked", "disabled-checked", "focus"],
+      "tokens": {
+        "boxSize": "20px",
+        "radius": "var(--radius-sm)",
+        "bgChecked": "var(--color-primary)",
+        "bgUnchecked": "var(--color-surface)",
+        "borderUnchecked": "var(--color-border)",
+        "borderChecked": "var(--color-primary)",
+        "checkMarkColor": "#ffffff",
+        "labelColor": "var(--color-text-secondary)",
+        "focusRing": "2px solid var(--color-primary); outline-offset: 2px; plus 3px color-mix(in oklch, var(--color-primary) 15%, transparent)"
+      },
+      "a11y": {
+        "role": "checkbox (native input)",
+        "aria": "aria-checked=true/false/mixed, aria-label on checkbox",
+        "focusRing": "2px primary + 3px tinted, offset 2px",
+        "touchTarget": "44x44px minimum on viewports <640px"
+      },
+      "svgFallback": "docs/penpot/svg/components/checkbox.svg"
     }
   ],
   "layouts": [
@@ -392,7 +417,8 @@
     { "id": "screen-attendant-dashboard",       "file": "docs/penpot/screens/attendant-dashboard.svg" },
     { "id": "screen-resident-pre-register",     "file": "docs/penpot/screens/resident-pre-register.svg" },
     { "id": "screen-tenant-admin-attendant",    "file": "docs/penpot/screens/tenant-admin-attendant.svg" },
-    { "id": "screen-platform-admin-tenant",     "file": "docs/penpot/screens/platform-admin-tenant.svg" }
+    { "id": "screen-platform-admin-tenant",     "file": "docs/penpot/screens/platform-admin-tenant.svg" },
+    { "id": "screen-login",                     "file": "docs/penpot/screens/login.svg" }
   ],
   "responsiveBreakpoints": [
     { "name": "base",  "minWidth": 0,      "label": "Single column, sidebar = drawer" },

@@ -35,6 +35,24 @@ Produce a complete spec (no code, no implementation) for the visual design syste
 - **Generated OpenAPI types committed to git — APPROVED.** Continue with the project-level `AGENTS.md` decision; CI regenerates on each `ng-openapi-gen` run; types are checked in.
 - **Showcase URL — APPROVED: `/design-system/showcase`.** Linked from the user menu's "Help" entry.
 
+## Additions (2026-06-12)
+
+- **Login screen — ADDED.** The spec was missing a login page, which is the first screen every user sees and the only page rendered outside `AppShell`. Added:
+  - `requirements.md` UC-035 through UC-042: login form, error states, tenant picker, theme toggle on login, responsive login, accessibility, session-expired redirect, developer story.
+  - `design.md` Login page section: route/guard, composition diagram, layout CSS, login flow sequence diagram, error states table, "Remember my email" behavior, password show/hide toggle, session-expired redirect, theme toggle on login, dark mode on login, accessibility (login-specific), and the new `ce-checkbox` base component.
+  - `tasks.md` task D.7 (with subtasks D.7.1–D.7.9): LoginPageComponent, login form, error handling, tenant picker, theme toggle, session-expired redirect, responsive layout, AuthGuard, and Jasmine specs.
+  - `tasks.md` task C.17 (renumbered from C.17 to add `ce-checkbox`): `ce-checkbox` base component.
+  - `penpot-handoff.md`: added `checkbox.svg` to the component mapping, `login.svg` to the screen flow, updated deliverables count.
+  - The login page integrates with the multi-tenant auth model defined in `.specs/1 - modernization-roadmap/design.md` (JWT claims, `GET /api/v1/security/tenants?email=...`, `POST /api/v1/auth/login`, `POST /api/v1/security/tenant-switch`).
+
+## Penpot artifacts produced (2026-06-12)
+
+- **`docs/penpot/svg/components/checkbox.svg`** — New base component SVG showing all states (unchecked, checked, indeterminate, disabled, focus) in light and dark themes. Maps to `ce-checkbox` (UC-042).
+- **`docs/penpot/screens/login.svg`** — New screen mockup showing the login page in 3 responsive breakpoints (375px mobile, 768px tablet, 1440px desktop) in both light and dark themes, plus error states (401, 429), the tenant picker (multi-tenant), and the session-expired toast. Maps to UC-035 through UC-042.
+- **`docs/penpot/manifest.json`** — Updated: added `ce-checkbox` component entry and `login` screen entry.
+- **`docs/penpot/design-system.penpot.json`** — Updated: added `ce-checkbox` component definition and `screen-login` entry. Version remains `0.1.0` (no breaking change; these are additive).
+- **`docs/penpot/tokens.json`** — Updated: added `ce-checkbox` to `metadata.componentSelectors`.
+
 All open items resolved. Implementation proceeds in phases per `tasks.md` (A → F), starting with **Phase A — Project Setup** (Tailwind v4 + CDK + i18n bootstrap, no Material).
 
 ## Project Discovery confirmation

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ControlEasy Reborn - Design System Mockup</title>
+  <meta name="description" content="Visual design system mockup for ControlEasy Reborn Angular SPA. Reference-driven, Tailwind v4 tokens." />
+  <!-- FOUC-prevention: applies theme before CSS loads -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("ce.theme") || "system";
+        if (t === "system") {
+          t = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) { /* ignore */ }
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <div class="app-shell">
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="sidebar" aria-label="Main navigation">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-mark">CE</div>
+        <div class="sidebar-brand-text">ControlEasy</div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-nav-section">
+          <div class="sidebar-nav-title">Overview</div>
+          <a class="sidebar-nav-item active" href="index.html" data-tooltip="Início">
+            <span data-icon="dashboard"></span>
+            <span class="sidebar-nav-text">Início</span>
+          </a>
+        </div>
+        <div class="sidebar-nav-section">
+          <div class="sidebar-nav-title">Design System</div>
+          <a class="sidebar-nav-item" href="showcase.html" data-tooltip="Showcase">
+            <span data-icon="settings"></span>
+            <span class="sidebar-nav-text">Showcase</span>
+          </a>
+          <a class="sidebar-nav-item" href="app.html" data-tooltip="App Shell">
+            <span data-icon="building"></span>
+            <span class="sidebar-nav-text">App Shell</span>
+          </a>
+          <a class="sidebar-nav-item" href="login.html" data-tooltip="Login">
+            <span data-icon="user"></span>
+            <span class="sidebar-nav-text">Login</span>
+          </a>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="ce-avatar size-md sidebar-footer-avatar" data-avatar-name="Renata Ferreira" style="background: linear-gradient(135deg, #4f46e5, #ec4899);">
+          <span data-avatar-initials>RF</span>
+        </div>
+        <div class="sidebar-footer-text">
+          <div style="color: white; font-size: 0.85rem; font-weight: 500;">Renata Ferreira</div>
+          <div style="color: var(--sidebar-text-muted); font-size: 0.7rem;">TenantAdmin</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ============ MAIN AREA ============ -->
+    <div class="main-area">
+      <!-- Topbar -->
+      <header class="topbar" role="banner">
+        <button class="topbar-menu-btn icon-btn" data-mobile-menu aria-label="Open menu">
+          <span data-icon="menu"></span>
+        </button>
+        <nav class="ce-breadcrumbs" aria-label="Breadcrumb">
+          <ol>
+            <li><a href="index.html">Início</a></li>
+            <li aria-current="page">Overview</li>
+          </ol>
+        </nav>
+        <div class="topbar-actions">
+          <button class="icon-btn" data-theme-toggle aria-label="Toggle theme" data-tooltip="Toggle theme">
+            <span data-icon="sun" data-theme-icon-light></span>
+            <span data-icon="moon" data-theme-icon-dark hidden></span>
+          </button>
+          <div class="ce-dropdown">
+            <button class="icon-btn" data-dropdown-trigger="user-menu" aria-label="User menu">
+              <span data-icon="user"></span>
+            </button>
+            <div class="ce-dropdown-menu" id="user-menu" role="menu">
+              <a class="ce-dropdown-item" href="showcase.html" role="menuitem">
+                <span data-icon="settings"></span> Design system
+              </a>
+              <a class="ce-dropdown-item" href="app.html" role="menuitem">
+                <span data-icon="building"></span> App shell demo
+              </a>
+              <hr class="ce-dropdown-divider" />
+              <a class="ce-dropdown-item" href="login.html" role="menuitem">
+                <span data-icon="logout"></span> Sign out
+              </a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page content -->
+      <main id="main" class="page-content" tabindex="-1">
+        <div class="page-header">
+          <div class="page-title-block">
+            <h1 class="page-title">ControlEasy Reborn — Design System Mockup</h1>
+            <p class="page-subtitle">Reference-driven visual foundation for the Angular SPA. Implements every base component from <code>.specs/2 - visual-design-system/</code>.</p>
+          </div>
+        </div>
+
+        <!-- Welcome card -->
+        <div class="ce-card accent-primary mb-8">
+          <h2 class="mb-2">Welcome to the mockup</h2>
+          <p class="text-secondary mb-4">
+            This is a self-contained, build-free prototype of the design system. Every color, radius, shadow, and animation comes from the same CSS custom property tokens that the Angular app will use. Switch the theme using the topbar sun/moon button to verify the dark theme; the data-theme attribute on <code>&lt;html&gt;</code> drives everything.
+          </p>
+          <div class="row row-3 row-wrap">
+            <a href="showcase.html" class="ce-button variant-primary size-md">
+              View all components
+              <span data-icon="chevronRight"></span>
+            </a>
+            <a href="app.html" class="ce-button variant-secondary size-md">
+              See the App Shell
+            </a>
+            <a href="login.html" class="ce-button variant-ghost size-md">
+              Try the login page
+            </a>
+          </div>
+        </div>
+
+        <!-- Stat grid demo -->
+        <h2 class="mb-4">Dashboard preview</h2>
+        <div class="grid mb-8" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+          <div class="ce-stat-tile">
+            <div class="ce-stat-tile-label">Active residents</div>
+            <div class="ce-stat-tile-value">1,247</div>
+            <div class="ce-stat-tile-trend trend-up">
+              <span data-icon="arrowUp"></span> 4.2% vs last month
+            </div>
+          </div>
+          <div class="ce-stat-tile">
+            <div class="ce-stat-tile-label">Visits today</div>
+            <div class="ce-stat-tile-value">38</div>
+            <div class="ce-stat-tile-trend trend-down">
+              <span data-icon="arrowDown"></span> 12% vs yesterday
+            </div>
+          </div>
+          <div class="ce-stat-tile">
+            <div class="ce-stat-tile-label">Service providers</div>
+            <div class="ce-stat-tile-value">12</div>
+            <div class="ce-stat-tile-trend trend-flat">
+              <span data-icon="minus"></span> No change
+            </div>
+          </div>
+          <div class="ce-stat-tile">
+            <div class="ce-stat-tile-label">Pending check-ins</div>
+            <div class="ce-stat-tile-value">3</div>
+            <div class="ce-stat-tile-trend trend-up">
+              <span data-icon="arrowUp"></span> Action needed
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick links -->
+        <h2 class="mb-4">Explore the mockup</h2>
+        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+          <a href="showcase.html" class="ce-card" style="text-decoration: none; color: inherit; display: block;">
+            <h3 class="mb-2">Component Showcase</h3>
+            <p class="text-secondary text-sm">
+              All 17 base components in every variant, size, and tone. Side-by-side light &amp; dark theme comparison. Includes the modal/toast triggers, table, pagination, tabs, and more.
+            </p>
+            <div class="row row-2 mt-4" style="color: var(--color-primary); font-weight: 500;">
+              Open showcase <span data-icon="chevronRight"></span>
+            </div>
+          </a>
+          <a href="app.html" class="ce-card" style="text-decoration: none; color: inherit; display: block;">
+            <h3 class="mb-2">App Shell Demo</h3>
+            <p class="text-secondary text-sm">
+              Sidebar + topbar + main grid. Resident list with table, pagination, search, and "Add resident" modal. Includes stat tiles, badges, empty states, and avatar examples.
+            </p>
+            <div class="row row-2 mt-4" style="color: var(--color-primary); font-weight: 500;">
+              Open app shell <span data-icon="chevronRight"></span>
+            </div>
+          </a>
+          <a href="login.html" class="ce-card" style="text-decoration: none; color: inherit; display: block;">
+            <h3 class="mb-2">Login Page</h3>
+            <p class="text-secondary text-sm">
+              Email + password with show/hide toggle, "Remember me" checkbox, error states (401, 429), and a multi-tenant picker. Triggered by typing an email containing "multi" in the form.
+            </p>
+            <div class="row row-2 mt-4" style="color: var(--color-primary); font-weight: 500;">
+              Open login <span data-icon="chevronRight"></span>
+            </div>
+          </a>
+        </div>
+
+        <!-- Footer note -->
+        <div class="mt-8 mb-4 text-sm text-secondary">
+          <p>
+            <strong>Token contract:</strong> every value used here is a CSS custom property under <code>:root</code> or <code>[data-theme="dark"]</code>.
+            Delete the Angular build pipeline and the design system survives in plain CSS.
+          </p>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="assets/theme.js"></script>
+  <script src="assets/icons.js"></script>
+  <script src="assets/data.js"></script>
+  <script src="assets/app.js"></script>
+  <script>
+    // Render all [data-icon] elements
+    document.querySelectorAll("[data-icon]").forEach((el) => {
+      const name = el.getAttribute("data-icon");
+      el.innerHTML = window.icon(name);
+    });
+    // Theme icon swap
+    function updateThemeIcon() {
+      const t = document.documentElement.getAttribute("data-theme");
+      document.querySelectorAll("[data-theme-icon-light]").forEach((el) => el.hidden = t === "dark");
+      document.querySelectorAll("[data-theme-icon-dark]").forEach((el) => el.hidden = t !== "dark");
+    }
+    updateThemeIcon();
+    document.addEventListener("ce:theme-change", updateThemeIcon);
+  </script>
+</body>
+</html>

@@ -508,6 +508,201 @@ Outputs: `(pageChange)`, `(pageSizeChange)`.
 
 Inputs: `crumbs: Array<{ label: string; route?: string }>` (optional override). When unset, the component reads each activated route's `data.breadcrumb` and concatenates parent → child.
 
+### `ce-checkbox` — Checkbox
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `label` | `string` | — | Visible label text |
+| `checked` | `boolean` | `false` | Two-way (`(checkedChange)`) |
+| `disabled` | `boolean` | `false` | Disable interaction |
+| `indeterminate` | `boolean` | `false` | Indeterminate state |
+| `name` | `string` | — | Native form field name |
+
+A thin styled wrapper around native `<input type="checkbox">` with a custom `ce-` styled box, `--color-primary` check mark, and `:focus-visible` ring. Used on the login page ("Remember my email") and in future filter/setting pages.
+
+## Login page
+
+The login page is the **only page** rendered outside the `AppShell`. It composes base components from this design system and delegates all authentication logic to `AuthService`. The backend contract is defined in `.specs/1 - modernization-roadmap/design.md` (JWT claims, multi-tenant tenant picker, refresh tokens).
+
+### Route and guard
+
+- Route: `/login` (standalone, no parent layout).
+- `AuthGuard` redirects unauthenticated requests to `/login?returnUrl=<encoded URL>`.
+- After successful login + tenant selection, `AuthService` navigates to `returnUrl` or `/`.
+- The login page is **not** lazy-loaded (it is the first route users hit; pre-bundled in the main chunk).
+
+### Composition
+
+```mermaid
+graph TD
+  LP[LoginPageComponent] --> BG[Full-viewport background<br/>var(--color-background)]
+  BG --> TC[Theme toggle button<br/>top-right corner]
+  BG --> CARD[ce-card<br/>centered, max-w-md]
+  CARD --> LOGO[Brand mark<br/>ControlEasy logo]
+  CARD --> H1[h1: Sign in to ControlEasy]
+  CARD --> ERR[Error region<br/>aria-live=assertive]
+  CARD --> EMAIL[ce-input label=Email<br/>type=email<br/>autocomplete=email]
+  CARD --> PASS[ce-input label=Password<br/>type=password<br/>autocomplete=current-password<br/>suffix: show/hide toggle]
+  CARD --> REM[ce-checkbox<br/>label=Remember my email]
+  CARD --> BTN[ce-button variant=primary<br/>type=submit<br/>loading=isSubmitting]
+  CARD --> LINK[Forgot password? link<br/>href=/forgot-password<br/>tone: text-secondary]
+  CARD --> TENANT[Tenant picker view<br/>shown if login response<br/>has >1 tenant]
+  TENANT --> TCARD[ce-card accent=primary<br/>per tenant]
+  TCARD --> TNAME[tenant.displayName]
+  TCARD --> TUSER[userDisplayName for that tenant]
+```
+
+### Login card layout
+
+```css
+/* LoginPageComponent — host styles */
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  background: var(--color-background);
+  padding: var(--space-4);
+}
+
+/* Card wrapper */
+.login-card {
+  width: 100%;
+  max-width: 28rem; /* max-w-md */
+  margin: 0 auto;
+}
+
+/* Brand mark */
+.login-brand {
+  height: 3rem; /* h-12 */
+  margin-bottom: var(--space-6);
+}
+@media (max-width: 639px) {
+  .login-brand { height: 2rem; } /* h-8 on mobile */
+}
+
+/* Form spacing */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Tenant picker grid */
+.tenant-picker {
+  display: grid;
+  gap: var(--space-3);
+}
+@media (min-width: 768px) {
+  .tenant-picker { grid-template-columns: repeat(2, 1fr); }
+}
+```
+
+### Login flow
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant LP as LoginPageComponent
+  participant AS as AuthService
+  participant API as POST /api/v1/auth/login
+  participant TS as POST /api/v1/security/tenant-switch
+
+  U->>LP: Enter email + password, submit
+  LP->>AS: login(email, password)
+  AS->>API: POST { email, password }
+  alt 401 / 400
+    API-->>AS: 401 Unauthorized
+    AS-->>LP: error { status, message }
+    LP->>LP: Show error badge, aria-live=assertive
+  else 200 with 1 tenant
+    API-->>AS: 200 { accessToken, refreshToken, tenants: [{ tenantId, slug, displayName, userDisplayName }] }
+    AS->>AS: Store tokens in AuthService signal
+    AS-->>LP: success
+    LP->>LP: Navigate to returnUrl or /
+  else 200 with >1 tenant
+    API-->>AS: 200 { accessToken, refreshToken, tenants: [...] }
+    AS-->>LP: success (multi-tenant)
+    LP->>LP: Show tenant picker
+    U->>LP: Select tenant
+    LP->>AS: selectTenant(tenantId)
+    AS->>TS: POST { tenantId }
+    TS-->>AS: 200 { accessToken, refreshToken }
+    AS->>AS: Update tokens
+    AS-->>LP: done
+    LP->>LP: Navigate to returnUrl or /
+  end
+```
+
+### Error states
+
+| HTTP status | Error display | Fields affected |
+|---|---|---|
+| 400 (validation) | Per-field `ce-input` error prop (`error` input) | Email and/or password |
+| 401 | `ce-badge tone="danger"` above form: "Invalid email or password." | Password gets `aria-invalid`; focus returns to email |
+| 429 (rate limited) | `ce-badge tone="warning"`: "Too many attempts. Please try again in a few minutes." | Sign-in button disabled for the `Retry-After` duration |
+| Network error | `ce-badge tone="danger"`: "Unable to connect to the server. Please check your network." | None |
+| Session expired redirect | `ToastService.info("Your session has expired. Please sign in again.")` on page mount | Email pre-filled from `localStorage["ce.email"]` if "Remember me" was checked |
+
+### "Remember my email" behavior
+
+- Checking `ce-checkbox` labeled "Remember my email" stores the email in `localStorage["ce.email"]` on successful login.
+- Unchecking it removes `localStorage["ce.email"]`.
+- On mount, if `localStorage["ce.email"]` exists, the email field is pre-filled and the checkbox is checked.
+- Password is **never** stored client-side.
+
+### Password show/hide toggle
+
+- The password `ce-input` has a `[input-suffix]` slot containing a `<button>` with `lucide-icon name="eye"` / `lucide-icon name="eye-off"`.
+- Clicking the button toggles `<input type="password">` ↔ `<input type="text">`.
+- The button has `aria-label="Show password"` / `aria-label="Hide password"`.
+
+### Session expiry redirect
+
+When `AuthInterceptor` detects a 401 with an expired refresh token:
+1. Clear tokens from `AuthService`.
+2. Redirect to `/login?reason=session-expired`.
+3. `LoginPageComponent` reads `reason` from `ActivatedRoute.queryParams`.
+4. If `reason === 'session-expired'`, fire `ToastService.info($localize`Your session has expired. Please sign in again.`)` on `ngOnInit`.
+5. Pre-fill email from `localStorage["ce.email"]` if available.
+
+### Theme toggle on login page
+
+- A standalone theme toggle button (`sun`/`moon` Lucide icon) is pinned to `position: fixed; top: var(--space-4); right: var(--space-4); z-index: 40;` on the login page.
+- It uses the global `ThemeService.toggle()` method.
+- The FOUC-prevention `<script>` in `index.html` (from Phase B, task B.5) ensures the correct `data-theme` is applied before Angular bootstraps, so the login page never flashes.
+
+### Dark mode on login page
+
+- The login card uses `bg-surface-elevated` (`var(--color-surface-elevated)`) in both themes.
+- The viewport background uses `var(--color-background)`.
+- In dark mode, the card gets an inset border: `box-shadow: inset 0 0 0 1px var(--color-border);` to maintain contrast against the dark background.
+- All text, inputs, and buttons use design-system tokens; no hex literals.
+
+### Accessibility (login-specific)
+
+- `<main id="login" tabindex="-1">` for skip-link target (the skip link on the login page jumps past the theme toggle to the main landmark).
+- `<h1>` is "Sign in to ControlEasy" (i18n: `$localize`:@@LOGIN.HEADING:Sign in to ControlEasy``).
+- `aria-live="assertive"` region for error messages (screen readers announce errors immediately).
+- Password show/hide button: `aria-label` toggles between "Show password" and "Hide password".
+- After a failed login attempt, `focus()` returns to the email input.
+- After a successful login, `focus()` moves to `<main id="main">` in the `AppShell`.
+- All touch targets ≥ 44×44px.
+
+### New base component: `ce-checkbox`
+
+The login page requires a checkbox. A thin `ce-checkbox` component is added to the base component inventory:
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `label` | `string` | — | Visible label text |
+| `checked` | `boolean` | `false` | Two-way (`(checkedChange)`) |
+| `disabled` | `boolean` | `false` | Disable interaction |
+| `indeterminate` | `boolean` | `false` | Indeterminate state |
+| `name` | `string` | — | Native form field name |
+
+Styling: custom check box (20×20px, `var(--radius-sm)`, `var(--color-primary)` fill when checked), `var(--color-primary)` check mark SVG, `:focus-visible` ring of `0 0 0 3px color-mix(in oklch, var(--color-primary) 15%, transparent)`. Label text is `var(--font-size-sm)`, `var(--color-text-secondary)`.
+
 ## Layout shell
 
 ### `AppShell`

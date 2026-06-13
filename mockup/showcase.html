@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Showcase — ControlEasy Reborn Design System</title>
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("ce.theme") || "system";
+        if (t === "system") {
+          t = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) { /* ignore */ }
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .showcase-toc {
+      position: sticky; top: 4rem; z-index: 30;
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      padding: var(--space-3) var(--space-6);
+      display: flex; gap: var(--space-2); flex-wrap: wrap;
+      font-size: var(--font-size-sm);
+      margin: calc(-1 * var(--space-6));
+      margin-bottom: var(--space-6);
+    }
+    .showcase-toc a {
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-full);
+      color: var(--color-text-secondary);
+    }
+    .showcase-toc a:hover { background: var(--color-neutral-light); color: var(--color-text-primary); }
+    .color-swatch {
+      width: 100%; height: 4rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+      margin-bottom: var(--space-2);
+    }
+    .color-swatch-label { font-size: var(--font-size-xs); font-weight: 600; }
+    .color-swatch-value { font-family: var(--font-family-mono); font-size: 0.7rem; color: var(--color-text-muted); }
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Main navigation">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-mark">CE</div>
+        <div class="sidebar-brand-text">ControlEasy</div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-nav-section">
+          <div class="sidebar-nav-title">Overview</div>
+          <a class="sidebar-nav-item" href="index.html">
+            <span data-icon="dashboard"></span>
+            <span class="sidebar-nav-text">Início</span>
+          </a>
+        </div>
+        <div class="sidebar-nav-section">
+          <div class="sidebar-nav-title">Design System</div>
+          <a class="sidebar-nav-item active" href="showcase.html">
+            <span data-icon="settings"></span>
+            <span class="sidebar-nav-text">Showcase</span>
+          </a>
+          <a class="sidebar-nav-item" href="app.html">
+            <span data-icon="building"></span>
+            <span class="sidebar-nav-text">App Shell</span>
+          </a>
+          <a class="sidebar-nav-item" href="login.html">
+            <span data-icon="user"></span>
+            <span class="sidebar-nav-text">Login</span>
+          </a>
+        </div>
+      </nav>
+    </aside>
+
+    <div class="main-area">
+      <header class="topbar" role="banner">
+        <button class="topbar-menu-btn icon-btn" data-mobile-menu aria-label="Open menu">
+          <span data-icon="menu"></span>
+        </button>
+        <nav class="ce-breadcrumbs" aria-label="Breadcrumb">
+          <ol>
+            <li><a href="index.html">Início</a></li>
+            <li><a href="#">Design system</a></li>
+            <li aria-current="page">Showcase</li>
+          </ol>
+        </nav>
+        <div class="topbar-actions">
+          <button class="icon-btn" data-theme-toggle aria-label="Toggle theme" data-tooltip="Toggle theme (light → dark → system)">
+            <span data-icon="sun" data-theme-icon-light></span>
+            <span data-icon="moon" data-theme-icon-dark hidden></span>
+          </button>
+        </div>
+      </header>
+
+      <main id="main" class="page-content" tabindex="-1">
+        <div class="page-header">
+          <div class="page-title-block">
+            <h1 class="page-title">Component Showcase</h1>
+            <p class="page-subtitle">All 17 base components in every variant. Theme tokens auto-respond to the global data-theme attribute.</p>
+          </div>
+        </div>
+
+        <nav class="showcase-toc" aria-label="Section navigation">
+          <a href="#button">Button</a>
+          <a href="#card">Card</a>
+          <a href="#input">Input</a>
+          <a href="#stat-tile">StatTile</a>
+          <a href="#badge">Badge</a>
+          <a href="#modal">Modal</a>
+          <a href="#toast">Toast</a>
+          <a href="#table">Table</a>
+          <a href="#empty-state">EmptyState</a>
+          <a href="#spinner">Spinner</a>
+          <a href="#avatar">Avatar</a>
+          <a href="#tabs">Tabs</a>
+          <a href="#dropdown">Dropdown</a>
+          <a href="#tooltip">Tooltip</a>
+          <a href="#pagination">Pagination</a>
+          <a href="#breadcrumbs">Breadcrumbs</a>
+          <a href="#checkbox">Checkbox</a>
+        </nav>
+
+        <!-- ============ BUTTON ============ -->
+        <section id="button" class="showcase-section">
+          <div class="showcase-section-header">
+            <h2 class="showcase-section-title">ce-button</h2>
+            <span class="showcase-section-uc">UC-009</span>
+          </div>
+          <div class="showcase-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+            <div class="showcase-card">
+              <div class="showcase-card-title">Variants</div>
+              <div class="row row-2 row-wrap">
+                <button class="ce-button variant-primary size-md">Primary</button>
+                <button class="ce-button variant-secondary size-md">Secondary</button>
+                <button class="ce-button variant-ghost size-md">Ghost</button>
+                <button class="ce-button variant-danger size-md">Danger</button>
+              </div>
+            </div>
+            <div class="showcase-card">
+              <div class="showcase-card-title">Sizes</div>
+              <div class="row row-2 row-wrap" style="align-items: center;">
+                <button class="ce-button variant-primary size-sm">Small</button>
+                <button class="ce-button variant-primary size-md">Medium</button>
+                <button class="ce-button variant-primary size-lg">Large</button>
+              </div>
+            </div>
+            <div class="showcase-card">
+              <div class="showcase-card-title">States</div>
+              <div class="row row-2 row-wrap">
+                <button class="ce-button variant-primary size-md" disabled>Disabled</button>
+                <button class="ce-button variant-primary size-md" aria-busy="true">
+                  <span class="ce-spinner size-sm tone-current" style="color: white;"></span>
+                  Loading
+                </button>
+                <button class="ce-button variant-primary size-md" data-tooltip="Saved!">
+                  With icon <span data-icon="check" style="color:white;"></span>
+                </button>
+              </div>
+            </div>
+            <div class="showcase-card">
+              <div class="showcase-card-title">With Lucide icon</div>
+              <div class="row row-2 row-wrap">
+                <button class="ce-button variant-primary size-md">
+                  <span data-icon="user"></span> Sign in
+                </button>
+                <button class="ce-button variant-secondary size-md">
+                  <span data-icon="settings"></span> Settings
+                </button>
+                <button class="ce-button variant-danger size-md">
+                  <span data-icon="x"></span> Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ CARD ============ -->
+        <section id="card" class="showcase-section">
+          <div class="showcase-section-header">
+            <h2 class="showcase-section-title">ce-card</h2>
+            <span class="showcase-section-uc">UC-010</span>
+          </div>
+          <div class="showcase-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+            <div class="ce-card accent-primary">
+              <h4 class="mb-2">Primary accent</h4>
+              <p class="text-sm text-secondary">A surface for content that needs emphasis on the left border.</p>
+            </div>
+            <div class="ce-card accent-success">
+              <h4 class="mb-2">Success accent</h4>
+              <p class="text-sm text-secondary">Use for "saved", "approved", "active" semantics.</p>
+            </div>
+            <div class="ce-card accent-warning">
+              <h4 class="mb-2">Warning accent</h4>
+              <p class="text-sm text-secondary">Pending review, needs attention but not yet a problem.</p>
+            </div>
+            <div class="ce-card accent-danger">
+              <h4 class="mb-2">Danger accent</h4>
+              <p class="text-sm text-secondary">Errors, deletions, things that need urgent attention.</p>
+            </div>
+            <div class="ce-card accent-info">
+              <h4 class="mb-2">Info accent</h4>
+              <p class="text-sm text-secondary">Informational banners, tips, and contextual help.</p>
+            </div>
+            <div class="ce-card">
+              <h4 class="mb-2">No accent</h4>
+              <p class="text-sm text-secondary">The default card. Use when semantic color is not needed.</p>
+            </div>
+          </div>
+          <div class="ce-card mt-4">
+            <div ce-card-header style="font-weight: 600; padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-border); margin-bottom: var(--space-3);">Card with header &amp; footer</div>
+            <p class="text-sm text-secondary mb-4">The card body holds arbitrary content. The header and footer slots are optional and have their own padding/border.</p>
+            <div ce-card-footer style="display: flex; gap: var(--space-2); justify-content: flex-end; padding-top: var(--space-3); border-top: 1px solid var(--color-border);">
+              <button class="ce-button variant-ghost size-sm">Cancel</button>
+              <button class="ce-button variant-primary size-sm">Save</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ INPUT ============ -->
+        <section id="input" class="showcase-section">
+          <div class="showcase-section-header">
+            <h2 class="showcase-section-title">ce-input</h2>
+            <span class="showcase-section-uc">UC-011</span>
+          </div>
+          <div class="showcase-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+            <div class="showcase-card">
+              <div class="ce-input-group">
+                <label class="ce-input-label" for="demo-1">Email</label>
+                <div class="ce-input-wrapper">
+                  <input id="demo-1" class="ce-input" type="email" placeholder="resident@controleasy.app" value="renata@acme.com" />
+                </div>
+                <span class="ce-input-helper">We'll send a confirmation link here.</span>
+              </div>
+            </div>
+            <div class="showcase-card">
+              <div class="ce-input-group">
+                <label class="ce-input-label" for="demo-2">Apartment</label>
+                <div class="ce-input-wrapper">
+                  <span class="ce-input-prefix" data-icon="home"></span>
+                  <input id="demo-2" class="ce-input" placeholder="e.g. 102-A" />
+                </div>
+                <span class="ce-input-helper">Number or letter code.</span>
+              </div>
+            </div>
+            <div class="showcase-card">
+              <div class="ce-input-group">
+                <label class="ce-input-label" for="demo-3">Phone</label>
+                <div class="ce-input-wrapper has-error">
+                  <input id="demo-3" class="ce-input" placeholder="(11) 99999-0000" value="123" aria-invalid="true" aria-describedby="demo-3-err" />
+                  <span class="ce-input-suffix" data-icon="alert" style="color: var(--color-danger);"></span>
+                </div>
+                <span class="ce-input-error" id="demo-3-err">Phone number is too short.</span>
+              </div>
+            </div>
+            <div class="showcase-card">
+              <div class="ce-input-group">
+                <label class="ce-input-label" for="demo-4">Search</label>
+                <div class="ce-input-wrapper">
+                  <span class="ce-input-prefix" data-icon="search"></span>
+                  <input id="demo-4" class="ce-input" placeholder="Find a resident…" />
+                  <button class="ce-input-suffix" style="background: transparent; border: 0; cursor: pointer;" data-tooltip="Search">→</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ STAT TILE ============ -->
+        <section id="stat-tile" class="showcase-section">
+          <div class="showcase-section-header">
+            <h2 class="showcase-section-title">ce-stat-tile</h2>
+            <span class="showcase-section-uc">UC-012</span>
+          </div>
+          <div class="showcase-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+            <div class="ce-stat-tile">
+              <div class="ce-stat-tile-label">Visits this week</div>
+              <div class="ce-stat-tile-value">247</div>
+              <div class="ce-stat-tile-trend trend-up">
+                <span data-icon="arrowUp"></span> 12% vs last week
+              </div>
+            </div>
+            <div class="ce-stat-tile">
+              <div class="ce-stat-tile-label">Incidents</div>
+              <div class="ce-stat-tile-value">2</div>
+              <div class="ce-stat-tile-trend trend-down">
+                <span data-icon="arrowDown"></span> 50% fewer
+              </div>
+            </div>
+            <div class="ce-stat-tile">
+              <div class="ce-stat-tile-label">Average wait</div>
+              <div class="ce-stat-tile-value">3:42</div>
+              <div class="ce-stat-tile-trend trend-flat">
+                <span data-icon="minus"></span> Stable
+              </div>
+            </div>
+            <div class="ce-stat-tile">
+              <div class="ce-stat-tile-label">Open tickets</div>
+              <div class="ce-stat-tile-value">0</div>
+              <div class="ce-stat-tile-trend trend-flat">
+                <span data-icon="check"></span> All resolved
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ BADGE ============ -->
+        <section id="badge" class="showcase-section">
+          <div class="showcase-section-header">
+            <h2 class="showcase-section-title">ce-badge</h2>
+            <span class="showcase-section-uc">UC-013</span>
+          </div>
+          <div class="showcase-card">
+            <div class="row row-2 row-wrap" style="margin-bottom: var(--space-3);">
+              <span class="ce-badge tone-primary size-md">Primary</span>
+              <span class="ce-badge tone-success size-md">Active</span>
+              <span class="ce-badge tone-warning size-md">Pending</span>
+              <span class="ce-badge tone-danger size-md">Overdue</span>
+              <span class="ce-badge tone-info size-md">New</span>
+              <span class="ce-badge tone-neutral size-md">Archived</span>
+            </div>
+            <div class="row row-2 row-wrap">
+              <span class="ce-badge tone-primary size-sm">Primary sm</span>
+              <span class="ce-badge tone-success size-sm">Active sm</span>
+              <span class="ce-badge tone-warning size-sm">Pending sm</span>
+              <span class="ce-badge tone-danger size-sm">Overdue sm</span>
+              <span class="ce-badge tone-info size-sm">New sm</span>
+              <span class="ce-badge tone-neutral size-sm">Neutral sm</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ MODAL ============ -->
+        <section id="modal" class="showcase-section">
+          <div class="showcase-section-header">
+            <h2 class="showcase-section-title">ce-modal</h2>
+            <span class="showcase-section-uc">UC-014</span>
+          </div>
+          <div class="showcase-card">
+            <div class="row row-2 row-wrap">
+              <button class="ce-button variant-primary size-md" data-modal-open="modal-demo-sm">Small modal</button>
+              <button class="ce-button variant-secondary size-md" data-modal-open="modal-demo-md">Medium modal</button>
+              <button class="ce-button variant-secondary size-md" data-modal-open="modal-demo-lg">Large modal</button>
+              <button class="ce-button variant-danger size-md" data-modal-open="modal-demo-confirm">Confirm dialog</button>
+            </div>
+          </div>
+
+          <!-- Modal: small -->
+          <div class="ce-modal-backdrop" id="modal-demo-sm" hidden>
+            <div class="ce-modal size-sm" role="dialog" aria-modal="true" aria-labelledby="modal-sm-title">
+              <div class="ce-modal-header">
+                <h3 class="ce-modal-title" id="modal-sm-title">Small modal</h3>
+                <button class="ce-modal-close" data-modal-close aria-label="Close">
+                  <span data-icon="x"></span>
+                </button>
+              </div>
+              <div class="ce-modal-body">
+                <p>Used for compact dialogs: confirmations, single-field inputs.</p>
+              </div>
+              <div class="ce-modal-footer">
+                <button class="ce-button variant-ghost size-sm" data-modal-close>Cancel</button>
+                <button class="ce-button variant-primary size-sm" data-modal-close>OK</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal: medium -->
+          <div class="ce-modal-backdrop" id="modal-demo-md" hidden>
+            <div class="ce-modal size-md" role="dialog" aria-modal="true" aria-labelledby="modal-md-title">
+              <div class="ce-modal-header">
+                <h3 class="ce-modal-title" id="modal-md-title">Add resident</h3>
+                <button class="ce-modal-close" data-modal-close aria-label="Close">
+                  <span data-icon="x"></span>
+                </button>
+              </div>
+              <div class="ce-modal-body">
+                <div class="stack stack-4">
+                  <div class="ce-input-group">
+                    <label class="ce-input-label" for="m-name">Full name</label>
+                    <div class="ce-input-wrapper">
+                      <input id="m-name" class="ce-input" placeholder="e.g. Maria Silva" />
+                    </div>
+                  </div>
+                  <div class="ce-input-group">
+                    <label class="ce-input-label" for="m-apt">Apartment</label>
+                    <div class="ce-input-wrapper">
+                      <input id="m-apt" class="ce-input" placeholder="e.g. 102-A" />
+                    </div>
+                  </div>
+                  <div class="ce-input-group">
+                    <label class="ce-input-label" for="m-phone">Phone</label>
+                    <div class="ce-input-wrapper">
+                      <input id="m-phone" class="ce-input" placeholder="(11) 99999-0000" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="ce-modal-footer">
+                <button class="ce-button variant-ghost size-sm" data-modal-close>Cancel</button>
+                <button class="ce-button variant-primary size-sm" data-modal-close>Save resident</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal: large -->
+          <div class="ce-modal-backdrop" id="modal-demo-lg" hidden>
+            <div class="ce-modal size-lg" role="dialog" aria-modal="true" aria-labelledby="modal-lg-title">
+              <div class="ce-modal-header">
+                <h3 class="ce-modal-title" id="modal-lg-title">Visit details</h3>
+                <button class="ce-modal-close" data-modal-close aria-label="Close">
+                  <span data-icon="x"></span>
+                </button>
+              </div>
+              <div class="ce-modal-body">
+                <p>Large modals are used for detailed views: full visit history, multi-step forms, list-with-detail layouts. They fill up to 48rem (768px) wide.</p>
+                <div class="grid mt-4" style="grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+                  <div class="ce-stat-tile">
+                    <div class="ce-stat-tile-label">Total visits</div>
+                    <div class="ce-stat-tile-value">142</div>
+                  </div>
+                  <div class="ce-stat-tile">
+                    <div class="ce-stat-tile-label">Avg. duration</div>
+                    <div class="ce-stat-tile-value">28 min</div>
+                  </div>
+                </div>
+              </div>
+              <div class="ce-modal-footer">
+                <button class="ce-button variant-ghost size-sm" data-modal-close>Close</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal: confirm -->
+          <div class="ce-modal-backdrop" id="modal-demo-confirm" hidden>
+            <div class="ce-modal size-sm" role="dialog" aria-modal="true" aria-labelledby="modal-confirm-title">
+              <div class="ce-modal-header">
+                <h3 class="ce-modal-title" id="modal-confirm-title">Deactivate resident?</h3>
+                <button class="ce-modal-close" data-modal-close aria-label="Close">
+                  <span data-icon="x"></span>
+                </button>
+              </div>
+              <div class="ce-modal-body">
+                <p>This will revoke access for <strong>Maria Silva</strong>. Their history is preserved but they will no longer be able to register visits or receive deliveries.</p>
+              </div>
+              <div class="ce-modal-footer">
+                <button class="ce-button variant-ghost size-sm" data-modal-close>Cancel</button>
+                <button class="ce-button variant-danger size-sm" data-modal-close>Deactivate</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ TOAST ============ -->
+        <section id="toast" class="showcase-section">
+          <div class="showcase-section-header">
+            <h2 class="showcase-section-title">ce-toast (service)</h2>
+            <span class="showcase-section-uc">UC-015</span>
+          </div>
+          <div class="showcase-card">
+            <div class="row row-2 row-wrap">
+              <button class="ce-button variant-primary size-md" data-toast="success" data-toast-msg="Resident saved successfully.">
+                <span data-icon="check"></span> Success
+              </button>
+              <button class="ce-button variant-secondary size-md" data-toast="info" data-toast-msg="Sync in progress…">
+                <span data-icon="info"></span> Info
+              </button>
+              <button class="ce-button variant-secondary size-md" data-toast="warning" data-toast-msg="Session expires in 5 minutes.">
+                <span data-icon="alert"></span> Warning
+              </button>
+              <button class="ce-button variant-danger size-md" data-toast="danger" data-toast-msg="Failed to save resident. Please try again.">
+                <span data-icon="x"></span> Error
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ TABLE ============ -->
+        <section id="table" class="showcase-section">
+          <div class="showcase-section-header">
+            <h2 class="showcase-section-title">ce-table</h2>
+            <span class="showcase-section-uc">UC-016</span>
+          </div>
+          <div class="ce-table-wrapper">
+            <table class="ce-table" aria-label="Sample residents table">
+              <thead>
+                <tr>
+                  <th scope="col">Name</th>
+                  <th scope="col">Apartment</th>
+                  <th scope="col">Phone</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Last visit</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Maria Silva</strong></td>
+                  <td>102-A</td>
+                  <td>(11) 98765-4321</td>
+                  <td><span class="ce-badge tone-success size-sm">Active</span></td>
+                  <td>2026-06-10 14:22</td>
+                </tr>
+                <tr>
+                  <td><strong>João Pereira</strong></td>
+                  <td>205-B</td>
+                  <td>(11) 99876-5432</td>
+                  <td><span class="ce-badge tone-success size-sm">Active</span></td>
+                  <td>2026-06-09 09:15</td>
+                </tr>
+                <tr>
+                  <td><strong>Ana Costa</strong></td>
+                  <td>312-C</td>
+                  <td>(11) 97654-3210</td>
+                  <td><span class="ce-badge tone-warning size-sm">Pending</span></td>
+                  <td>2026-06-08 18:40</td>
+                </tr>
+                <tr>
+                  <td><strong>Carlos Mendes</strong></td>
+                  <td>408-D</td>
+                  <td>(11) 96543-2109</td>
+                  <td><span class="ce-badge tone-danger size-sm">Overdue</span></td>
+                  <td>2026-05-15 11:05</td>
+                </tr>
+                <tr>
+                  <td><strong>Beatriz Lima</strong></td>
+                  <td>501-A</td>
+                  <td>(11) 95432-1098</td>
+                  <td><span class="ce-badge tone-neutral size-sm">Inactive</span></td>
+                  <td>2026-04-22 16:30</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ============ EMPTY STATE ============ -->
+        <section id="empty-state" class="showcase-section">
+          <div class="showcase-section-header">
+            <h2 class="showcase-section-title">ce-empty-state</h2>
+            <span class="showcase-section-uc">UC-017</span>
+          </div>
+          <div class="ce-card" style="padding: 0;">
+            <div class="ce-empty-state">
+              <div class="ce-empty-state-icon">
+                <span data-icon="inbox"></span>
+              </div>
+              <div class="ce-empty-state-title">No residents yet</div>
+              <p class="ce-empty-state-description">Start by adding the first resident of this condominium. They will be able to register visits and receive deliveries.</p>
+              <button class="ce-button variant-primary size-md mt-3">
+                <span data-icon="user"></span> Add first resident
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ SPINNER ============ -->
+        <section id="spinner" class="showcase-section">
+          <div class="showcase-section-header">
+            <h2 class="showcase-section-title">ce-spinner</h2>
+            <span class="showcase-section-uc">UC-018</span>
+          </div>
+          <div class="showcase-card">
+            <div class="row row-6" style="align-items: center; flex-wrap: wrap;">
+              <div class="stack stack-2" style="align-items: center;">
+                <span class="ce-spinner size-sm tone-primary" role="status" aria-label="Loading"></span>
+                <span class="text-xs text-secondary">Small</span>
+              </div>
+              <div class="stack stack-2" style="align-items: center;">
+                <span class="ce-spinner size-md tone-primary" role="status" aria-label="Loading"></span>
+                <span class="text-xs text-secondary">Medium</span>
+              </div>
+              <div class="stack stack-2" style="align-items: center;">
+                <span class="ce-spinner size-lg tone-primary" role="status" aria-label="Loading"></span>
+                <span class="text-xs text-secondary">Large</span>
+              </div>
+              <div class="stack stack-2" style="align-items: center; color: var(--color-text-secondary);">
+                <span class="ce-spinner size-md tone-current" role="status" aria-label="Loading"></span>
+                <span class="text-xs">Current color</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ AVATAR ============ -->
+        <section id="avatar" class="showcase-section">
+          <div class="showcase-section-header">
+            <h2 class="showcase-section-title">ce-avatar</h2>
+            <span class="showcase-section-uc">UC-019</span>
+          </div>
+          <div class="showcase-card">
+            <div class="row row-3" style="flex-wrap: wrap; align-items: center;">
+              <div class="stack stack-2" style="align-items: center;">
+                <div class="ce-avatar size-xs" data-avatar-name="Maria Silva" style="background: linear-gradient(135deg, #4f46e5, #818cf8);"><span data-avatar-initials></span></div>
+                <span class="text-xs">XS (24px)</span>
+              </div>
+              <div class="stack stack-2" style="align-items: center;">
+                <div class="ce-avatar size-sm" data-avatar-name="João Pereira" style="background: linear-gradient(135deg, #22c55e, #86efac);"><span data-avatar-initials></span></div>
+                <span class="text-xs">SM (32px)</span>
+              </div>
+              <div class="stack stack-2" style="align-items: center;">
+                <div class="ce-avatar size-md" data-avatar-name="Ana Costa" style="background: linear-gradient(135deg, #f59e0b, #fcd34d);"><span data-avatar-initials></span></div>
+                <span class="text-xs">MD (40px)</span>
+              </div>
+              <div class="stack stack-2" style="align-items: center;">
+                <div class="ce-avatar size-lg" data-avatar-name="Carlos Mendes" style="background: linear-gradient(135deg, #ef4444, #fca5a5);"><span data-avatar-initials></span></div>
+                <span class="text-xs">LG (48px)</span>
+              </div>
+              <div class="stack stack-2" style="align-items: center;">
+                <div class="ce-avatar size-xl" data-avatar-name="Beatriz Lima" style="background: linear-gradient(135deg, #db2777, #fbcfe8);"><span data-avatar-initials></span></div>
+                <span class="text-xs">XL (64px)</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ TABS ============ -->
+        <section id="tabs" class="showcase-section">
+          <div class="showcase-section-header">
+            <h2 class="showcase-section-title">ce-tabs</h2>
+            <span class="showcase-section-uc">UC-020</span>
+          </div>
+          <div class="ce-card">
+            <div class="ce-tabs" role="tablist" aria-label="Sample tabs">
+              <div class="ce-tabs-list">
+                <button class="ce-tab" role="tab" aria-selected="true" aria-controls="tab-upcoming" id="tab-tab-upcoming">Upcoming</button>
+                <button class="ce-tab" role="tab" aria-selected="false" aria-controls="tab-past" id="tab-tab-past" tabindex="-1">Past</button>
+                <button class="ce-tab" role="tab" aria-selected="false" aria-controls="tab-recurring" id="tab-tab-recurring" tabindex="-1">Recurring</button>
+                <button class="ce-tab" role="tab" aria-selected="false" aria-controls="tab-providers" id="tab-tab-providers" tabindex="-1">Service providers</button>
+              </div>
+            </div>
+            <div class="ce-tab-panel" id="tab-upcoming" role="tabpanel" aria-labelledby="tab-tab-upcoming">
+              <h4 class="mb-2">Upcoming visits</h4>
+              <p class="text-secondary text-sm">Maria has 2 visits scheduled for next week: her sister on Sunday afternoon, and a delivery on Wednesday morning.</p>
+            </div>
+            <div class="ce-tab-panel" id="tab-past" role="tabpanel" aria-labelledby="tab-tab-past" hidden>
+              <h4 class="mb-2">Past visits</h4>
+              <p class="text-secondary text-sm">142 visits in the last 6 months. Most recent: 2026-06-10 by "DHL Express" (service provider).</p>
+            </div>
+            <div class="ce-tab-panel" id="tab-recurring" role="tabpanel" aria-labelledby="tab-tab-recurring" hidden>
+              <h4 class="mb-2">Recurring visitors</h4>
+              <p class="text-secondary text-sm">3 recurring: cleaning service (Tuesdays), her father (Sundays), dog walker (weekdays).</p>
+            </div>
+            <div class="ce-tab-panel" id="tab-providers" role="tabpanel" aria-labelledby="tab-tab-providers" hidden>
+              <h4 class="mb-2">Service providers</h4>
+              <p class="text-secondary text-sm">Linked to Maria: 1 provider (DHL Express) with a recurring delivery schedule.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ DROPDOWN ============ -->
+        <section id="dropdown" class="showcase-section">
+          <div class="showcase-section-header">
+            <h2 class="showcase-section-title">ce-dropdown</h2>
+            <span class="showcase-section-uc">UC-021</span>
+          </div>
+          <div class="showcase-card">
+            <div class="row row-3 row-wrap">
+              <div class="ce-dropdown">
+                <button class="ce-button variant-primary size-md" data-dropdown-trigger="dd-actions">
+                  Actions <span data-icon="chevronRight" style="transform: rotate(90deg);"></span>
+                </button>
+                <div class="ce-dropdown-menu" id="dd-actions" role="menu">
+                  <button class="ce-dropdown-item" role="menuitem">
+                    <span data-icon="user"></span> View profile
+                  </button>
+                  <button class="ce-dropdown-item" role="menuitem">
+                    <span data-icon="settings"></span> Edit
+                  </button>
+                  <button class="ce-dropdown-item" role="menuitem">
+                    <span data-icon="check"></span> Mark as active
+                  </button>
+                  <hr class="ce-dropdown-divider" />
+                  <button class="ce-dropdown-item" role="menuitem" style="color: var(--color-danger);">
+                    <span data-icon="x"></span> Deactivate
+                  </button>
+                </div>
+              </div>
+              <div class="ce-dropdown">
+                <button class="ce-button variant-secondary size-md" data-dropdown-trigger="dd-sort">
+                  Sort by: Name <span data-icon="chevronRight" style="transform: rotate(90deg);"></span>
+                </button>
+                <div class="ce-dropdown-menu" id="dd-sort" role="menu">
+                  <button class="ce-dropdown-item" role="menuitem">Name (A→Z)</button>
+                  <button class="ce-dropdown-item" role="menuitem">Name (Z→A)</button>
+                  <button class="ce-dropdown-item" role="menuitem">Apartment</button>
+                  <button class="ce-dropdown-item" role="menuitem">Last visit (newest)</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ TOOLTIP ============ -->
+        <section id="tooltip" class="showcase-section">
+          <div class="showcase-section-header">
+            <h2 class="showcase-section-title">ce-tooltip (directive)</h2>
+            <span class="showcase-section-uc">UC-022</span>
+          </div>
+          <div class="showcase-card">
+            <div class="row row-3 row-wrap">
+              <button class="ce-button variant-primary size-md" data-tooltip="Save changes">
+                <span data-icon="check"></span> Save
+              </button>
+              <button class="ce-button variant-secondary size-md" data-tooltip="Open settings page">
+                <span data-icon="settings"></span>
+              </button>
+              <button class="ce-button variant-ghost size-md" data-tooltip="Delete this record">
+                <span data-icon="x"></span>
+              </button>
+              <span data-tooltip="This is a tooltip on a span" style="cursor: help; text-decoration: underline; color: var(--color-primary);">Hover me</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ PAGINATION ============ -->
+        <section id="pagination" class="showcase-section">
+          <div class="showcase-section-header">
+            <h2 class="showcase-section-title">ce-pagination</h2>
+            <span class="showcase-section-uc">UC-023</span>
+          </div>
+          <div class="ce-card">
+            <nav class="ce-pagination" aria-label="Pagination" data-total="247" data-size="10">
+              <div class="ce-pagination-info">Showing 1–10 of 247 results</div>
+              <div class="ce-pagination-controls">
+                <button class="ce-pagination-btn" data-prev disabled aria-label="First page">
+                  <span data-icon="chevronsLeft"></span>
+                </button>
+                <button class="ce-pagination-btn" data-prev disabled aria-label="Previous page">
+                  <span data-icon="chevronLeft"></span>
+                </button>
+                <button class="ce-pagination-btn ce-page-num active">1</button>
+                <button class="ce-pagination-btn ce-page-num">2</button>
+                <button class="ce-pagination-btn ce-page-num">3</button>
+                <span style="padding: 0 var(--space-1); color: var(--color-text-muted);">…</span>
+                <button class="ce-pagination-btn ce-page-num">25</button>
+                <button class="ce-pagination-btn" data-next aria-label="Next page">
+                  <span data-icon="chevronRight"></span>
+                </button>
+                <button class="ce-pagination-btn" data-next aria-label="Last page">
+                  <span data-icon="chevronsRight"></span>
+                </button>
+              </div>
+            </nav>
+          </div>
+        </section>
+
+        <!-- ============ BREADCRUMBS ============ -->
+        <section id="breadcrumbs" class="showcase-section">
+          <div class="showcase-section-header">
+            <h2 class="showcase-section-title">ce-breadcrumbs</h2>
+            <span class="showcase-section-uc">UC-024</span>
+          </div>
+          <div class="ce-card stack stack-3">
+            <nav class="ce-breadcrumbs" aria-label="Breadcrumb">
+              <ol>
+                <li><a href="#">Início</a></li>
+                <li><a href="#">Residents</a></li>
+                <li aria-current="page">Maria Silva</li>
+              </ol>
+            </nav>
+            <nav class="ce-breadcrumbs" aria-label="Breadcrumb">
+              <ol>
+                <li><a href="#">Início</a></li>
+                <li><a href="#">Administration</a></li>
+                <li><a href="#">Audit log</a></li>
+                <li aria-current="page">Event #4821</li>
+              </ol>
+            </nav>
+          </div>
+        </section>
+
+        <!-- ============ CHECKBOX ============ -->
+        <section id="checkbox" class="showcase-section">
+          <div class="showcase-section-header">
+            <h2 class="showcase-section-title">ce-checkbox</h2>
+            <span class="showcase-section-uc">UC-042</span>
+          </div>
+          <div class="showcase-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+            <div class="showcase-card">
+              <div class="showcase-card-title">States</div>
+              <div class="stack stack-2">
+                <label class="ce-checkbox">
+                  <input type="checkbox" />
+                  <span class="ce-checkbox-box"></span>
+                  <span>Unchecked</span>
+                </label>
+                <label class="ce-checkbox">
+                  <input type="checkbox" checked />
+                  <span class="ce-checkbox-box"></span>
+                  <span>Checked</span>
+                </label>
+                <label class="ce-checkbox">
+                  <input type="checkbox" />
+                  <span class="ce-checkbox-box" id="indeterminate-target"></span>
+                  <span>Indeterminate</span>
+                </label>
+                <label class="ce-checkbox">
+                  <input type="checkbox" disabled />
+                  <span class="ce-checkbox-box"></span>
+                  <span>Disabled</span>
+                </label>
+                <label class="ce-checkbox">
+                  <input type="checkbox" checked disabled />
+                  <span class="ce-checkbox-box"></span>
+                  <span>Checked + disabled</span>
+                </label>
+              </div>
+            </div>
+            <div class="showcase-card">
+              <div class="showcase-card-title">In a form</div>
+              <div class="stack stack-2">
+                <label class="ce-checkbox">
+                  <input type="checkbox" name="notif" checked />
+                  <span class="ce-checkbox-box"></span>
+                  <span>Email me when a visit arrives</span>
+                </label>
+                <label class="ce-checkbox">
+                  <input type="checkbox" name="notif" />
+                  <span class="ce-checkbox-box"></span>
+                  <span>SMS for urgent notifications</span>
+                </label>
+                <label class="ce-checkbox">
+                  <input type="checkbox" name="notif" checked />
+                  <span class="ce-checkbox-box"></span>
+                  <span>Weekly activity digest</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ COLOR TOKENS ============ -->
+        <section id="colors" class="showcase-section">
+          <div class="showcase-section-header">
+            <h2 class="showcase-section-title">Color tokens</h2>
+            <span class="showcase-section-uc">UC-001</span>
+          </div>
+          <div class="showcase-grid" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));">
+            <div>
+              <div class="color-swatch" style="background: var(--color-background);"></div>
+              <div class="color-swatch-label">--color-background</div>
+              <div class="color-swatch-value">#f8fafc / #0b1020</div>
+            </div>
+            <div>
+              <div class="color-swatch" style="background: var(--color-surface);"></div>
+              <div class="color-swatch-label">--color-surface</div>
+              <div class="color-swatch-value">#ffffff / #111827</div>
+            </div>
+            <div>
+              <div class="color-swatch" style="background: var(--color-text-primary);"></div>
+              <div class="color-swatch-label">--color-text-primary</div>
+              <div class="color-swatch-value">#0f172a / #f1f5f9</div>
+            </div>
+            <div>
+              <div class="color-swatch" style="background: var(--color-primary);"></div>
+              <div class="color-swatch-label">--color-primary</div>
+              <div class="color-swatch-value">#4f46e5 / #818cf8</div>
+            </div>
+            <div>
+              <div class="color-swatch" style="background: var(--color-success);"></div>
+              <div class="color-swatch-label">--color-success</div>
+              <div class="color-swatch-value">#22c55e / #4ade80</div>
+            </div>
+            <div>
+              <div class="color-swatch" style="background: var(--color-warning);"></div>
+              <div class="color-swatch-label">--color-warning</div>
+              <div class="color-swatch-value">#f59e0b / #fbbf24</div>
+            </div>
+            <div>
+              <div class="color-swatch" style="background: var(--color-danger);"></div>
+              <div class="color-swatch-label">--color-danger</div>
+              <div class="color-swatch-value">#ef4444 / #f87171</div>
+            </div>
+            <div>
+              <div class="color-swatch" style="background: var(--color-info);"></div>
+              <div class="color-swatch-label">--color-info</div>
+              <div class="color-swatch-value">#3b82f6 / #60a5fa</div>
+            </div>
+            <div>
+              <div class="color-swatch" style="background: var(--sidebar-bg);"></div>
+              <div class="color-swatch-label">--sidebar-bg</div>
+              <div class="color-swatch-value">#0f172a (both themes)</div>
+            </div>
+            <div>
+              <div class="color-swatch" style="background: var(--color-sidebar-active, var(--color-primary)); background: var(--color-primary); border: 2px solid var(--color-primary-hover);"></div>
+              <div class="color-swatch-label">--color-primary-hover</div>
+              <div class="color-swatch-value">#4338ca / #a5b4fc</div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <script src="assets/theme.js"></script>
+  <script src="assets/icons.js"></script>
+  <script src="assets/data.js"></script>
+  <script src="assets/app.js"></script>
+  <script>
+    document.querySelectorAll("[data-icon]").forEach((el) => {
+      const name = el.getAttribute("data-icon");
+      el.innerHTML = window.icon(name);
+    });
+    function updateThemeIcon() {
+      const t = document.documentElement.getAttribute("data-theme");
+      document.querySelectorAll("[data-theme-icon-light]").forEach((el) => el.hidden = t === "dark");
+      document.querySelectorAll("[data-theme-icon-dark]").forEach((el) => el.hidden = t !== "dark");
+    }
+    updateThemeIcon();
+    document.addEventListener("ce:theme-change", updateThemeIcon);
+
+    // Indeterminate demo checkbox
+    const indet = document.getElementById("indeterminate-target");
+    if (indet) {
+      const cb = indet.previousElementSibling;
+      if (cb) cb.indeterminate = true;
+    }
+  </script>
+</body>
+</html>

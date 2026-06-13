@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>App Shell — ControlEasy Reborn</title>
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("ce.theme") || "system";
+        if (t === "system") {
+          t = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) { /* ignore */ }
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Mobile drawer for this page */
+    @media (max-width: 639px) {
+      .app-shell .sidebar.is-drawer {
+        display: flex;
+        position: fixed;
+        top: 0; left: 0;
+        width: var(--sidebar-width);
+        z-index: 60;
+        transform: translateX(-100%);
+        transition: transform var(--duration-base) var(--ease-out);
+      }
+      body.drawer-open .app-shell .sidebar.is-drawer {
+        transform: translateX(0);
+      }
+      body.drawer-open::after {
+        content: "";
+        position: fixed; inset: 0;
+        background: rgb(0 0 0 / 0.5);
+        z-index: 50;
+      }
+    }
+    .resident-row-actions { opacity: 0; transition: opacity var(--duration-fast); }
+    .ce-table tbody tr:hover .resident-row-actions { opacity: 1; }
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <div class="app-shell">
+    <aside class="sidebar is-drawer" aria-label="Main navigation">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-mark">CE</div>
+        <div class="sidebar-brand-text">ControlEasy</div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-nav-section">
+          <div class="sidebar-nav-title">Overview</div>
+          <a class="sidebar-nav-item" href="app.html">
+            <span data-icon="dashboard"></span>
+            <span class="sidebar-nav-text">Dashboard</span>
+          </a>
+        </div>
+        <div class="sidebar-nav-section">
+          <div class="sidebar-nav-title">Modules</div>
+          <a class="sidebar-nav-item active" href="app.html">
+            <span data-icon="users"></span>
+            <span class="sidebar-nav-text">Residents</span>
+          </a>
+          <a class="sidebar-nav-item" href="#">
+            <span data-icon="visits"></span>
+            <span class="sidebar-nav-text">Visits</span>
+          </a>
+          <a class="sidebar-nav-item" href="#">
+            <span data-icon="vehicles"></span>
+            <span class="sidebar-nav-text">Vehicles</span>
+          </a>
+          <a class="sidebar-nav-item" href="#">
+            <span data-icon="service"></span>
+            <span class="sidebar-nav-text">Service providers</span>
+          </a>
+        </div>
+        <div class="sidebar-nav-section">
+          <div class="sidebar-nav-title">Settings</div>
+          <a class="sidebar-nav-item" href="#">
+            <span data-icon="admin"></span>
+            <span class="sidebar-nav-text">Administration</span>
+          </a>
+          <a class="sidebar-nav-item" href="#">
+            <span data-icon="settings"></span>
+            <span class="sidebar-nav-text">Settings</span>
+          </a>
+          <a class="sidebar-nav-item" href="showcase.html">
+            <span data-icon="settings"></span>
+            <span class="sidebar-nav-text">Design system</span>
+          </a>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="ce-avatar size-md sidebar-footer-avatar" data-avatar-name="Renata Ferreira" style="background: linear-gradient(135deg, #4f46e5, #ec4899);">
+          <span data-avatar-initials>RF</span>
+        </div>
+        <div class="sidebar-footer-text">
+          <div style="color: white; font-size: 0.85rem; font-weight: 500;">Renata Ferreira</div>
+          <div style="color: var(--sidebar-text-muted); font-size: 0.7rem;">TenantAdmin</div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main-area">
+      <header class="topbar" role="banner">
+        <button class="topbar-menu-btn icon-btn" data-mobile-menu aria-label="Open menu">
+          <span data-icon="menu"></span>
+        </button>
+        <nav class="ce-breadcrumbs" aria-label="Breadcrumb">
+          <ol>
+            <li><a href="index.html">Início</a></li>
+            <li aria-current="page">Residents</li>
+          </ol>
+        </nav>
+        <div class="topbar-search">
+          <span class="topbar-search-icon" data-icon="search"></span>
+          <input type="search" placeholder="Search residents, visits, vehicles…" aria-label="Global search" data-search-target="resident-tbody" />
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-btn" aria-label="Notifications" data-tooltip="Notifications">
+            <span data-icon="bell"></span>
+          </button>
+          <button class="icon-btn" data-theme-toggle aria-label="Toggle theme" data-tooltip="Toggle theme">
+            <span data-icon="sun" data-theme-icon-light></span>
+            <span data-icon="moon" data-theme-icon-dark hidden></span>
+          </button>
+          <div class="ce-dropdown">
+            <button class="ce-dropdown-item" data-dropdown-trigger="user-menu" style="background: transparent; border: 0; padding: var(--space-1); display: inline-flex; align-items: center; gap: var(--space-2); cursor: pointer; color: var(--color-text-primary);">
+              <div class="ce-avatar size-sm" data-avatar-name="Renata Ferreira" style="background: linear-gradient(135deg, #4f46e5, #ec4899);">
+                <span data-avatar-initials>RF</span>
+              </div>
+              <span class="text-sm" style="display: none;">Renata</span>
+            </button>
+            <div class="ce-dropdown-menu" id="user-menu" role="menu">
+              <div style="padding: var(--space-3); border-bottom: 1px solid var(--color-border); margin-bottom: var(--space-1);">
+                <div class="font-semibold text-sm">Renata Ferreira</div>
+                <div class="text-xs text-secondary">renata@acme.com</div>
+                <div class="text-xs" style="color: var(--color-primary); margin-top: 2px;">TenantAdmin · Condomínio Vila Madalena</div>
+              </div>
+              <a class="ce-dropdown-item" href="#" role="menuitem">
+                <span data-icon="user"></span> My profile
+              </a>
+              <a class="ce-dropdown-item" href="#" role="menuitem">
+                <span data-icon="home"></span> Switch tenant
+              </a>
+              <a class="ce-dropdown-item" href="showcase.html" role="menuitem">
+                <span data-icon="settings"></span> Design system
+              </a>
+              <hr class="ce-dropdown-divider" />
+              <a class="ce-dropdown-item" href="login.html" role="menuitem" style="color: var(--color-danger);">
+                <span data-icon="logout"></span> Sign out
+              </a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main id="main" class="page-content" tabindex="-1">
+        <div class="page-header">
+          <div class="page-title-block">
+            <h1 class="page-title">Residents</h1>
+            <p class="page-subtitle">1,247 active residents across all apartments in this condominium.</p>
+          </div>
+          <div class="row row-2">
+            <button class="ce-button variant-secondary size-md">
+              <span data-icon="x"></span> Export
+            </button>
+            <button class="ce-button variant-primary size-md" data-modal-open="modal-add-resident">
+              <span data-icon="user"></span> Add resident
+            </button>
+          </div>
+        </div>
+
+        <!-- Stat tiles -->
+        <div class="grid mb-6" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+          <div class="ce-stat-tile">
+            <div class="ce-stat-tile-label">Total residents</div>
+            <div class="ce-stat-tile-value">1,247</div>
+            <div class="ce-stat-tile-trend trend-up">
+              <span data-icon="arrowUp"></span> 12 new this month
+            </div>
+          </div>
+          <div class="ce-stat-tile">
+            <div class="ce-stat-tile-label">Apartments occupied</div>
+            <div class="ce-stat-tile-value">892 / 920</div>
+            <div class="ce-stat-tile-trend trend-up">
+              <span data-icon="arrowUp"></span> 96.9% occupancy
+            </div>
+          </div>
+          <div class="ce-stat-tile">
+            <div class="ce-stat-tile-label">Pending check-ins</div>
+            <div class="ce-stat-tile-value">3</div>
+            <div class="ce-stat-tile-trend trend-flat">
+              <span data-icon="minus"></span> Stable since yesterday
+            </div>
+          </div>
+          <div class="ce-stat-tile">
+            <div class="ce-stat-tile-label">Average visits/day</div>
+            <div class="ce-stat-tile-value">42</div>
+            <div class="ce-stat-tile-trend trend-down">
+              <span data-icon="arrowDown"></span> 8% quieter than usual
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs for filtering -->
+        <div class="ce-card mb-6" style="padding: 0;">
+          <div class="ce-tabs" role="tablist" aria-label="Resident filters" style="padding: 0 var(--space-6);">
+            <div class="ce-tabs-list">
+              <button class="ce-tab" role="tab" aria-selected="true" aria-controls="app-tab-all" id="app-tab-all" data-status="all" data-tab-trigger>All (<span data-status-count="all">0</span>)</button>
+              <button class="ce-tab" role="tab" aria-selected="false" aria-controls="app-tab-active" id="app-tab-active" tabindex="-1" data-status="active" data-tab-trigger>Active (<span data-status-count="active">0</span>)</button>
+              <button class="ce-tab" role="tab" aria-selected="false" aria-controls="app-tab-pending" id="app-tab-pending" tabindex="-1" data-status="pending" data-tab-trigger>Pending (<span data-status-count="pending">0</span>)</button>
+              <button class="ce-tab" role="tab" aria-selected="false" aria-controls="app-tab-overdue" id="app-tab-overdue" tabindex="-1" data-status="overdue" data-tab-trigger>Overdue (<span data-status-count="overdue">0</span>)</button>
+            </div>
+          </div>
+          <div style="padding: var(--space-4) var(--space-6); border-top: 1px solid var(--color-border); display: flex; gap: var(--space-3); flex-wrap: wrap; align-items: center;">
+            <div class="topbar-search" style="max-width: 24rem;">
+              <span class="topbar-search-icon" data-icon="search"></span>
+              <input type="search" placeholder="Search by name, apartment, or CPF…" data-search-target="resident-tbody" />
+            </div>
+            <div class="ce-dropdown">
+              <button class="ce-button variant-secondary size-sm" data-dropdown-trigger="filter-block" data-filter="block">
+                <span class="filter-label" id="filter-block-label">Block: All</span> <span data-icon="chevronRight" style="transform: rotate(90deg);"></span>
+              </button>
+              <div class="ce-dropdown-menu" id="filter-block" role="menu" data-filter-menu="block">
+                <button class="ce-dropdown-item" role="menuitem" data-filter-value="all">All blocks</button>
+                <button class="ce-dropdown-item" role="menuitem" data-filter-value="A">Block A</button>
+                <button class="ce-dropdown-item" role="menuitem" data-filter-value="B">Block B</button>
+                <button class="ce-dropdown-item" role="menuitem" data-filter-value="C">Block C</button>
+                <button class="ce-dropdown-item" role="menuitem" data-filter-value="D">Block D</button>
+              </div>
+            </div>
+            <div class="ce-dropdown">
+              <button class="ce-button variant-secondary size-sm" data-dropdown-trigger="filter-sort" data-filter="sort">
+                <span class="filter-label" id="filter-sort-label">Sort: Name (A→Z)</span> <span data-icon="chevronRight" style="transform: rotate(90deg);"></span>
+              </button>
+              <div class="ce-dropdown-menu" id="filter-sort" role="menu" data-filter-menu="sort">
+                <button class="ce-dropdown-item" role="menuitem" data-sort-value="nameAsc">Name (A→Z)</button>
+                <button class="ce-dropdown-item" role="menuitem" data-sort-value="nameDesc">Name (Z→A)</button>
+                <button class="ce-dropdown-item" role="menuitem" data-sort-value="apartment">Apartment</button>
+                <button class="ce-dropdown-item" role="menuitem" data-sort-value="lastVisitDesc">Last visit (newest)</button>
+              </div>
+            </div>
+          </div>
+          <div class="ce-table-wrapper" style="border: 0; border-radius: 0;">
+            <table class="ce-table" aria-label="Residents table">
+              <thead>
+                <tr>
+                  <th scope="col">Resident</th>
+                  <th scope="col">Apartment</th>
+                  <th scope="col">Block</th>
+                  <th scope="col">Phone</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Last visit</th>
+                  <th scope="col" style="width: 1%;"></th>
+                </tr>
+              </thead>
+              <tbody id="resident-tbody">
+                <tr id="resident-empty" hidden>
+                  <td colspan="7">
+                    <div class="ce-empty-state" style="padding: var(--space-8) var(--space-4); text-align: center;">
+                      <div class="ce-empty-state-icon" aria-hidden="true" style="display: inline-flex; padding: var(--space-3); border-radius: 999px; background: var(--color-neutral-light); color: var(--color-text-muted);">
+                        <span data-icon="inbox"></span>
+                      </div>
+                      <div class="ce-empty-state-title" style="margin-top: var(--space-3); font-weight: var(--font-weight-semibold);">No residents match your filters</div>
+                      <div class="ce-empty-state-message text-secondary text-sm" style="margin-top: var(--space-1);">Try clearing the search or selecting a different block.</div>
+                      <button class="ce-button variant-ghost size-sm" id="resident-clear-filters" style="margin-top: var(--space-4);">Clear filters</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="padding: var(--space-4) var(--space-6); border-top: 1px solid var(--color-border);">
+            <nav class="ce-pagination" aria-label="Pagination" id="resident-pagination" data-size="7" data-page-target="resident-tbody">
+              <div class="ce-pagination-info" id="resident-pagination-info">Showing 1–0 of 0 results</div>
+              <div class="ce-pagination-controls" id="resident-pagination-controls"></div>
+            </nav>
+          </div>
+        </div>
+
+        <!-- Recent activity (extra demo) -->
+        <h2 class="mb-4">Recent activity</h2>
+        <div class="grid" style="grid-template-columns: 1fr; gap: var(--space-3);">
+          <div class="ce-card" style="padding: var(--space-4) var(--space-5);">
+            <div class="row row-3">
+              <div class="ce-avatar size-sm" data-avatar-name="Maria Silva" style="background: linear-gradient(135deg, #4f46e5, #818cf8);"><span data-avatar-initials></span></div>
+              <div style="flex: 1;">
+                <div class="text-sm"><strong>Maria Silva</strong> pre-registered a visit for <strong>João Silva</strong> (her father) on Sunday at 14:00.</div>
+                <div class="text-xs text-secondary mt-1">2 hours ago · Apartment 102-A</div>
+              </div>
+              <span class="ce-badge tone-info size-sm">Pre-register</span>
+            </div>
+          </div>
+          <div class="ce-card" style="padding: var(--space-4) var(--space-5);">
+            <div class="row row-3">
+              <div class="ce-avatar size-sm" data-avatar-name="DHL Express" style="background: linear-gradient(135deg, #f59e0b, #fcd34d);"><span data-avatar-initials></span></div>
+              <div style="flex: 1;">
+                <div class="text-sm"><strong>DHL Express</strong> delivered a package to <strong>Ana Costa</strong> at Block C, apt 312-C.</div>
+                <div class="text-xs text-secondary mt-1">3 hours ago · Service provider</div>
+              </div>
+              <span class="ce-badge tone-success size-sm">Check-out</span>
+            </div>
+          </div>
+          <div class="ce-card" style="padding: var(--space-4) var(--space-5);">
+            <div class="row row-3">
+              <div class="ce-avatar size-sm" data-avatar-name="João Pereira" style="background: linear-gradient(135deg, #22c55e, #86efac);"><span data-avatar-initials></span></div>
+              <div style="flex: 1;">
+                <div class="text-sm"><strong>João Pereira</strong> was added as a new resident of <strong>Apartment 205-B</strong>.</div>
+                <div class="text-xs text-secondary mt-1">Yesterday · Renata Ferreira</div>
+              </div>
+              <span class="ce-badge tone-primary size-sm">New</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Toast demo row -->
+        <h2 class="mt-8 mb-4">Try the toast service</h2>
+        <div class="ce-card">
+          <div class="row row-2 row-wrap">
+            <button class="ce-button variant-primary size-md" data-toast="success" data-toast-msg="Resident saved successfully.">
+              <span data-icon="check"></span> Trigger success toast
+            </button>
+            <button class="ce-button variant-secondary size-md" data-toast="warning" data-toast-msg="Phone number not validated.">
+              <span data-icon="alert"></span> Trigger warning
+            </button>
+            <button class="ce-button variant-danger size-md" data-toast="danger" data-toast-msg="Network error. Changes not saved.">
+              <span data-icon="x"></span> Trigger error
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal: add resident (reused from showcase) -->
+  <div class="ce-modal-backdrop" id="modal-add-resident" hidden>
+    <div class="ce-modal size-md" role="dialog" aria-modal="true" aria-labelledby="add-resident-title">
+      <div class="ce-modal-header">
+        <h3 class="ce-modal-title" id="add-resident-title">Add new resident</h3>
+        <button class="ce-modal-close" data-modal-close aria-label="Close">
+          <span data-icon="x"></span>
+        </button>
+      </div>
+      <div class="ce-modal-body">
+        <div class="stack stack-4">
+          <div class="ce-input-group">
+            <label class="ce-input-label" for="ar-name">Full name</label>
+            <div class="ce-input-wrapper">
+              <input id="ar-name" class="ce-input" placeholder="e.g. Maria Silva" />
+            </div>
+          </div>
+          <div class="ce-input-group">
+            <label class="ce-input-label" for="ar-cpf">CPF</label>
+            <div class="ce-input-wrapper">
+              <input id="ar-cpf" class="ce-input" placeholder="000.000.000-00" />
+            </div>
+          </div>
+          <div class="row row-3" style="gap: var(--space-3);">
+            <div class="ce-input-group" style="flex: 1;">
+              <label class="ce-input-label" for="ar-apt">Apartment</label>
+              <div class="ce-input-wrapper">
+                <input id="ar-apt" class="ce-input" placeholder="102-A" />
+              </div>
+            </div>
+            <div class="ce-input-group" style="flex: 1;">
+              <label class="ce-input-label" for="ar-block">Block</label>
+              <div class="ce-input-wrapper">
+                <input id="ar-block" class="ce-input" placeholder="A" />
+              </div>
+            </div>
+          </div>
+          <div class="ce-input-group">
+            <label class="ce-input-label" for="ar-phone">Phone</label>
+            <div class="ce-input-wrapper">
+              <input id="ar-phone" class="ce-input" placeholder="(11) 99999-0000" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ce-modal-footer">
+        <button class="ce-button variant-ghost size-sm" data-modal-close>Cancel</button>
+        <button class="ce-button variant-primary size-sm" data-modal-close data-toast="success" data-toast-msg="Resident added successfully.">Add resident</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/theme.js"></script>
+  <script src="assets/icons.js"></script>
+  <script src="assets/data.js"></script>
+  <script src="assets/app.js"></script>
+  <script>
+    document.querySelectorAll("[data-icon]").forEach((el) => {
+      const name = el.getAttribute("data-icon");
+      el.innerHTML = window.icon(name);
+    });
+    function updateThemeIcon() {
+      const t = document.documentElement.getAttribute("data-theme");
+      document.querySelectorAll("[data-theme-icon-light]").forEach((el) => el.hidden = t === "dark");
+      document.querySelectorAll("[data-theme-icon-dark]").forEach((el) => el.hidden = t !== "dark");
+    }
+    updateThemeIcon();
+    document.addEventListener("ce:theme-change", updateThemeIcon);
+  </script>
+</body>
+</html>

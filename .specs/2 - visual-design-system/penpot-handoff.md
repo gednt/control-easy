@@ -8,7 +8,7 @@ This hand-off ships the source-of-truth design artifacts for the **Visual Design
 
 **Format chosen.** Penpot's native file format is a binary ZIP with a custom internal layout that is awkward to author by hand. A true `.penpot` file is not feasible from a CLI agent. Instead, this hand-off ships two complementary artifacts:
 
-1. **`docs/penpot/design-system.penpot.json`** - a Penpot-importable JSON file. The `pages` block mirrors Penpot's four top-level pages (Tokens / Components / Layout Shell / Theme Variants). The `colors` and `typographies` blocks become shared library assets. The `components` block enumerates all 16 `ce-*` components with their variants, sizes, states, a11y annotations, and token references. A designer opens this file in Penpot via *Libraries > Import library* and uses it as the source of truth.
+1. **`docs/penpot/design-system.penpot.json`** - a Penpot-importable JSON file. The `pages` block mirrors Penpot's four top-level pages (Tokens / Components / Layout Shell / Theme Variants). The `colors` and `typographies` blocks become shared library assets. The `components` block enumerates all 17 `ce-*` components (including `ce-checkbox`) with their variants, sizes, states, a11y annotations, and token references. A designer opens this file in Penpot via *Libraries > Import library* and uses it as the source of truth.
 2. **`docs/penpot/svg/`** - a parallel SVG asset library (one SVG per component, one per layout, one per screen). The SVGs are pixel-readable reference deliverables: they show every state, size, and theme variant on a single canvas. They are the format a designer can drop into a Penpot page as drag-and-drop building blocks if they prefer to assemble the library visually rather than import the JSON.
 
 Both formats are committed to the repo so PR reviewers can see design changes diff-by-diff. The `manifest.json` enumerates every file and binds each one to a `ce-*` selector and a user-story (`UC-XXX`) from `requirements.md`.
@@ -22,7 +22,7 @@ Both formats are committed to the repo so PR reviewers can see design changes di
 | `docs/penpot/manifest.json` | Index of every SVG file with its `ce-*` selector and `UC-XXX` binding. |
 | `docs/penpot/svg/components/*.svg` | 16 component reference SVGs (one per `ce-*` selector). |
 | `docs/penpot/svg/layout/app-shell.svg` | Sidebar + topbar + grid; mobile / tablet / desktop breakpoints annotated. |
-| `docs/penpot/screens/*.svg` | 4 user-journey mockups: attendant dashboard, resident pre-register, tenant-admin attendant, platform-admin tenant. |
+| `docs/penpot/screens/*.svg` | 5 user-journey mockups: login, attendant dashboard, resident pre-register, tenant-admin attendant, platform-admin tenant. |
 
 ## Token name -> CSS variable mapping
 
@@ -58,6 +58,7 @@ The brand-customization hook is the split between `--color-primary-raw` (the val
 | Tooltip (directive) | `[ceTooltip]` | UC-022 | `docs/penpot/svg/components/tooltip.svg` |
 | Pagination | `ce-pagination` | UC-023 | `docs/penpot/svg/components/pagination.svg` |
 | Breadcrumbs | `ce-breadcrumbs` | UC-024 | `docs/penpot/svg/components/breadcrumbs.svg` |
+| Checkbox | `ce-checkbox` | UC-042 | `docs/penpot/svg/components/checkbox.svg` |
 
 The layout shell is composed of three sub-components: `ce-sidebar` (with `data-breakpoint` semantics of expanded / collapsed / drawer), `ce-topbar`, and the root `AppShell` (CSS grid). See `docs/penpot/svg/layout/app-shell.svg` for the three annotated breakpoints.
 
@@ -65,10 +66,11 @@ The layout shell is composed of three sub-components: `ce-sidebar` (with `data-b
 
 The four user-journey mockups in `docs/penpot/screens/` exercise the component library end-to-end and bind each one to a primary user role per `.specs/1 - modernization-roadmap/requirements.md` UC-9:
 
-1. **`attendant-dashboard.svg`** - `AttendantProfile` (Attendant). The gatehouse operator sees the dashboard and opens the "Open new visit" modal after a phone confirmation.
-2. **`resident-pre-register.svg`** - `Morador` (Resident). Maria Silva (apt 102-A) pre-registers her father for a Sunday afternoon visit. Tabs (Upcoming / Past / Recurring / Service providers) and a form card.
-3. **`tenant-admin-attendant.svg`** - `TenantAdmin`. Renata Ferreira (Acme) opens the "New attendant profile" modal over the attendants list. Binds user + shift + gatehouse + permission set.
-4. **`platform-admin-tenant.svg`** - `PlatformAdmin`. The platform operator creates a new tenant (Globex) with a brand color wired to `--color-primary-raw`.
+1. **`login.svg`** - All roles. The login page rendered outside the AppShell, showing the centered `ce-card` with email/password/remember-me/submit, the theme toggle in the top-right corner, and the tenant picker (multi-tenant state). Both light and dark themes. Three responsive breakpoints (375px, 768px, 1440px). Error states (401, 429, network). The session-expired toast.
+2. **`attendant-dashboard.svg`** - `AttendantProfile` (Attendant). The gatehouse operator sees the dashboard and opens the "Open new visit" modal after a phone confirmation.
+3. **`resident-pre-register.svg`** - `Morador` (Resident). Maria Silva (apt 102-A) pre-registers her father for a Sunday afternoon visit. Tabs (Upcoming / Past / Recurring / Service providers) and a form card.
+4. **`tenant-admin-attendant.svg`** - `TenantAdmin`. Renata Ferreira (Acme) opens the "New attendant profile" modal over the attendants list. Binds user + shift + gatehouse + permission set.
+5. **`platform-admin-tenant.svg`** - `PlatformAdmin`. The platform operator creates a new tenant (Globex) with a brand color wired to `--color-primary-raw`.
 
 Every screen is composed exclusively of design-system components - no one-off shapes. The annotation at the bottom of each SVG lists the components used.
 
@@ -128,6 +130,7 @@ While reading `.specs/2 - visual-design-system/` and `.specs/1 - modernization-r
 2. **No `src/Web/ControlEasyReborn.Web/` Angular project yet.** All token values are inlined into the SVGs as resolved hex/px from the light-theme block. Once the Angular app is scaffolded (task A.1), the `@theme` block in `styles.css` must be diffed against `docs/penpot/tokens.json` per the procedure above.
 3. **`manifest.json` is not yet referenced by `docs/design-system/README.md`.** Once that README lands (task F.1), it should link to `docs/penpot/manifest.json` as the index of design assets.
 4. **No icon library SVG yet.** Per `.kilo/agents/agents/FrontendAgent/AGENTS.md`, icons come from Lucide (`lucide-angular`). The component SVGs use simple line glyphs as placeholders. A future revision of this hand-off should reference `lucide-angular` icon names verbatim (e.g. `name="check"`, `name="home"`) and the SVGs should be updated to use the actual Lucide SVG paths.
+5. **Login screen was missing from the original spec.** Added 2026-06-12: `requirements.md` UC-035 through UC-042, `design.md` Login page section, `tasks.md` task D.7, and `penpot-handoff.md` screen entry `login.svg`. The login screen composes base components (`ce-card`, `ce-input`, `ce-button`, `ce-checkbox`, `ce-badge`, `ce-spinner`) and is the only page rendered outside `AppShell`.
 
 ## Visual regression note (Chrome availability)
 

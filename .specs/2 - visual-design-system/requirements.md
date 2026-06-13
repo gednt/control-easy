@@ -4,7 +4,7 @@
 
 ## Scope
 
-This spec covers **tokens, theming, base components, layout shell, responsive behavior, accessibility, dark mode, brand customization hooks, and a Storybook-style preview page**. It does **not** cover feature pages (Residents, Visits, etc.) — those are owned by later specs.
+This spec covers **tokens, theming, base components, layout shell, login page, responsive behavior, accessibility, dark mode, brand customization hooks, and a Storybook-style preview page**. It does **not** cover feature pages (Residents, Visits, etc.) — those are owned by later specs. The login page is included because it is the first screen every user sees and it composes base components from this design system; its backend contract (`POST /api/v1/auth/login`, `POST /api/v1/auth/refresh`, `GET /api/v1/security/tenants?email=...`, `POST /api/v1/security/tenant-switch`) is defined in `.specs/1 - modernization-roadmap/design.md`.
 
 ## User stories
 
@@ -89,6 +89,34 @@ For each component, the acceptance criteria include: a prop table in `design.md`
 
 - **UC-024:** **Breadcrumbs** — As a developer, I want a breadcrumb trail fed by the router.
   - **AC:** `ce-breadcrumbs` reads the current route's `data.breadcrumb` and parent route breadcrumbs, plus a static `crumbs` input override. Renders an `<nav aria-label="Breadcrumb">` with an `<ol>` and `aria-current="page"` on the last item.
+
+### Login page
+
+The login page is the entry point for every user role (`PlatformAdmin`, `TenantAdmin`, `Morador`, `AttendantProfile`). It is the only page in the app that renders **outside** the `AppShell` layout — no sidebar, no topbar. The login flow must handle the multi-tenant architecture defined in `.specs/1 - modernization-roadmap/design.md` (a single `User` may belong to multiple tenants; the login screen must resolve which tenant the user wants to operate in).
+
+- **UC-035:** As an unauthenticated user, I want a login page with email and password fields so that I can authenticate and access the application.
+  - **AC:** The route `/login` renders a `LoginPageComponent` that is **not** wrapped in `AppShell`. The page displays a centered `ce-card` on `var(--color-background)` containing: a brand mark (the ControlEasy logo), an email `ce-input`, a password `ce-input` with a show/hide toggle, a "Remember me" `ce-checkbox` (stores email in `localStorage["ce.email"]`), and a primary `ce-button` labeled "Sign in". All interactive targets are ≥ 44×44px. The form submits on `Enter` from either field.
+
+- **UC-036:** As a user with invalid credentials, I want a clear error message so that I know what went wrong and how to fix it.
+  - **AC:** On HTTP 401 or 400 from `POST /api/v1/auth/login`, the card shows a `ce-badge` with `tone="danger"` above the form reading "Invalid email or password" (or the server's localized `ProblemDetails.detail`). The email and password fields are not cleared. The error message is announced via `aria-live="assertive"` on the error region. Rate-limited responses (429) show "Too many attempts. Please try again in a few minutes." The password field gets `aria-invalid="true"` and the error message id is set as `aria-describedby`.
+
+- **UC-037:** As a user who belongs to multiple tenants, I want to select which tenant to log in to so that I am scoped to the right condominium.
+  - **AC:** After a successful `POST /api/v1/auth/login`, if the response includes more than one tenant in the `tenants` array, the login card transitions (fade, 200ms) to a **tenant picker** view showing a list of tenant cards (`ce-card` with `accent="primary"`) — each displaying `tenant.displayName` and the user's `userDisplayName` for that tenant. Tapping a tenant card calls `POST /api/v1/security/tenant-switch { tenantId }` (or uses the pre-selected tenant from the login response if only one). If only one tenant exists, the picker is skipped and the user proceeds directly to the dashboard. The picker is also reachable later from the topbar user menu ("Switch tenant").
+
+- **UC-038:** As a user, I want the login page to follow my OS color preference and to let me toggle between light and dark mode on the login page itself, so that I am not stuck in the wrong theme before I can access the topbar.
+  - **AC:** A theme toggle button (`sun`/`moon` Lucide icon) is placed in the top-right corner of the login page (outside the card, pinned to the viewport). It uses `ThemeService.setTheme()` to cycle `light → dark → system → light`. The FOUC-prevention script from UC-005 applies before the Angular bundle loads, so the login page never flashes the wrong theme.
+
+- **UC-039:** As a user, I want the login page to be responsive so that I can log in on a phone, tablet, or desktop.
+  - **AC:** Below `sm` (640px), the login card fills the viewport width with `mx-4` horizontal padding; above `sm`, the card is centered at `max-w-md` (28rem). The brand mark scales: `h-8` (32px) on mobile, `h-12` (48px) on `md+`. Input labels and buttons stack vertically with no wasted horizontal space below `sm`. The tenant picker grid switches from 1-column on `< sm` to 2-column on `md+`.
+
+- **UC-040:** As a user, I want the login page to be accessible so that I can log in using only a keyboard or a screen reader.
+  - **AC:** The page has a skip-to-content link that jumps to `<main id="login">`. The `<h1>` reads "Sign in to ControlEasy" (i18n key `LOGIN.HEADING`). The email `<label>` explicitly references the input via `for`/`id`. The password show/hide button has `aria-label="Show password"` / `aria-label="Hide password"`. The "Remember me" checkbox has `aria-label="Remember my email"`. Tab order: email → password → show/hide → remember me → sign-in button → theme toggle. After a failed login, focus returns to the email field. After a successful login + tenant pick, focus moves to `<main id="main">` in the `AppShell`.
+
+- **UC-041:** As a user whose session has expired, I want to be redirected to the login page with a toast message so that I do not wonder why my screen went blank.
+  - **AC:** When the `AuthService` detects a 401 response (expired/invalid JWT) and the refresh token is also expired/invalid, the `AuthInterceptor` redirects to `/login?reason=session-expired`. The login page reads the `reason` query param and, if present, shows a `ToastService.info("Your session has expired. Please sign in again.")` toast on mount. The toast respects `prefers-reduced-motion`. The email field is pre-filled from `localStorage["ce.email"]` if "Remember me" was previously checked.
+
+- **UC-042:** As a developer, I want the login page to be a standalone Angular component that consumes only design-system base components and `AuthService` so that it is consistent with the rest of the app and trivially themeable.
+  - **AC:** `LoginPageComponent` is a standalone component at `src/app/features/auth/login/login.page.ts`. It imports `CeButtonComponent`, `CeInputComponent`, `CeCardComponent`, `CeBadgeComponent`, `CeSpinnerComponent`, `CeCheckboxComponent` (new — a thin wrapper around native `<input type="checkbox">` with `ce-` styling), and `ThemeService`. It calls `AuthService.login(email, password)` which returns `Observable<LoginResponse>` with `{ accessToken, refreshToken, tenants }`. No hex literals, no inline styles, no Angular Material. The component is covered by a Jasmine spec that tests: render, form validation, error display, tenant picker flow, and redirect after login.
 
 ### Responsive behavior
 
