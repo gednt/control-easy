@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ControlEasyReborn.IntegrationTests</RootNamespace>
+    <AssemblyName>ControlEasyReborn.IntegrationTests</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Testcontainers.MySql" />
+    <PackageReference Include="MySqlConnector" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\BuildingBlocks\ControlEasyReborn.Infrastructure\ControlEasyReborn.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\BuildingBlocks\ControlEasyReborn.SharedKernel\ControlEasyReborn.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Residents\ControlEasyReborn.Modules.Residents.Api\ControlEasyReborn.Modules.Residents.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Residents\ControlEasyReborn.Modules.Residents.Application\ControlEasyReborn.Modules.Residents.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Residents\ControlEasyReborn.Modules.Residents.Infrastructure\ControlEasyReborn.Modules.Residents.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Host\ControlEasyReborn.Api\ControlEasyReborn.Api.csproj" />
+  </ItemGroup>
+</Project>

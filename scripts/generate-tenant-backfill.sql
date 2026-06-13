@@ -1,0 +1,17 @@
+-- scripts/generate-tenant-backfill.sql
+-- Run this script to regenerate 03-tenant-backfill.sql and 04-tenant-views.sql
+-- when a new business table is added.
+--
+-- Usage:
+--   mysql -u root -p <scripts/generate-tenant-backfill.sql > docker/mysql/init/03-tenant-backfill.sql
+--
+-- List of business tables that require tenant_id:
+-- This list MUST be kept in sync with docker/mysql/init/03-tenant-backfill.sql
+-- CI enforces this via NetArchTest rule.
+--
+-- Tables:
+--   Users
+--   Residents  (added in Phase 1 task 1.12)
+--   Visits     (added in Phase 3)
+--   Vehicles   (added in Phase 3)
+--   ServiceProviders (added in Phase 3)

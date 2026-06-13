@@ -11,9 +11,9 @@ public sealed class TenantRepository : ITenantRepository
     private const string TableName = "Tenants";
 
     private readonly ITenantContext _ctx;
-    private readonly TenantAwareLinqFactory _factory;
+    private readonly ITenantAwareLinqFactory _factory;
 
-    public TenantRepository(ITenantContext ctx, TenantAwareLinqFactory factory)
+    public TenantRepository(ITenantContext ctx, ITenantAwareLinqFactory factory)
     {
         _ctx = ctx;
         _factory = factory;

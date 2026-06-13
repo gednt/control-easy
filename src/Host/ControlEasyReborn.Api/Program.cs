@@ -1,0 +1,181 @@
+using ControlEasyReborn.Api.Hosting;
+using ControlEasyReborn.Infrastructure.Data;
+using ControlEasyReborn.Infrastructure.MultiTenancy;
+using ControlEasyReborn.Modules.Residents.Api.Endpoints;
+using ControlEasyReborn.Modules.Residents.Infrastructure.DI;
+using ControlEasyReborn.Modules.Tenants.Api.Auth;
+using ControlEasyReborn.Modules.Tenants.Api.Endpoints;
+using ControlEasyReborn.Modules.Tenants.Infrastructure.DI;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.FeatureManagement;
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(new ConfigurationBuilder()
+        .SetBasePath(Directory.GetCurrentDirectory())
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+        .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true, reloadOnChange: true)
+        .Build())
+    .Enrich.FromLogContext()
+    .CreateBootstrapLogger();
+
+try
+{
+    var builder = WebApplication.CreateBuilder(args);
+
+    builder.Host.UseSerilog((context, services, loggerConfig) =>
+    {
+        loggerConfig.ReadFrom.Configuration(context.Configuration);
+    });
+
+    builder.Services.AddControlEasyDbTools(builder.Configuration);
+
+    builder.Services.AddAuthentication()
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                ValidAudience = builder.Configuration["Jwt:Audience"],
+                IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+                    System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SigningKey"] ?? throw new InvalidOperationException("Jwt:SigningKey is not configured.")))
+            };
+        });
+
+    builder.Services.AddAuthorization(options =>
+    {
+        options.AddPolicy(PlatformAdminRequirement.PolicyName, policy =>
+            policy.Requirements.Add(new PlatformAdminRequirement()));
+    });
+    builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, PlatformAdminAuthorizationHandler>();
+
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(options =>
+    {
+        options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+        {
+            Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+            Name = "Authorization",
+            In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+            Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+            Scheme = "Bearer"
+        });
+        options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+        {
+            {
+                new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                    {
+                        Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                Array.Empty<string>()
+            }
+        });
+    });
+
+    builder.Services.AddProblemDetails();
+    builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
+    builder.Services.AddHealthChecks()
+        .AddMySql(builder.Configuration.GetConnectionString("MySql") ?? $"Server={builder.Configuration["Db:Host"]};Port={builder.Configuration["Db:Port"]};Database={builder.Configuration["Db:Database"]};Uid={builder.Configuration["Db:Username"]};Pwd={builder.Configuration["Db:Password"]};");
+
+    builder.Services.AddFeatureManagement();
+
+    builder.Services.AddTenantsModule();
+    builder.Services.AddResidentsModule();
+
+    builder.Services.AddHostedService<PlatformAdminBootstrapService>();
+
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AngularDev", policy =>
+        {
+            policy.WithOrigins("http://localhost:4200")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        });
+    });
+
+    var app = builder.Build();
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
+    app.UseExceptionHandler();
+    app.UseSerilogRequestLogging();
+
+    app.UseCors("AngularDev");
+
+    app.UseAuthentication();
+    app.UseMiddleware<TenantResolutionMiddleware>();
+    app.UseAuthorization();
+
+    app.MapHealthChecks("/health");
+    app.MapTenantEndpoints();
+    app.MapResidentEndpoints();
+
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly.");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
+
+public sealed class GlobalExceptionHandler : IExceptionHandler
+{
+    public async ValueTask<bool> TryHandleAsync(
+        Microsoft.AspNetCore.Http.HttpContext httpContext,
+        Exception exception,
+        CancellationToken cancellationToken)
+    {
+        var (status, title) = exception switch
+        {
+            ControlEasyReborn.Modules.Tenants.Application.Errors.NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
+            ControlEasyReborn.Modules.Tenants.Application.Errors.ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
+            ControlEasyReborn.Modules.Tenants.Application.Errors.ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
+            ControlEasyReborn.Modules.Residents.Application.Errors.NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
+            ControlEasyReborn.Modules.Residents.Application.Errors.ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
+            ControlEasyReborn.Modules.Residents.Application.Errors.ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
+            _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred")
+        };
+
+        if (status == StatusCodes.Status500InternalServerError)
+            return false;
+
+        var problemDetails = new Microsoft.AspNetCore.Mvc.ProblemDetails
+        {
+            Status = status,
+            Title = title,
+            Detail = exception.Message,
+            Type = "https://httpstatuses.io/" + status
+        };
+
+        if (exception is ControlEasyReborn.Modules.Tenants.Application.Errors.ValidationException tenValEx)
+        {
+            problemDetails.Extensions["errors"] = tenValEx.Errors;
+        }
+        else if (exception is ControlEasyReborn.Modules.Residents.Application.Errors.ValidationException resValEx)
+        {
+            problemDetails.Extensions["errors"] = resValEx.Errors;
+        }
+
+        httpContext.Response.StatusCode = status;
+        await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
+        return true;
+    }
+}

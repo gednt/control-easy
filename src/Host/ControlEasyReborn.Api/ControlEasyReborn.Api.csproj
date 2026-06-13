@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>ControlEasyReborn.Api</RootNamespace>
+    <AssemblyName>ControlEasyReborn.Api</AssemblyName>
+    <OpenApiGenerateDocuments>false</OpenApiGenerateDocuments>
+    <MakeApplicationEntrypointPublic>true</MakeApplicationEntrypointPublic>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\BuildingBlocks\ControlEasyReborn.Infrastructure\ControlEasyReborn.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\ControlEasyReborn.SharedKernel\ControlEasyReborn.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\Modules\Tenants\ControlEasyReborn.Modules.Tenants.Api\ControlEasyReborn.Modules.Tenants.Api.csproj" />
+    <ProjectReference Include="..\..\Modules\Tenants\ControlEasyReborn.Modules.Tenants.Application\ControlEasyReborn.Modules.Tenants.Application.csproj" />
+    <ProjectReference Include="..\..\Modules\Tenants\ControlEasyReborn.Modules.Tenants.Infrastructure\ControlEasyReborn.Modules.Tenants.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\Residents\ControlEasyReborn.Modules.Residents.Api\ControlEasyReborn.Modules.Residents.Api.csproj" />
+    <ProjectReference Include="..\..\Modules\Residents\ControlEasyReborn.Modules.Residents.Application\ControlEasyReborn.Modules.Residents.Application.csproj" />
+    <ProjectReference Include="..\..\Modules\Residents\ControlEasyReborn.Modules.Residents.Infrastructure\ControlEasyReborn.Modules.Residents.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+    <PackageReference Include="AspNetCore.HealthChecks.MySql" />
+    <PackageReference Include="Microsoft.FeatureManagement" />
+    <PackageReference Include="Serilog.Sinks.Seq" />
+  </ItemGroup>
+</Project>

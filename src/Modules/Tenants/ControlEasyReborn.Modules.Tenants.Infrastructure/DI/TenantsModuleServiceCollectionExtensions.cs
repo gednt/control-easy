@@ -16,6 +16,7 @@ public static class TenantsModuleServiceCollectionExtensions
     {
         services.TryAddScoped<ITenantContext, HttpTenantContext>();
         services.AddSingleton<TenantAwareLinqFactory>();
+        services.AddSingleton<ITenantAwareLinqFactory>(sp => sp.GetRequiredService<TenantAwareLinqFactory>());
 
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<CreateTenantHandler>();

@@ -1,0 +1,7 @@
+{
+  "input": "https://localhost/swagger/v1/swagger.json",
+  "outputDir": "src/app/api",
+  "defaultExport": "named",
+  "module": "@angular/common/http",
+  "service": "ApiService"
+}

@@ -1,0 +1,88 @@
+services:
+  reverse-proxy:
+    image: traefik:v3.1
+    command:
+      - --providers.file.directory=/etc/traefik/dynamic
+      - --providers.file.watch=true
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --api.insecure=true
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8082:8080"
+    volumes:
+      - ./reverse-proxy/traefik.yml:/etc/traefik/static.yml:ro
+      - ./reverse-proxy/dynamic.yml:/etc/traefik/dynamic/dynamic.yml:ro
+      - traefik-data:/letsencrypt
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/api.Dockerfile
+    environment:
+      Db__Provider: MySQL
+      Db__Host: db
+      Db__Port: "3306"
+      Db__Database: controleasydb
+      Db__Username: ${MYSQL_USER:-controleasy}
+      Db__Password: ${MYSQL_PASSWORD:-controleasy_dev}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:-CHANGE-ME-IN-PRODUCTION-AT-LEAST-32-CHARS!}
+      Jwt__Issuer: ControlEasyReborn
+      Jwt__Audience: ControlEasyReborn
+      ASPNETCORE_ENVIRONMENT: Development
+      Serilog__WriteTo__1__Args__serverUrl: http://seq:5341
+    depends_on:
+      db:
+        condition: service_healthy
+    labels:
+      - "traefik.http.routers.api.rule=Host(`localhost`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api.entrypoints=web"
+      - "traefik.http.routers.api.tls=false"
+      - "traefik.http.services.api.loadbalancer.server.port=8080"
+
+  web:
+    build:
+      context: ..
+      dockerfile: docker/web.Dockerfile
+    labels:
+      - "traefik.http.routers.web.rule=Host(`localhost`)"
+      - "traefik.http.routers.web.entrypoints=web"
+      - "traefik.http.routers.web.tls=false"
+      - "traefik.http.routers.web.priority=1"
+      - "traefik.http.services.web.loadbalancer.server.port=8080"
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-controleasy_root_dev}
+      MYSQL_DATABASE: controleasydb
+      MYSQL_USER: ${MYSQL_USER:-controleasy}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-controleasy_dev}
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u${MYSQL_USER:-controleasy}", "-p${MYSQL_PASSWORD:-controleasy_dev}"]
+      interval: 5s
+      retries: 20
+
+  adminer:
+    image: adminer:4.8
+    labels:
+      - "traefik.http.routers.adminer.rule=Host(`localhost`) && PathPrefix(`/db`)"
+      - "traefik.http.routers.adminer.entrypoints=web"
+      - "traefik.http.routers.adminer.tls=false"
+      - "traefik.http.services.adminer.loadbalancer.server.port=8080"
+
+  seq:
+    image: datalust/seq:latest
+    environment:
+      ACCEPT_EULA: Y
+    volumes:
+      - seq-data:/data
+
+volumes:
+  mysql-data:
+  traefik-data:
+  seq-data:

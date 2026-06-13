@@ -13,6 +13,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="NSubstitute" />
+    <PackageReference Include="FluentAssertions" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\BuildingBlocks\ControlEasyReborn.Infrastructure\ControlEasyReborn.Infrastructure.csproj" />
@@ -21,5 +22,8 @@
     <ProjectReference Include="..\..\src\Modules\Tenants\ControlEasyReborn.Modules.Tenants.Application\ControlEasyReborn.Modules.Tenants.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Tenants\ControlEasyReborn.Modules.Tenants.Domain\ControlEasyReborn.Modules.Tenants.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Tenants\ControlEasyReborn.Modules.Tenants.Infrastructure\ControlEasyReborn.Modules.Tenants.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Residents\ControlEasyReborn.Modules.Residents.Application\ControlEasyReborn.Modules.Residents.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Residents\ControlEasyReborn.Modules.Residents.Domain\ControlEasyReborn.Modules.Residents.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Residents\ControlEasyReborn.Modules.Residents.Infrastructure\ControlEasyReborn.Modules.Residents.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

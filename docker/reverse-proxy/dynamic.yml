@@ -1,0 +1,38 @@
+http:
+  routers:
+    api:
+      rule: "Host(`localhost`) && PathPrefix(`/api`)"
+      entryPoints:
+        - web
+      service: api
+      priority: 100
+
+    web:
+      rule: "Host(`localhost`)"
+      entryPoints:
+        - web
+      service: web
+      priority: 1
+
+    adminer:
+      rule: "Host(`localhost`) && PathPrefix(`/db`)"
+      entryPoints:
+        - web
+      service: adminer
+      priority: 50
+
+  services:
+    api:
+      loadBalancer:
+        servers:
+          - url: "http://api:8080"
+
+    web:
+      loadBalancer:
+        servers:
+          - url: "http://web:8080"
+
+    adminer:
+      loadBalancer:
+        servers:
+          - url: "http://adminer:8080"

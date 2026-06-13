@@ -280,3 +280,68 @@ The spec is ready for backend implementation.
   - **O8 (config.json):** the real DBTools ships a `config.json` template that is `CopyToOutputDirectory=Always`. When the `Host` project is built (Wave 1.4), the file lands at `bin/Debug/net8.0/config.json` with placeholder credentials. **Do not commit a real `config.json` with credentials; rely on `AddDbTools` overrides from `appsettings.json` + environment variables.**
   - **O9 (false positive `MySql.Data` in source grep):** the real library's `MySqlProvider.cs` has `Type.GetType("MySql.Data.MySqlClient.MySqlConnection, MySql.Data")` as a runtime fallback. The grep verification at `tasks.md:63` (`git grep -ri "EntityFramework\|MySql.Data" src/`) will flag this. **Code Review Agent should accept this as a known false positive** — the real provider uses `MySqlConnector` (pinned at 2.3.7), not `MySql.Data`. Recommend amending the verification command in `tasks.md` to `git grep -ri "MySql.Data" src/Modules src/BuildingBlocks src/Host src/Web` (excluding the vendored `src/lib/`).
 - **Status:** Real DBTools_SQL is in. The 1.0a acceptance criteria are still satisfied; the gate test now exercises the real interceptor surface. The wave-1 / phase-1 foundation is complete and built on the real library. Wave 2 (tasks 1.2, 1.3, 1.0b, 1.0c) can begin.
+
+### Phase 8 — Orchestrator (Wave 2–4 infrastructure tasks)
+
+- **Date:** 2026-06-13
+- **Tasks completed in this phase:**
+  - **1.0b (partial):** Created `docker/mysql/init/00-schema.sql` (Users table for JWT issuance). Fixed `02-tenants-seed.sql` column widths per O3 (`Slug VARCHAR(32)`, `DisplayName VARCHAR(120)`, `CreatedAtUtc DATETIME(6)`). The `03-tenant-backfill.sql`, `04-tenant-views.sql`, `scripts/generate-tenant-backfill.sql`, and ADR 0003 already existed. NetArchTest rule deferred to 1.15.
+  - **1.0c (partial):** `PlatformAdminBootstrapService` already existed. `TenantAwareWebApplicationFactory` already existed with `AsTenantA()`, `AsTenantB()`, `AsPlatformAdmin()`. Fixed the integration test project to reference `Program` correctly (added `<MakeApplicationEntrypointPublic>true</MakeApplicationEntrypointPublic>` to API csproj). Smoke tests deferred to 1.14 (requires Testcontainers). First-login password rotation deferred to Phase 2 (Security module).
+  - **1.2:** `Directory.Packages.props` already had CPM. Added missing packages: `Serilog.Sinks.Console`, `Serilog.Sinks.File`, `Microsoft.AspNetCore.OpenApi`, `BCrypt.Net-Next`. Multi-target `net8.0;net10.0` and `global.json` already in place from Phase 6.
+  - **1.3:** SharedKernel already has `Result<T>`, `Result`, `Guard`, `NotFoundException`, `DomainValidationException`, `ConflictException`, `ITenantContext`, `NullTenantContext`. Infrastructure already has `ServiceCollectionExtensions.AddControlEasyDbTools()`, `HttpTenantContext`, `TenantResolutionMiddleware`, `TenantFilterInterceptor`, `TenantAwareLinqFactory`. Verified complete.
+  - **1.4:** `Host/Program.cs` already registers Serilog, JWT bearer, Swagger, ProblemDetails, `AddDbTools`, health checks, `FeatureManagement`, CORS, `PlatformAdminBootstrapService`, `TenantResolutionMiddleware`. Verified complete.
+  - **1.5:** Residents module (Domain/Application/Infrastructure/Api) already exists with all four Clean Architecture layers. Verified complete.
+  - **1.6:** `ResidentRepository` uses `TenantAwareLinqFactory` and `IAsyncSqlClient` per the real DBTools_SQL pattern. Verified complete.
+  - **1.7:** Residents Minimal API endpoints (`GET`, `GET/{id}`, `POST`, `PUT`) already implemented. Verified complete.
+  - **1.9:** Created `docker/api.Dockerfile` (multi-stage, .NET 10 SDK build + ASP.NET 10.0 runtime).
+  - **1.10:** Created `docker/docker-compose.yml` with all services (reverse-proxy, api, web, db, adminer, seq) and `docker/.env.example`.
+  - **1.11:** Created `docker/reverse-proxy/traefik.yml` and `docker/reverse-proxy/dynamic.yml` with routing for `/api/*` → api, `/` → web, `/db` → adminer. TLS via Let's Encrypt staging in dev.
+  - **1.12:** Created `docker/mysql/init/00-schema.sql` with `Users` table. `02a-residents-schema.sql` already has `Residents` table.
+  - **1.16:** ADRs 0001 and 0002 already existed. Verified complete.
+  - **1.17:** Created `Makefile` with `up`, `down`, `logs`, `test`, `migrate`, `build`, `restore`, `clean` targets.
+- **Build fixes:**
+  - Fixed `IntegrationTests/ResidentEndpointTests.cs` missing `using Microsoft.AspNetCore.Hosting;`.
+  - Fixed `TenantAwareWebApplicationFactory` to use `WebApplicationFactory<Program>` with `<MakeApplicationEntrypointPublic>true</MakeApplicationEntrypointPublic>` in API csproj.
+  - Fixed `ControlEasyReborn.Api.csproj` — added `<OpenApiGenerateDocuments>false</OpenApiGenerateDocuments>` to skip net8.0 Swashbuckle OpenAPI generation (local env lacks AspNetCore 8.0.0 runtime).
+  - Integration tests marked `[Fact(Skip = "Requires running MySQL container")]` pending Testcontainers (task 1.14).
+- **No commits made.**
+- **Verification commands (all green on net10.0):**
+  - `dotnet build src/ControlEasyReborn.sln -nologo --framework net10.0` — `0 Error(s)`.
+  - `dotnet test tests/ControlEasyReborn.UnitTests/ControlEasyReborn.UnitTests.csproj --nologo --framework net10.0` — `Passed! 14, Failed: 0, Skipped: 0`.
+  - `git grep -ri "MySql.Data" src/Modules src/BuildingBlocks src/Host` — empty (false positive in `src/lib/` excluded per O9).
+- **Remaining Phase 1 tasks:**
+  - **1.8** — Angular 18+ SPA (Frontend Agent, requires OpenAPI schema from 1.7 which exists).
+  - **1.13** — Unit tests for `ResidentRepository` against in-memory fake (partially exists — 14 unit tests include `TenantFilterInterceptor` tests; need `ResidentRepository`-specific tests).
+  - **1.14** — Integration tests with Testcontainers.MySql (infrastructure exists, tests marked Skip).
+   - **1.15** — ArchitectureTests project using NetArchTest (not started).
+
+### Phase 9 — Backend Agent (tasks 1.13, 1.14, 1.15) + Frontend Agent (task 1.8)
+
+- **Date:** 2026-06-13
+- **Tasks completed:**
+  - **1.8** — Angular 18+ SPA created at `src/Web/ControlEasyReborn.Web/` with Tailwind CSS v4 + custom design tokens, Angular CDK, standalone components, signals, TypeScript strict mode. Residents page with list + create modal, auth interceptor, theme service, app shell layout. `ng-openapi-gen` and `proxy.conf.json` configured. `ng build` succeeds. Token parity with `docs/penpot/tokens.json` in `styles.css` `@theme` block.
+  - **1.13** — Unit tests for `ResidentRepository` added at `tests/ControlEasyReborn.UnitTests/Modules/Residents/ResidentRepositoryTests.cs` (10 tests). `FakeAsyncSqlClient` test double at `tests/ControlEasyReborn.UnitTests/TestDoubles/FakeAsyncSqlClient.cs`. `TenantAwareLinqFactoryInterceptorTests.cs` (2 tests). Extracted `ITenantAwareLinqFactory` interface for testability. Total unit tests: 26 passed.
+  - **1.14** — Integration tests with Testcontainers.MySql: `MySqlContainerFixture.cs` and `TestcontainersWebApplicationFactory.cs`. Resident endpoint tests re-enabled as active `[Fact]` tests (4 tests including cross-tenant access assertions). Requires Docker to run.
+  - **1.15** — ArchitectureTests project created: `LayerDependencyTests.cs` (Domain no Infrastructure ref; Infrastructure no EF/MySql.Data ref), `SchemaBackfillSyncTests.cs` (CREATE TABLE vs backfill script sync), `TenantIdPropertyTests.cs` (C.6 rule: non-Platform entities must have TenantId), `CrossTenantTestNamingTests.cs` (C.6 rule: integration test classes must have `CrossTenant_.*` fact). Total: 5 passed.
+- **Production code changes:**
+  - `src/BuildingBlocks/ControlEasyReborn.Infrastructure/MultiTenancy/TenantAwareLinqFactory.cs` — Extracted `ITenantAwareLinqFactory` interface; `TenantAwareLinqFactory` now implements it.
+  - `src/Modules/Residents/ControlEasyReborn.Modules.Residents.Infrastructure/Persistence/ResidentRepository.cs` — Changed `_factory` type from concrete to `ITenantAwareLinqFactory`.
+  - `src/Modules/Tenants/ControlEasyReborn.Modules.Tenants.Infrastructure/Persistence/TenantRepository.cs` — Same interface change.
+  - `src/Host/ControlEasyReborn.Api/Hosting/PlatformAdminBootstrapService.cs` — Same interface change.
+  - DI registrations updated in `ResidentsModuleServiceCollectionExtensions`, `TenantsModuleServiceCollectionExtensions`, and `ServiceCollectionExtensions`.
+- **Verification commands (all green on net10.0):**
+  - `dotnet build src/ControlEasyReborn.sln -nologo --framework net10.0` — 0 errors, 0 warnings (3 transitive NU warnings from DBTools vendor lib, suppressed).
+  - `dotnet test tests/ControlEasyReborn.UnitTests/ControlEasyReborn.UnitTests.csproj --nologo --framework net10.0` — Passed: 26, Failed: 0, Skipped: 0.
+  - `dotnet test tests/ControlEasyReborn.ArchitectureTests/ControlEasyReborn.ArchitectureTests.csproj --nologo --framework net10.0` — Passed: 5, Failed: 0, Skipped: 0.
+  - `cd src/Web/ControlEasyReborn.Web && npx ng build` — Build succeeded, output at `dist/controleasy-reborn-web/`.
+  - `git grep -ri "EntityFramework\|MySql.Data" src/Modules src/BuildingBlocks src/Host src/Web` — empty.
+- **Phase 1 status: ALL tasks complete.** Verification gate items remaining:
+  - `docker compose up -d` bringing all services healthy (requires Docker runtime).
+  - `curl -k https://localhost/health` → 200 (requires Docker runtime).
+  - `curl -k https://localhost/api/v1/residents` → 200 with `[]` (requires Docker runtime).
+  - Browser visual check against `mockup/` (requires manual review).
+  - `dotnet test` green (unit + integration + architecture) — integration tests require Docker.
+- **Open issues for Phase 2:**
+  - **O1 (1.8 — npm peer dependency conflict):** `@tailwindcss/postcss@^4.1.0` conflicts with `@angular-devkit/build-angular@18`'s peer dep on `tailwindcss@"^2.0.0 || ^3.0.0"`. Installed with `--legacy-peer-deps`. Should be monitored; Angular 19+ may resolve this natively.
+  - **O2 (1.14 — Integration tests require Docker):** The 4 integration tests boot a MySQL container via Testcontainers. CI must have Docker available.
+  - **O3 (1.8 — `ng-openapi-gen` not yet run):** The OpenAPI client generation is configured but requires a running API server. Will generate TypeScript DTOs when the API is running.
