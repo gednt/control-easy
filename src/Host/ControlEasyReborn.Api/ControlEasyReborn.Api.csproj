@@ -28,6 +28,9 @@
     <ProjectReference Include="..\..\Modules\Visits\ControlEasyReborn.Modules.Visits.Api\ControlEasyReborn.Modules.Visits.Api.csproj" />
     <ProjectReference Include="..\..\Modules\Visits\ControlEasyReborn.Modules.Visits.Application\ControlEasyReborn.Modules.Visits.Application.csproj" />
     <ProjectReference Include="..\..\Modules\Visits\ControlEasyReborn.Modules.Visits.Infrastructure\ControlEasyReborn.Modules.Visits.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\Reports\ControlEasyReborn.Modules.Reports.Api\ControlEasyReborn.Modules.Reports.Api.csproj" />
+    <ProjectReference Include="..\..\Modules\Reports\ControlEasyReborn.Modules.Reports.Application\ControlEasyReborn.Modules.Reports.Application.csproj" />
+    <ProjectReference Include="..\..\Modules\Reports\ControlEasyReborn.Modules.Reports.Infrastructure\ControlEasyReborn.Modules.Reports.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />

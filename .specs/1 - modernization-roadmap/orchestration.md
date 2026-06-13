@@ -384,3 +384,34 @@ The spec is ready for backend implementation.
 - **Spec files modified:**
   - `.specs/1 - modernization-roadmap/tasks.md` — 3.1, 3.2, 3.3, 3.4, 3.9a marked `[x]`.
   - `.specs/1 - modernization-roadmap/orchestration.md` — this entry.
+
+### Phase 12 — Full-Stack Agent (Phase 3 Waves 2–3: tasks 3.5, 3.6, 3.7, 3.8)
+
+- **Date:** 2026-06-13
+- **Tasks completed:**
+  - **3.6 (Reports — CQRS-lite):** New `Modules/Reports/{Application,Infrastructure,Api}` with read-only handlers and `ReportReadRepository`. Endpoints: `GET /api/v1/reports/visit-counts-by-day`, `GET /api/v1/reports/residents-per-apartment`. Tenant-filtered reads via `TenantAwareLinqFactory`; in-memory `AsQueryable()` projections for GROUP BY aggregation.
+  - **3.5 (Angular + feature flags + integration tests):**
+    - Angular lazy-loaded pages: `visits/`, `vehicles/`, `service-providers/`, `administration/` (list + create modal each).
+    - Sidebar + routes wired for all four modules.
+    - Feature flags extended: `Visits.UseWeb`, `Vehicles.UseWeb`, `ServiceProviders.UseWeb`, `Administration.UseWeb` (default `false` in `appsettings.json`; exposed via `GET /api/v1/features`).
+    - Integration tests: `VisitEndpointTests`, `VehicleEndpointTests`, `ServiceProviderEndpointTests`, `AdministrationEndpointTests`, `ReportEndpointTests` (each with `CrossTenant_*` fact).
+  - **3.7 (Playwright):** `playwright.config.ts` + `e2e/module-pages.spec.ts` covering all five primary module pages (Residents, Visits, Vehicles, Service Providers, Administration). Run via `npm run e2e` (requires `ng serve` + auth).
+  - **3.8 (legacy mapping):** `docs/migration/legacy-mapping.md` updated — all rows marked **Web - live**.
+- **Verification commands (all green on net10.0):**
+  - `dotnet build src/Host/ControlEasyReborn.Api/ControlEasyReborn.Api.csproj --framework net10.0` — 0 errors.
+  - `dotnet test tests/ControlEasyReborn.UnitTests/ --framework net10.0` — Passed: 42, Failed: 0.
+  - `dotnet test tests/ControlEasyReborn.ArchitectureTests/ --framework net10.0` — Passed: 5, Failed: 0.
+  - `cd src/Web/ControlEasyReborn.Web && npx ng build` — Build succeeded.
+- **Phase 3 status: ALL tasks complete.** Phase 4 (Legacy Decommission) is next.
+- **Spec files modified:**
+  - `.specs/1 - modernization-roadmap/tasks.md` — 3.5, 3.6, 3.7, 3.8 marked `[x]`.
+  - `.specs/1 - modernization-roadmap/orchestration.md` — this entry.
+
+### Phase 13 — Orchestrator (Phase 4 cancelled)
+
+- **Date:** 2026-06-13
+- **Decision:** Phase 4 (Legacy Decommission) is **cancelled** per user directive. Rationale aligns with Phase 2 cancellations (2.4/2.5): the legacy WPF app is not in production use, cannot run on the macOS dev environment, and is not part of `ControlEasyReborn.sln`. Strangler feature flags remain in place; production cutover (4.6) is deferred to a separate DevOps spec.
+- **Files modified:**
+  - `.specs/1 - modernization-roadmap/tasks.md` — tasks 4.1–4.6 and the Phase 4 verification gate struck through with cancellation reasons.
+  - `.specs/1 - modernization-roadmap/orchestration.md` — this entry.
+- **Roadmap status:** Phases 1–3 complete (or cancelled where noted). Phase 4 cancelled. Continuous tasks (C.1–C.7) remain open.

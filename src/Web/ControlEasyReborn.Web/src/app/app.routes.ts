@@ -19,6 +19,22 @@ export const routes: Routes = [
         path: 'residents',
         loadComponent: () => import('./features/residents/residents.page').then(m => m.ResidentsPage),
       },
+      {
+        path: 'visits',
+        loadComponent: () => import('./features/visits/visits.page').then(m => m.VisitsPage),
+      },
+      {
+        path: 'vehicles',
+        loadComponent: () => import('./features/vehicles/vehicles.page').then(m => m.VehiclesPage),
+      },
+      {
+        path: 'service-providers',
+        loadComponent: () => import('./features/service-providers/service-providers.page').then(m => m.ServiceProvidersPage),
+      },
+      {
+        path: 'administration',
+        loadComponent: () => import('./features/administration/administration.page').then(m => m.AdministrationPage),
+      },
     ],
   },
   {

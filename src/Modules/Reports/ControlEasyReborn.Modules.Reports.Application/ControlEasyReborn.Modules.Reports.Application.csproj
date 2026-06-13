@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ControlEasyReborn.Modules.Reports.Application</RootNamespace>
+    <AssemblyName>ControlEasyReborn.Modules.Reports.Application</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\ControlEasyReborn.SharedKernel\ControlEasyReborn.SharedKernel.csproj" />
+  </ItemGroup>
+</Project>

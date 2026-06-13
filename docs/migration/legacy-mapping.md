@@ -2,11 +2,11 @@
 
 | WPF Screen | Web Module | Status | Notes |
 |---|---|---|---|
-| Moradores (Residents) | Residents | Web - pilot live | Phase 2 Strangler pilot |
-| Visitantes (Visits) | Visits | Not started | Phase 3 |
-| Veiculos (Vehicles) | Vehicles | Not started | Phase 3 |
-| Prestadores (Service Providers) | ServiceProviders | Not started | Phase 3 |
-| Login/Auth | Security | Web - implemented | Phase 2 |
-| Portaria/Fluxo (Gatehouse Log) | Visits | Not started | Phase 3 |
-| Administracao (Admin) | Administration | Not started | Phase 3 |
-| Configuracoes (Settings) | Administration | Not started | Phase 3 |
+| Moradores (Residents) | Residents | Web - live | Phase 2 Strangler pilot |
+| Visitantes (Visits) | Visits | Web - live | Phase 3 module migration |
+| Veiculos (Vehicles) | Vehicles | Web - live | Phase 3 module migration |
+| Prestadores (Service Providers) | ServiceProviders | Web - live | Phase 3 module migration |
+| Login/Auth | Security | Web - live | Phase 2 |
+| Portaria/Fluxo (Gatehouse Log) | Visits | Web - live | Covered by Visits module (checkin/checkout) |
+| Administracao (Admin) | Administration | Web - live | Phase 3 module migration |
+| Configuracoes (Settings) | Administration | Web - live | Configurations tab in Administration |

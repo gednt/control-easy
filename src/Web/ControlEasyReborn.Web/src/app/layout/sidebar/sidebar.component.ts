@@ -25,16 +25,26 @@ import { ThemeService } from '../../design-system/theme/theme.service';
         </div>
         <div class="sidebar-nav-section">
           <div class="sidebar-nav-title">Modules</div>
-          <a class="sidebar-nav-item"
-             routerLink="/residents"
-             routerLinkActive="active">
+          <a class="sidebar-nav-item" routerLink="/residents" routerLinkActive="active">
             <span class="sidebar-nav-icon">&#9787;</span>
             <span class="sidebar-nav-text">Residents</span>
+          </a>
+          <a class="sidebar-nav-item" routerLink="/visits" routerLinkActive="active">
+            <span class="sidebar-nav-icon">&#9788;</span>
+            <span class="sidebar-nav-text">Visits</span>
+          </a>
+          <a class="sidebar-nav-item" routerLink="/vehicles" routerLinkActive="active">
+            <span class="sidebar-nav-icon">&#9789;</span>
+            <span class="sidebar-nav-text">Vehicles</span>
+          </a>
+          <a class="sidebar-nav-item" routerLink="/service-providers" routerLinkActive="active">
+            <span class="sidebar-nav-icon">&#9790;</span>
+            <span class="sidebar-nav-text">Service Providers</span>
           </a>
         </div>
         <div class="sidebar-nav-section">
           <div class="sidebar-nav-title">Settings</div>
-          <a class="sidebar-nav-item" href="#">
+          <a class="sidebar-nav-item" routerLink="/administration" routerLinkActive="active">
             <span class="sidebar-nav-icon">&#9881;</span>
             <span class="sidebar-nav-text">Administration</span>
           </a>

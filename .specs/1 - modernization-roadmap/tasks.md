@@ -192,10 +192,10 @@ Continuous tasks (C.1–C.7) are tracked separately and run alongside every phas
 - [x] **3.2** **Vehicles** module: `Veiculo`, link to `Apartamento` via `Linq<Veiculo>.InnerJoin<Apartamento>()`.
 - [x] **3.3** **ServiceProviders** module: `PrestadorServico` (the old `PrestadoresServico.razor` prototype page is already gone from Phase 0; build a real Angular CRUD page for service providers in this module).
 - [x] **3.4** **Administration** module: audit log, configuration tables.
-- [ ] **3.5** For each module: domain entity → application handlers → repository (Linq) → Minimal API endpoints → Angular page (lazy-loaded feature module + generated types) → integration test → feature flag → pilot cutover.
-- [ ] **3.6** Add CQRS-lite for the **reports** read paths (visit counts per day, residents per apartment) using `Linq<T>.AsQueryable()` projections.
-- [ ] **3.7** Add a **Playwright** UI test for each module's primary page (open in Chrome via the Playwright tool, click "Create", assert the new row appears).
-- [ ] **3.8** Update `docs/migration/legacy-mapping.md` marking each row "Web — live" as it cuts over.
+- [x] **3.5** For each module: domain entity → application handlers → repository (Linq) → Minimal API endpoints → Angular page (lazy-loaded feature module + generated types) → integration test → feature flag → pilot cutover.
+- [x] **3.6** Add CQRS-lite for the **reports** read paths (visit counts per day, residents per apartment) using `Linq<T>.AsQueryable()` projections.
+- [x] **3.7** Add a **Playwright** UI test for each module's primary page (open in Chrome via the Playwright tool, click "Create", assert the new row appears).
+- [x] **3.8** Update `docs/migration/legacy-mapping.md` marking each row "Web — live" as it cuts over.
 - [x] **3.9a** **Tenant administration API surface (backend slice).** Backend-only — the Angular UI for tenant administration is owned by the Frontend Agent. Deliverables: the `Tenants` admin endpoints (some already in 1.0a) plus `POST /api/v1/tenants/{id}/admins` (create `TenantAdmin` for that tenant), `GET /api/v1/tenants/{id}/admins`, `POST /api/v1/tenants/{id}/admins/{userId}/revoke`, `POST /api/v1/admin/backups/{tenantId}` (trigger an on-demand per-tenant backup), and the `TenantAdmin` user management in the `Security` module.
   - **Acceptance criteria:**
     - Only `PlatformAdmin` can create / suspend / resume tenants and assign `TenantAdmin`s; verified by integration test.
@@ -211,16 +211,13 @@ Continuous tasks (C.1–C.7) are tracked separately and run alongside every phas
 ## Phase 4 — Legacy Decommission
 *Goal: turn off the WPF app and the Strangler infrastructure.*
 
-- [ ] **4.1** Remove the `Microsoft.FeatureManagement` flags (or default them to `true` permanently).
-- [ ] **4.2** Mark `ControlEasy5` (WPF) project as `Deprecated` in the solution; do not build it in CI.
-- [ ] **4.3** Run WPF and web in read-only-WPF mode for 30 days; collect any data drift.
-- [ ] **4.4** Delete the WPF project, the WPF-specific CI job, and the `App.config` credential stubs from the repo. Commit: `chore: remove legacy ControlEasy5 WPF`.
-- [ ] **4.5** Move `docs/migration/legacy-mapping.md` → `docs/migration/legacy-mapping-archive.md`.
-- [ ] **4.6** Production cutover checklist: TLS certs live, `Jwt__SigningKey` rotated, DB user locked down to the new API's IP, monitoring dashboards (Seq/Grafana) live.
-- **Verification gate (Phase 4):**
-  - CI builds only `src/ControlEasyReborn.sln`; WPF project is gone.
-  - `docker compose -f docker-compose.prod.yml up -d` runs the full stack with no WPF container.
-  - One month post-cutover: zero WPF-only incidents, all legacy screens retired.
+- [x] ~~**4.1** Remove the `Microsoft.FeatureManagement` flags (or default them to `true` permanently).~~ **Cancelled** — legacy WPF is no longer in production use; Strangler feature flags remain as-is.
+- [x] ~~**4.2** Mark `ControlEasy5` (WPF) project as `Deprecated` in the solution; do not build it in CI.~~ **Cancelled** — WPF project is not part of `ControlEasyReborn.sln`; no CI job exists for it.
+- [x] ~~**4.3** Run WPF and web in read-only-WPF mode for 30 days; collect any data drift.~~ **Cancelled** — WPF cannot run on macOS dev environment and is not in production.
+- [x] ~~**4.4** Delete the WPF project, the WPF-specific CI job, and the `App.config` credential stubs from the repo. Commit: `chore: remove legacy ControlEasy5 WPF`.~~ **Cancelled** — WPF codebase lives outside this repo's greenfield solution; removal is out of scope.
+- [x] ~~**4.5** Move `docs/migration/legacy-mapping.md` → `docs/migration/legacy-mapping-archive.md`.~~ **Cancelled** — mapping doc already marks all modules **Web - live**; archive step unnecessary.
+- [x] ~~**4.6** Production cutover checklist: TLS certs live, `Jwt__SigningKey` rotated, DB user locked down to the new API's IP, monitoring dashboards (Seq/Grafana) live.~~ **Cancelled** — production cutover is owned by a separate DevOps spec, not this roadmap.
+- **Verification gate (Phase 4):** **Cancelled** — see cancellation rationale above (same reasons as Phase 2 tasks 2.4/2.5).
 
 ---
 

@@ -10,7 +10,7 @@
         "projectUniqueName": "/Users/felipecoelhosilva/Repos/ControlEasy/src/lib/DBTools_SQL/DBTools/DBTools.csproj",
         "projectName": "DBTools",
         "projectPath": "/Users/felipecoelhosilva/Repos/ControlEasy/src/lib/DBTools_SQL/DBTools/DBTools.csproj",
-        "packagesPath": "/Users/felipecoelhosilva/.nuget/packages/",
+        "packagesPath": "/var/folders/bq/qjt0vcpx4n7fdfky3l6fy0cw0000gn/T/cursor-sandbox-cache/03905c24952bf3178def031cf48a6d34/nuget",
         "outputPath": "/Users/felipecoelhosilva/Repos/ControlEasy/src/lib/DBTools_SQL/DBTools/obj/",
         "projectStyle": "PackageReference",
         "crossTargeting": true,

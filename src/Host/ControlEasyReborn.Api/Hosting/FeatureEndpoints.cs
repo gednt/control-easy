@@ -16,10 +16,11 @@ public static class FeatureEndpoints
 
         group.MapGet("/", async (IFeatureManagerSnapshot featureManager, CancellationToken ct) =>
         {
-            var flags = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase)
+            var flags = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+            foreach (var flag in FeatureFlags.All)
             {
-                [FeatureFlags.ResidentsUseWeb] = await featureManager.IsEnabledAsync(FeatureFlags.ResidentsUseWeb),
-            };
+                flags[flag] = await featureManager.IsEnabledAsync(flag);
+            }
 
             return Results.Ok(flags);
         });

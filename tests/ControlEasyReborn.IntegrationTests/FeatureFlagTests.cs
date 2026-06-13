@@ -26,6 +26,10 @@ public sealed class FeatureFlagTests
         var body = await response.Content.ReadFromJsonAsync<Dictionary<string, bool>>();
         body.Should().NotBeNull();
         body.Should().ContainKey("Residents.UseWeb");
+        body.Should().ContainKey("Visits.UseWeb");
+        body.Should().ContainKey("Vehicles.UseWeb");
+        body.Should().ContainKey("ServiceProviders.UseWeb");
+        body.Should().ContainKey("Administration.UseWeb");
     }
 
     [Fact]

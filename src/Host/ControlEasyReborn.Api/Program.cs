@@ -19,6 +19,8 @@ using ControlEasyReborn.Modules.Tenants.Infrastructure.DI;
 using ControlEasyReborn.Modules.Vehicles.Api.DI;
 using ControlEasyReborn.Modules.Vehicles.Api.Endpoints;
 using ControlEasyReborn.Modules.Vehicles.Infrastructure.DI;
+using ControlEasyReborn.Modules.Reports.Api.DI;
+using ControlEasyReborn.Modules.Reports.Infrastructure.DI;
 using ControlEasyReborn.Modules.Visits.Api.Endpoints;
 using ControlEasyReborn.Modules.Visits.Api.DI;
 using ControlEasyReborn.Modules.Visits.Infrastructure.DI;
@@ -112,6 +114,7 @@ try
     builder.Services.AddServiceProvidersModule();
     builder.Services.AddVehiclesModule();
     builder.Services.AddVisitsModule();
+    builder.Services.AddReportsModule();
 
     builder.Services.AddHostedService<PlatformAdminBootstrapService>();
 
@@ -152,6 +155,7 @@ try
     app.MapServiceProvidersApi();
     app.MapVehiclesApi();
     app.MapVisitsApi();
+    app.MapReportsApi();
     app.MapAdministrationApi();
 
     app.Run();
