@@ -106,13 +106,29 @@ Extend the Modernization Roadmap so that the platform supports:
   - **F2 (Major — 1.0b/1.15 wording):** Reworded `tasks.md:29` so the NetArchTest rule is explicit about shipping in the same PR as 1.0b.
   - **F3 (Major — missing `tenant-switch` endpoint + wording):** Fixed `design.md:310` ("POST /api/v1/security/..." → "/api/v1/security/...") and appended the `POST /api/v1/security/tenant-switch` endpoint bullet after the `tenants?email=...` line.
   - **F4 (Minor — change map stale):** Updated `orchestration.md:33-34` to reference `2.7a`/`3.9a` and note that `2.7`/`3.9` are reserved for future Frontend-Agent UI specs.
-  - **F5 (Minor — missing `Attendant` glossary row):** Inserted the `Attendant` role row in `design.md:34`, between `TenantAdmin` and `TenantResolutionStrategy`.
+   - **F5 (Minor — missing `Attendant` glossary row):** Inserted the `Attendant` role row in `design.md:34`, between `TenantAdmin` and `TenantResolutionStrategy`.
 - **Final consistency sweep:**
   - Single task 2.1 (no duplicate).
   - `tenant-switch` endpoint present in both `design.md` and `tasks.md`.
   - No leftover `condominium_id` references.
   - No leftover single-`Porteiro` role references (the only remaining `Porteiro` mention is in UC-24, where it is an intentional contrast with the old model).
   - No emojis in any of the three updated files.
+
+### Phase 4 — Documentation Agent (design-system cross-reference)
+
+- **Date:** 2026-06-12
+- **Files touched:**
+  - `.specs/1 - modernization-roadmap/docchange.md` (new)
+  - `.specs/1 - modernization-roadmap/requirements.md` (one-line cross-references added under UC-4, UC-5, UC-6; no structural change)
+  - `.specs/1 - modernization-roadmap/design.md` (new "Design system & visual prototype" top-level subsection added; four rows in the "Components & Files" table; one row in the "Cross-Cutting Concerns" table; the "Verification Approach" Visual bullet updated)
+  - `.specs/1 - modernization-roadmap/tasks.md` (task 1.8 extended; Phase 1 verification gate extended; C.2 and C.4 updated; new C.7 added; Task Dependency Graph unchanged)
+  - `.specs/1 - modernization-roadmap/orchestration.md` (this entry)
+- **Summary of changes:** added a single canonical "Design system & visual prototype" section in `design.md` that lists `.specs/2 - visual-design-system/`, `docs/penpot/design-system.penpot.json`, `docs/penpot/tokens.json`, `docs/penpot/manifest.json`, and `mockup/` (including `mockup/SMOKE.md`); turned every other touchpoint in the roadmap into a one-line link back to that section (no duplicate lists); added new continuous task C.7 to enforce token parity between `docs/penpot/tokens.json` and the Angular `@theme` block in CI.
+- **Placement decision (per orchestrator):** the new "Design system & visual prototype" section was placed between the existing "Frontend Design" and "Containerization" subsections in `design.md` so that the visual contract sits with the other frontend material but is not nested under it.
+- **No re-sort of the glossary** in `design.md` (per the existing convention noted in `review.md`).
+- **No change to task numbers** (continuous task C.7 is the next free number; the existing C.1..C.6 sequence is preserved).
+- **No emojis** in any of the updated files.
+- **No code changes** under `src/`, `mockup/`, or `docs/penpot/`.
 
 ## Outcome
 

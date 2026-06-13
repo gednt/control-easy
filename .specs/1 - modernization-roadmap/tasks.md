@@ -4,18 +4,6 @@
 
 ---
 
-## Phase 0 — Inventory & Cleanup (preparation)
-*Goal: get a clean baseline of the existing code, kill the dead Blazor-on-.NET 5 prototype, and document the legacy screen → module mapping.*
-
-- [ ] **0.1** Inventory every WPF View in `ControlEasy5/ControlEasy5/View/` and Controller in `ControlEasy5/ControlEasy5/Controller/`, list them in `docs/migration/legacy-inventory.md`.
-- [ ] **0.2** Inventory the Model layer (`ControlEasy5/ControlEasy5/Model/*.cs`) and the MySQL schema (reverse-engineer from `controlEasyDB.db` or `privilegios_backup.sql`) into `docs/migration/legacy-schema.md`.
-- [ ] **0.3** Delete the dead Blazor Server prototype (`ControlEasy5/ControlEasyWeb/`) and remove its project reference from `ControlEasy5.sln`. Commit: `chore: remove dead ControlEasyWeb .NET 5 prototype`.
-- [ ] **0.4** Remove hard-coded MySQL credentials from `App.config`; replace with a stub reading from environment variables. Commit: `chore(security): externalize db credentials`.
-- [ ] **0.5** Produce `docs/migration/legacy-mapping.md` with a table: `WPF screen → new web module → target Angular page → migration phase`.
-- **Verification gate (Phase 0):** `dotnet build ControlEasy5/ControlEasy5.sln` succeeds; the four docs exist; no plaintext passwords appear in `git grep -i "passwd" ControlEasy5/`.
-
----
-
 ## Phase 1 — Foundation (greenfield skeleton)
 *Goal: build the empty modular monolith + Docker stack + DBTools_SQL wiring, with a single smoke-test module (Residents) that proves the end-to-end flow works.*
 
@@ -49,6 +37,8 @@
 - [ ] **1.8** Create `src/Web/ControlEasyReborn.Web` (**Angular 18+** standalone-component SPA, TypeScript strict mode, **Tailwind CSS v4 + custom design tokens**, **Angular CDK** for headless overlays) with a single `Residents` page that lists and creates residents, talking to the API through `HttpClient` with a bearer token (added by an HTTP interceptor). Visual patterns must follow the spec in `.specs/2 - visual-design-system/`.
   - Configure `ng-openapi-gen` so DTOs/interfaces are generated from the API's `/swagger/v1/swagger.json` on every build.
   - Configure `proxy.conf.json` for `ng serve` so dev calls go to the API at `https://localhost/api`.
+  - The Angular SPA's `@theme` block and component styles must **conform to `docs/penpot/tokens.json`** (light + dark); continuous task C.7 enforces this in CI.
+  - During the Angular build, **`mockup/` is the visual reference** (open every Angular page side-by-side with the matching `mockup/*.html` page and confirm pixel parity before merging).
 - [ ] **1.9** Add multi-stage Dockerfiles: `docker/api.Dockerfile`, `docker/web.Dockerfile`.
 - [ ] **1.10** Add `docker/docker-compose.yml` with services: `reverse-proxy` (Traefik), `api`, `web`, `db` (MySQL 8, with healthcheck), `adminer`, `seq`. Add `docker/.env.example`.
 - [ ] **1.11** Add `docker/reverse-proxy/traefik.yml` and `docker/reverse-proxy/dynamic.yml` routing `/api/*` → `api`, `/` → `web`, `/db` → `adminer`. TLS via Let's Encrypt (staging cert in dev).
@@ -68,6 +58,7 @@
   - `curl -k https://localhost/health` → 200.
   - `curl -k https://localhost/api/v1/residents` → 200 with `[]` (empty list).
   - Open `https://localhost` in Chrome via Playwright, see the `Residents` page, create one resident, refresh, see it in the list. Screenshot for the user.
+  - Open `mockup/index.html` and `mockup/app.html` in Chrome via Playwright and confirm every `ce-*` selector used in the Angular app renders identically to its mockup counterpart (token parity + component parity).
   - `dotnet test` is green (unit + integration + architecture).
   - `git grep -ri "EntityFramework\|MySql.Data" src/` returns nothing.
 
@@ -148,11 +139,12 @@
 ## Continuous (every phase)
 
 - [ ] **C.1** GitHub Actions: `lint` (dotnet format), `build` (matrix: linux-x64, win-x64), `test` (unit + integration with Testcontainers), `docker` (build images, push to GHCR), `smoke` (docker compose up + curl + Playwright).
-- [ ] **C.2** Keep `AGENTS.md` updated whenever a new module, library, or convention is added.
+- [ ] **C.2** Keep `AGENTS.md` updated whenever a new module, library, or convention is added. Keep `docs/penpot/manifest.json` and `docs/penpot/tokens.json` in sync with `.specs/2 - visual-design-system/`.
 - [ ] **C.3** Every ADRs recorded in `docs/architecture/decisions/` with the date and the decision made.
-- [ ] **C.4** Every UI change is verified in a real Chrome browser via the Playwright tool before being marked done.
+- [ ] **C.4** Every UI change is verified in a real Chrome browser via the Playwright tool before being marked done. The visual review surface is `mockup/` (smoke-tested via `mockup/SMOKE.md`).
 - [ ] **C.5** After every API change, run `ng-openapi-gen` to regenerate the Angular TypeScript client and fix any breaking call sites.
 - [ ] **C.6** **Architecture rule — `TenantId` everywhere + cross-tenant test.** Two NetArchTest rules in `tests/ControlEasyReborn.ArchitectureTests/`:
   - All classes in `Modules/*/Domain/Entities/` whose name does not start with `Platform` (i.e. the per-tenant entities) must have a non-nullable `TenantId` property of type `Guid` (or a `TenantId` value object wrapping `Guid`).
   - Every `tests/ControlEasyReborn.IntegrationTests/*` test class that touches a module's repository must contain at least one `[Fact]` whose name matches the regex `CrossTenant_.*` and that asserts the module's `Linq<T>`-backed read returns no rows for a foreign tenant and that writes to a foreign tenant are rejected. CI fails the build if a new test file ships without such a fact.
   - These rules run on every PR (in the existing C.1 GitHub Actions `test` job).
+- [ ] **C.7** **Tokens-contract CI check.** A test or script (in `tests/`, e.g. `tests/ControlEasyReborn.ArchitectureTests/TokensContractTests.cs`, or a new GitHub Actions step in `.github/workflows/ci.yml` named `tokens-contract`) diffs the `light` and `dark` blocks of `docs/penpot/tokens.json` against the `@theme` block in `src/Web/ControlEasyReborn.Web/src/styles.css` and fails the build if a token is added to one side but not the other. The check runs on every PR in the existing C.1 `build` job (not `test`). Verification command: `dotnet test tests/ControlEasyReborn.ArchitectureTests/ --filter TokensContract` (and/or the `tokens-contract` GitHub Actions step name in the C.1 `build` job's `steps:` block).

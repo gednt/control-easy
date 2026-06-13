@@ -360,6 +360,16 @@ Only when a query needs a DB-specific feature not covered by the LINQ provider (
 - **Auth:** a `LoginComponent` posts to `/api/v1/auth/login`; the JWT is kept in an `AuthService` (signal-based) and attached by an HTTP interceptor.
 - **Routing:** lazy-loaded feature routes (`/residents`, `/visits`, `/vehicles`, ...).
 
+### Design system & visual prototype
+
+The visual contract for the Angular 18+ SPA (UC-4..UC-6) lives in the following artifacts; this subsection is the **only** place in this spec where they are listed, and every other cross-reference in the roadmap points back to it:
+
+- **`.specs/2 - visual-design-system/`** — the Visual Design System spec; source of truth for tokens, components, accessibility, and responsive behavior. The Angular SPA (task 1.8) and every subsequent frontend task conform to it.
+- **`docs/penpot/design-system.penpot.json`** — the Penpot library export; a mirror of the Visual Design System spec for designers working in Penpot.
+- **`docs/penpot/tokens.json`** — the machine-readable token contract. Its `light` and `dark` blocks define every CSS variable the SPA consumes. The code-side contract partner is the `@theme` block in `src/Web/ControlEasyReborn.Web/src/styles.css` (Tailwind CSS v4). Token parity between the two is enforced by continuous task C.7.
+- **`docs/penpot/manifest.json`** — the inventory of every `ce-*` component, layout, and screen exported, each row carrying the file path and the spec UC it satisfies. Kept in sync with the Visual Design System spec by continuous task C.2.
+- **`mockup/`** — the build-free HTML/CSS/JS prototype (`mockup/index.html`, `mockup/app.html`, `mockup/showcase.html`, `mockup/login.html` + `mockup/styles.css` + `mockup/assets/`); the canonical visual review surface. It is smoke-tested via `mockup/SMOKE.md` (open every page in Chrome via Playwright and confirm the Angular build matches the mockup) before any Angular UI PR is merged.
+
 ### Containerization
 
 ```mermaid
@@ -501,6 +511,7 @@ ENTRYPOINT ["dotnet", "ControlEasyReborn.Api.dll"]
 | Auth | JWT bearer | `Host/Program.cs` + `Modules/Security` |
 | Health checks | `AspNetCore.HealthChecks.MySql` | `Host/Program.cs` → `/health` |
 | Feature flags | `Microsoft.FeatureManagement` (Strangler toggle per module) | `Host/Program.cs` |
+| Design system | Penpot library + tokens JSON + HTML mockup | `docs/penpot/`, `mockup/` |
 
 ### Tenant Data Migration
 
@@ -536,13 +547,17 @@ ENTRYPOINT ["dotnet", "ControlEasyReborn.Api.dll"]
 | `docs/architecture/decisions/0001-modular-monolith.md` | ADR |
 | `docs/architecture/decisions/0002-dblools-sql-as-only-data-access.md` | ADR |
 | `docs/migration/legacy-mapping.md` | WPF screen → module map |
+| `docs/penpot/design-system.penpot.json` | Penpot library export; mirror of `.specs/2 - visual-design-system/` for designers. |
+| `docs/penpot/tokens.json` | Machine-readable token contract (light + dark); the design-side contract partner of `src/Web/ControlEasyReborn.Web/src/styles.css` `@theme` block. |
+| `docs/penpot/manifest.json` | Inventory of `ce-*` components, layouts, and screens exported; kept in sync by C.2. |
+| `mockup/index.html` | Build-free HTML/CSS prototype entry point; the canonical visual review surface for the Angular SPA. |
 
 ## Verification Approach
 
 - **Per task:** the implementation ends with a verification command (build, test, curl, or a Playwright browser check for the web UI).
 - **Per phase:** a phase gate (a checklist in `tasks.md`) must be fully green before starting the next phase.
 - **Continuous:** GitHub Actions runs `dotnet build`, `dotnet test`, and `docker compose up -d` + curl-based smoke test on every PR.
-- **Visual:** for any Angular page work, open the page in Chrome via the Playwright browser tool and screenshot for user approval.
+- **Visual:** open the relevant `mockup/*.html` page in Chrome via the Playwright tool, confirm the Angular build matches the mockup, and cross-check `docs/penpot/tokens.json` against `src/Web/ControlEasyReborn.Web/src/styles.css`.
 
 ## Risks & Mitigations
 
