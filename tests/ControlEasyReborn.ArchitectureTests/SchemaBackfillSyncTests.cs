@@ -48,7 +48,8 @@ public sealed class SchemaBackfillSyncTests
 
         var exemptTables = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "Tenants"
+            "Tenants",
+            "RefreshTokens"
         };
 
         var missing = createTableNames

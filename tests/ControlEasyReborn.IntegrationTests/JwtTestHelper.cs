@@ -15,6 +15,7 @@ public static class JwtTestHelper
         Guid userId,
         string email,
         Guid? tenantId = null,
+        Guid? profileId = null,
         IReadOnlyCollection<string>? roles = null,
         IReadOnlyCollection<string>? permissions = null,
         TimeSpan? expiration = null)
@@ -32,16 +33,22 @@ public static class JwtTestHelper
         if (tenantId is not null)
             claims.Add(new Claim("tenant_id", tenantId.Value.ToString()));
 
+        if (profileId is not null)
+            claims.Add(new Claim("profile_id", profileId.Value.ToString()));
+
         if (roles is not null)
         {
             foreach (var role in roles)
+            {
                 claims.Add(new Claim(ClaimTypes.Role, role));
+                claims.Add(new Claim("roles", role));
+            }
         }
 
         if (permissions is not null)
         {
             foreach (var perm in permissions)
-                claims.Add(new Claim("permission", perm));
+                claims.Add(new Claim("permissions", perm));
         }
 
         var expires = expiration ?? TimeSpan.FromHours(1);
@@ -65,6 +72,7 @@ public static class JwtTestHelper
             userId,
             email,
             tenantId: Guid.Parse("00000000-0000-0000-0000-000000000001"),
+            profileId: Guid.Parse("99999999-9999-9999-9999-999999999999"),
             roles: new[] { "PlatformAdmin" },
             permissions: new[] { "platform:*" },
             expiration: expiration);
@@ -82,6 +90,7 @@ public static class JwtTestHelper
             userId,
             email,
             tenantId: tenantId,
+            profileId: Guid.NewGuid(),
             roles: roles,
             permissions: permissions,
             expiration: expiration);

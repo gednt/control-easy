@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ControlEasyReborn.Modules.Security.Application</RootNamespace>
+    <AssemblyName>ControlEasyReborn.Modules.Security.Application</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ControlEasyReborn.Modules.Security.Domain\ControlEasyReborn.Modules.Security.Domain.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\ControlEasyReborn.SharedKernel\ControlEasyReborn.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\Tenants\ControlEasyReborn.Modules.Tenants.Application\ControlEasyReborn.Modules.Tenants.Application.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="BCrypt.Net-Next" />
+  </ItemGroup>
+</Project>

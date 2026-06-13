@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ControlEasyReborn.Modules.Security.Api</RootNamespace>
+    <AssemblyName>ControlEasyReborn.Modules.Security.Api</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ControlEasyReborn.Modules.Security.Application\ControlEasyReborn.Modules.Security.Application.csproj" />
+    <ProjectReference Include="..\ControlEasyReborn.Modules.Security.Infrastructure\ControlEasyReborn.Modules.Security.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Tenants\ControlEasyReborn.Modules.Tenants.Api\ControlEasyReborn.Modules.Tenants.Api.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,40 @@
+namespace ControlEasyReborn.Modules.Security.Application.Contracts;
+
+public sealed record CreateUserRequest(string Email, string Password, string DisplayName, string Roles, Guid TenantId);
+
+public sealed record LoginRequest(string Email, string Password);
+
+public sealed record LoginResponse(string Token, string RefreshToken, Guid TenantId, Guid ProfileId, string Roles, string Permissions, bool MustChangePassword);
+
+public sealed record RefreshRequest(string RefreshToken);
+
+public sealed record RefreshResponse(string Token, string RefreshToken);
+
+public sealed record CreateAttendantProfileRequest(Guid UserId, string? DisplayName, Guid? ShiftId, Guid? GatehouseId, string Permissions);
+
+public sealed record UpdateAttendantProfileRequest(string? DisplayName, Guid? ShiftId, Guid? GatehouseId, string Permissions);
+
+public sealed record AttendantProfileResponse(
+    Guid Id,
+    Guid TenantId,
+    Guid UserId,
+    string? DisplayName,
+    Guid? ShiftId,
+    Guid? GatehouseId,
+    string Permissions,
+    bool Active,
+    DateTime CreatedAtUtc);
+
+public sealed record CreateShiftRequest(string Name, TimeSpan StartTime, TimeSpan EndTime);
+
+public sealed record ShiftResponse(Guid Id, Guid TenantId, string Name, TimeSpan StartTime, TimeSpan EndTime, bool CrossesMidnight);
+
+public sealed record CreateGatehouseRequest(string Name, string? Location);
+
+public sealed record GatehouseResponse(Guid Id, Guid TenantId, string Name, string? Location);
+
+public sealed record TenantLookupResponse(Guid TenantId, string Slug, string DisplayName, string UserDisplayName);
+
+public sealed record TenantSwitchRequest(Guid TenantId);
+
+public sealed record TenantSwitchResponse(string Token, string RefreshToken, Guid TenantId, Guid ProfileId, string Roles, string Permissions);

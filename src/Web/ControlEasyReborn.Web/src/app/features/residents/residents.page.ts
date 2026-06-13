@@ -50,6 +50,9 @@ import { ResidentsApiService, ResidentResponse } from './residents-api.service';
                    [value]="searchTerm()"
                    (input)="onSearch($event)" />
           </div>
+          @if (searchTerm() && !loading()) {
+            <span class="result-count">{{ residents().length }} result{{ residents().length !== 1 ? 's' : '' }}</span>
+          }
         </div>
         <div class="ce-table-wrapper">
           <table class="ce-table" aria-label="Residents table">
@@ -79,14 +82,19 @@ import { ResidentsApiService, ResidentResponse } from './residents-api.service';
                       </div>
                     </div>
                   </td>
-                  <td>{{ resident.apartmentId ? 'Apt ' + resident.apartmentId.slice(0, 8) : '&mdash;' }}</td>
+                  <td>{{ resident.apartmentId ? 'Apt ' + resident.apartmentId.slice(0, 8) : '\u2014' }}</td>
                   <td>{{ resident.cpf }}</td>
-                  <td>{{ resident.phone ?? '&mdash;' }}</td>
+                  <td>{{ resident.phone ?? '\u2014' }}</td>
                   <td>
                     <span class="ce-badge tone-success size-sm">{{ resident.active ? 'Active' : 'Inactive' }}</span>
                   </td>
                   <td>
-                    <button class="icon-btn-sm" aria-label="Actions">&#8943;</button>
+                    <div class="action-cell">
+                      <button class="icon-btn-sm" aria-label="Edit resident" title="Edit" (click)="openEditModal(resident)">&#9998;</button>
+                      @if (resident.active) {
+                        <button class="icon-btn-sm action-deactivate" aria-label="Deactivate resident" title="Deactivate" (click)="onDeactivate(resident)">&#8855;</button>
+                      }
+                    </div>
                   </td>
                 </tr>
               } @empty {
@@ -167,6 +175,92 @@ import { ResidentsApiService, ResidentResponse } from './residents-api.service';
         </div>
       </div>
     }
+
+    @if (editModalOpen()) {
+      <div class="ce-modal-backdrop" (click)="closeEditModal()">
+        <div class="ce-modal size-md" role="dialog" aria-modal="true" aria-labelledby="edit-resident-title" (click)="$event.stopPropagation()">
+          <div class="ce-modal-header">
+            <h3 class="ce-modal-title" id="edit-resident-title">Edit resident</h3>
+            <button class="ce-modal-close" (click)="closeEditModal()" aria-label="Close">&#10005;</button>
+          </div>
+          <div class="ce-modal-body">
+            <form class="ce-form" [formGroup]="editForm" (ngSubmit)="onEditResident()">
+              <div class="ce-input-group">
+                <label class="ce-input-label" for="er-name">Full name</label>
+                <div class="ce-input-wrapper" [class.has-error]="editForm.get('name')?.invalid && editForm.get('name')?.touched">
+                  <input id="er-name" class="ce-input" placeholder="e.g. Maria Silva" formControlName="name" />
+                </div>
+                @if (editForm.get('name')?.invalid && editForm.get('name')?.touched) {
+                  <div class="ce-input-error">Name is required</div>
+                }
+              </div>
+              <div class="ce-input-group">
+                <label class="ce-input-label" for="er-cpf">CPF</label>
+                <div class="ce-input-wrapper" [class.has-error]="editForm.get('cpf')?.invalid && editForm.get('cpf')?.touched">
+                  <input id="er-cpf" class="ce-input" placeholder="000.000.000-00" formControlName="cpf" />
+                </div>
+                @if (editForm.get('cpf')?.invalid && editForm.get('cpf')?.touched) {
+                  <div class="ce-input-error">CPF is required</div>
+                }
+              </div>
+              <div class="form-row">
+                <div class="ce-input-group" style="flex: 1;">
+                  <label class="ce-input-label" for="er-email">Email</label>
+                  <div class="ce-input-wrapper">
+                    <input id="er-email" class="ce-input" placeholder="maria@example.com" formControlName="email" />
+                  </div>
+                </div>
+                <div class="ce-input-group" style="flex: 1;">
+                  <label class="ce-input-label" for="er-phone">Phone</label>
+                  <div class="ce-input-wrapper">
+                    <input id="er-phone" class="ce-input" placeholder="(11) 99999-0000" formControlName="phone" />
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="ce-modal-footer">
+            <button class="ce-button variant-ghost size-sm" (click)="closeEditModal()">Cancel</button>
+            <button class="ce-button variant-primary size-sm"
+                    (click)="onEditResident()"
+                    [class.disabled]="editForm.invalid || saving()"
+                    [attr.aria-busy]="saving()"
+                    [disabled]="editForm.invalid || saving()">
+              @if (saving()) {
+                <span class="ce-spinner tone-current size-sm"></span>
+              }
+              Save changes
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (confirmDeactivateOpen()) {
+      <div class="ce-modal-backdrop" (click)="closeDeactivateConfirm()">
+        <div class="ce-modal size-sm" role="dialog" aria-modal="true" aria-labelledby="deactivate-resident-title" (click)="$event.stopPropagation()">
+          <div class="ce-modal-header">
+            <h3 class="ce-modal-title" id="deactivate-resident-title">Deactivate resident</h3>
+            <button class="ce-modal-close" (click)="closeDeactivateConfirm()" aria-label="Close">&#10005;</button>
+          </div>
+          <div class="ce-modal-body">
+            <p class="text-secondary">Are you sure you want to deactivate <strong>{{ residentToDeactivate()?.name }}</strong>? They will no longer be able to access the condominium.</p>
+          </div>
+          <div class="ce-modal-footer">
+            <button class="ce-button variant-ghost size-sm" (click)="closeDeactivateConfirm()">Cancel</button>
+            <button class="ce-button variant-danger size-sm"
+                    (click)="onConfirmDeactivate()"
+                    [class.disabled]="deactivating()"
+                    [disabled]="deactivating()">
+              @if (deactivating()) {
+                <span class="ce-spinner tone-current size-sm"></span>
+              }
+              Deactivate
+            </button>
+          </div>
+        </div>
+      </div>
+    }
   `,
   styles: [`
     .page-header {
@@ -215,6 +309,8 @@ import { ResidentsApiService, ResidentResponse } from './residents-api.service';
     .ce-button.variant-secondary:hover:not(:disabled) { background: var(--color-surface-elevated); }
     .ce-button.variant-ghost { background: transparent; color: var(--color-text-primary); }
     .ce-button.variant-ghost:hover:not(:disabled) { background: var(--color-neutral-light); }
+    .ce-button.variant-danger { background: var(--color-danger); color: white; }
+    .ce-button.variant-danger:hover:not(:disabled) { background: var(--color-danger-hover); }
     .ce-button:disabled, .ce-button[aria-busy="true"] { opacity: 0.6; cursor: not-allowed; pointer-events: none; }
     .ce-button.disabled { opacity: 0.6; cursor: not-allowed; pointer-events: none; }
 
@@ -264,6 +360,11 @@ import { ResidentsApiService, ResidentResponse } from './residents-api.service';
       border-color: var(--color-primary);
       box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-primary) 15%, transparent);
     }
+    .result-count {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+      white-space: nowrap;
+    }
 
     .ce-table-wrapper { overflow-x: auto; }
     .ce-table {
@@ -308,6 +409,11 @@ import { ResidentsApiService, ResidentResponse } from './residents-api.service';
       flex-shrink: 0;
     }
 
+    .action-cell {
+      display: flex;
+      gap: var(--spacing-1);
+    }
+
     .ce-badge {
       display: inline-flex;
       align-items: center;
@@ -320,6 +426,7 @@ import { ResidentsApiService, ResidentResponse } from './residents-api.service';
     }
     .ce-badge.size-sm { padding: var(--spacing-1) var(--spacing-2); font-size: 0.7rem; }
     .ce-badge.tone-success { background: var(--color-success-light); color: var(--color-success); border-color: color-mix(in oklch, var(--color-success) 30%, transparent); }
+    .ce-badge.tone-neutral { background: var(--color-neutral-light); color: var(--color-text-secondary); border-color: var(--color-border); }
 
     .icon-btn-sm {
       width: 2rem;
@@ -332,9 +439,10 @@ import { ResidentsApiService, ResidentResponse } from './residents-api.service';
       border-radius: var(--radius-md);
       cursor: pointer;
       color: var(--color-text-muted);
-      font-size: 1.25rem;
+      font-size: 1rem;
     }
     .icon-btn-sm:hover { background: var(--color-neutral-light); color: var(--color-text-primary); }
+    .action-deactivate:hover { background: var(--color-danger-light); color: var(--color-danger); }
 
     .ce-empty-state {
       display: flex;
@@ -394,6 +502,7 @@ import { ResidentsApiService, ResidentResponse } from './residents-api.service';
       overflow: auto;
       animation: zoom-in var(--duration-base) var(--ease-out);
     }
+    .ce-modal.size-sm { max-width: 24rem; }
     .ce-modal-header {
       display: flex;
       align-items: center;
@@ -472,6 +581,10 @@ import { ResidentsApiService, ResidentResponse } from './residents-api.service';
     .font-semibold { font-weight: var(--font-weight-semibold); }
     .text-xs { font-size: var(--font-size-xs); }
     .text-secondary { color: var(--color-text-secondary); }
+
+    @keyframes spin-slow { to { transform: rotate(360deg); } }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes zoom-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -482,11 +595,24 @@ export class ResidentsPage {
   residents = signal<ResidentResponse[]>([]);
   loading = signal(true);
   creating = signal(false);
+  saving = signal(false);
+  deactivating = signal(false);
   createModalOpen = signal(false);
+  editModalOpen = signal(false);
+  confirmDeactivateOpen = signal(false);
   searchTerm = signal('');
-  totalResidents = computed(() => this.residents().length);
+  residentToDeactivate = signal<ResidentResponse | null>(null);
+  editingResident = signal<ResidentResponse | null>(null);
+  totalResidents = computed(() => this.residents().filter(r => r.active).length);
 
   createForm: FormGroup = this.fb.group({
+    name: ['', [Validators.required]],
+    cpf: ['', [Validators.required]],
+    email: [null],
+    phone: [null],
+  });
+
+  editForm: FormGroup = this.fb.group({
     name: ['', [Validators.required]],
     cpf: ['', [Validators.required]],
     email: [null],
@@ -561,6 +687,71 @@ export class ResidentsPage {
       },
       error: () => {
         this.creating.set(false);
+      },
+    });
+  }
+
+  openEditModal(resident: ResidentResponse): void {
+    this.editingResident.set(resident);
+    this.editForm.patchValue({
+      name: resident.name,
+      cpf: resident.cpf,
+      email: resident.email,
+      phone: resident.phone,
+    });
+    this.editModalOpen.set(true);
+  }
+
+  closeEditModal(): void {
+    this.editModalOpen.set(false);
+    this.editingResident.set(null);
+  }
+
+  onEditResident(): void {
+    if (this.editForm.invalid) return;
+    const resident = this.editingResident();
+    if (!resident) return;
+    this.saving.set(true);
+    const value = this.editForm.value;
+    this.api.update(resident.id, {
+      name: value.name,
+      cpf: value.cpf,
+      email: value.email ?? null,
+      phone: value.phone ?? null,
+    }).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.closeEditModal();
+        this.loadResidents();
+      },
+      error: () => {
+        this.saving.set(false);
+      },
+    });
+  }
+
+  onDeactivate(resident: ResidentResponse): void {
+    this.residentToDeactivate.set(resident);
+    this.confirmDeactivateOpen.set(true);
+  }
+
+  closeDeactivateConfirm(): void {
+    this.confirmDeactivateOpen.set(false);
+    this.residentToDeactivate.set(null);
+  }
+
+  onConfirmDeactivate(): void {
+    const resident = this.residentToDeactivate();
+    if (!resident) return;
+    this.deactivating.set(true);
+    this.api.deactivate(resident.id).subscribe({
+      next: () => {
+        this.deactivating.set(false);
+        this.closeDeactivateConfirm();
+        this.loadResidents();
+      },
+      error: () => {
+        this.deactivating.set(false);
       },
     });
   }

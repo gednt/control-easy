@@ -28,6 +28,7 @@ export interface UpdateResidentRequest {
   email?: string | null;
   phone?: string | null;
   apartmentId?: string | null;
+  active?: boolean;
 }
 
 export interface PagedResult<T> {
@@ -64,5 +65,9 @@ export class ResidentsApiService {
 
   update(id: string, request: UpdateResidentRequest): Observable<ResidentResponse> {
     return this.http.put<ResidentResponse>(`${this.baseUrl}/${id}`, request);
+  }
+
+  deactivate(id: string): Observable<ResidentResponse> {
+    return this.http.put<ResidentResponse>(`${this.baseUrl}/${id}`, { active: false });
   }
 }

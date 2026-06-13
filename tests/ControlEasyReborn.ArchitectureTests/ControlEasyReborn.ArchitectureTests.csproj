@@ -26,6 +26,10 @@
     <ProjectReference Include="..\..\src\Modules\Tenants\ControlEasyReborn.Modules.Tenants.Application\ControlEasyReborn.Modules.Tenants.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Tenants\ControlEasyReborn.Modules.Tenants.Infrastructure\ControlEasyReborn.Modules.Tenants.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\Tenants\ControlEasyReborn.Modules.Tenants.Api\ControlEasyReborn.Modules.Tenants.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Security\ControlEasyReborn.Modules.Security.Domain\ControlEasyReborn.Modules.Security.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Security\ControlEasyReborn.Modules.Security.Application\ControlEasyReborn.Modules.Security.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Security\ControlEasyReborn.Modules.Security.Infrastructure\ControlEasyReborn.Modules.Security.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Security\ControlEasyReborn.Modules.Security.Api\ControlEasyReborn.Modules.Security.Api.csproj" />
     <ProjectReference Include="..\..\src\Host\ControlEasyReborn.Api\ControlEasyReborn.Api.csproj" />
   </ItemGroup>
 </Project>

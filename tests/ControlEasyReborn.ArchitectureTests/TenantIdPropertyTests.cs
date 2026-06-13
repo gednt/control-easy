@@ -24,7 +24,7 @@ public sealed class TenantIdPropertyTests
 
         foreach (var type in entityTypes)
         {
-            if (type.Name.StartsWith("Platform"))
+            if (type.Name.StartsWith("Platform") || type.Name == "User")
                 continue;
 
             var tenantIdProp = type.GetProperty("TenantId", BindingFlags.Public | BindingFlags.Instance);

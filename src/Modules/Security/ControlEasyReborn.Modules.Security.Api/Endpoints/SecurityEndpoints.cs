@@ -1,0 +1,235 @@
+using ControlEasyReborn.Modules.Security.Api.Auth;
+using ControlEasyReborn.Modules.Security.Application.Contracts;
+using ControlEasyReborn.Modules.Security.Application.Errors;
+using ControlEasyReborn.Modules.Security.Application.Handlers;
+using ControlEasyReborn.Modules.Tenants.Api.Auth;
+using ControlEasyReborn.SharedKernel.MultiTenancy;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+
+namespace ControlEasyReborn.Modules.Security.Api.Endpoints;
+
+public static class SecurityEndpoints
+{
+    public static IEndpointRouteBuilder MapSecurityEndpoints(this IEndpointRouteBuilder app)
+    {
+        var group = app.MapGroup("/api/v1/security")
+            .WithTags("Security");
+
+        group.MapPost("/auth/login", async (
+            [FromBody] LoginRequest request,
+            LoginHandler handler,
+            CancellationToken ct) =>
+        {
+            var response = await handler.HandleAsync(request, ct);
+            return Results.Ok(response);
+        }).AllowAnonymous();
+
+        group.MapPost("/auth/refresh", async (
+            [FromBody] RefreshRequest request,
+            RefreshHandler handler,
+            CancellationToken ct) =>
+        {
+            var response = await handler.HandleAsync(request, ct);
+            return Results.Ok(response);
+        }).AllowAnonymous();
+
+        group.MapGet("/tenants", async (
+            string email,
+            TenantLookupHandler handler,
+            CancellationToken ct) =>
+        {
+            var response = await handler.HandleAsync(email, ct);
+            return Results.Ok(response);
+        }).AllowAnonymous();
+
+        group.MapPost("/users", async (
+            [FromBody] CreateUserRequest request,
+            CreateUserHandler handler,
+            CancellationToken ct) =>
+        {
+            var user = await handler.HandleAsync(request, ct);
+            return Results.Created($"/api/v1/security/users/{user.Id}", new { user.Id, user.Email, user.DisplayName, user.Roles });
+        }).RequireAuthorization(PlatformAdminRequirement.PolicyName);
+
+        var attendantGroup = group.MapGroup("/attendant-profiles")
+            .RequireAuthorization();
+
+        attendantGroup.MapGet("/", async (
+            ITenantContext tenantContext,
+            ListAttendantProfilesHandler handler,
+            CancellationToken ct) =>
+        {
+            var tenantId = tenantContext.TenantId
+                ?? throw new InvalidOperationException("Tenant context is not resolved.");
+            var response = await handler.HandleAsync(tenantId, ct);
+            return Results.Ok(response);
+        });
+
+        attendantGroup.MapGet("/me", async (
+            GetMyProfileHandler handler,
+            CancellationToken ct) =>
+        {
+            var response = await handler.HandleAsync(ct);
+            return Results.Ok(response);
+        });
+
+        attendantGroup.MapPost("/", async (
+            [FromBody] CreateAttendantProfileRequest request,
+            ITenantContext tenantContext,
+            CreateAttendantProfileHandler handler,
+            CancellationToken ct) =>
+        {
+            var tenantId = tenantContext.TenantId
+                ?? throw new InvalidOperationException("Tenant context is not resolved.");
+            var response = await handler.HandleAsync(request, tenantId, ct);
+            return Results.Created($"/api/v1/security/attendant-profiles/{response.Id}", response);
+        }).RequireAuthorization(PlatformAdminRequirement.PolicyName);
+
+        attendantGroup.MapGet("/{id:guid}", async (
+            Guid id,
+            GetAttendantProfileHandler handler,
+            CancellationToken ct) =>
+        {
+            var response = await handler.HandleAsync(id, ct);
+            return Results.Ok(response);
+        });
+
+        attendantGroup.MapPut("/{id:guid}", async (
+            Guid id,
+            [FromBody] UpdateAttendantProfileRequest request,
+            UpdateAttendantProfileHandler handler,
+            CancellationToken ct) =>
+        {
+            var response = await handler.HandleAsync(id, request, ct);
+            return Results.Ok(response);
+        }).RequireAuthorization(PlatformAdminRequirement.PolicyName);
+
+        attendantGroup.MapPost("/{id:guid}/deactivate", async (
+            Guid id,
+            DeactivateAttendantProfileHandler handler,
+            CancellationToken ct) =>
+        {
+            var response = await handler.HandleAsync(id, ct);
+            return Results.Ok(response);
+        }).RequireAuthorization(PlatformAdminRequirement.PolicyName);
+
+        var shiftsGroup = group.MapGroup("/shifts")
+            .RequireAuthorization();
+
+        shiftsGroup.MapPost("/", async (
+            [FromBody] CreateShiftRequest request,
+            ITenantContext tenantContext,
+            CreateShiftHandler handler,
+            CancellationToken ct) =>
+        {
+            var tenantId = tenantContext.TenantId
+                ?? throw new InvalidOperationException("Tenant context is not resolved.");
+            var response = await handler.HandleAsync(request, tenantId, ct);
+            return Results.Created($"/api/v1/security/shifts/{response.Id}", response);
+        }).RequireAuthorization(PlatformAdminRequirement.PolicyName);
+
+        shiftsGroup.MapGet("/", async (
+            ITenantContext tenantContext,
+            ListShiftsHandler handler,
+            CancellationToken ct) =>
+        {
+            var tenantId = tenantContext.TenantId
+                ?? throw new InvalidOperationException("Tenant context is not resolved.");
+            var response = await handler.HandleAsync(tenantId, ct);
+            return Results.Ok(response);
+        });
+
+        var gatehousesGroup = group.MapGroup("/gatehouses")
+            .RequireAuthorization();
+
+        gatehousesGroup.MapPost("/", async (
+            [FromBody] CreateGatehouseRequest request,
+            ITenantContext tenantContext,
+            CreateGatehouseHandler handler,
+            CancellationToken ct) =>
+        {
+            var tenantId = tenantContext.TenantId
+                ?? throw new InvalidOperationException("Tenant context is not resolved.");
+            var response = await handler.HandleAsync(request, tenantId, ct);
+            return Results.Created($"/api/v1/security/gatehouses/{response.Id}", response);
+        }).RequireAuthorization(PlatformAdminRequirement.PolicyName);
+
+        gatehousesGroup.MapGet("/", async (
+            ITenantContext tenantContext,
+            ListGatehousesHandler handler,
+            CancellationToken ct) =>
+        {
+            var tenantId = tenantContext.TenantId
+                ?? throw new InvalidOperationException("Tenant context is not resolved.");
+            var response = await handler.HandleAsync(tenantId, ct);
+            return Results.Ok(response);
+        });
+
+        group.MapPost("/tenant-switch", async (
+            [FromBody] TenantSwitchRequest request,
+            TenantSwitchHandler handler,
+            CancellationToken ct) =>
+        {
+            var response = await handler.HandleAsync(request, ct);
+            return Results.Ok(response);
+        }).RequireAuthorization();
+
+        return app;
+    }
+}
+
+public static class SecurityProblemDetailsWriter
+{
+    public static IApplicationBuilder UseSecurityExceptionHandler(this IApplicationBuilder app)
+    {
+        return app.Use(async (context, next) =>
+        {
+            try
+            {
+                await next();
+            }
+            catch (NotFoundException ex)
+            {
+                await Write(context, StatusCodes.Status404NotFound, "Not found", ex.Message);
+            }
+            catch (ConflictException ex)
+            {
+                await Write(context, StatusCodes.Status409Conflict, "Conflict", ex.Message);
+            }
+            catch (ValidationException ex)
+            {
+                var pd = new
+                {
+                    type = "https://httpstatuses.io/400",
+                    title = "Validation failed",
+                    status = 400,
+                    detail = ex.Message,
+                    errors = ex.Errors
+                };
+                context.Response.StatusCode = 400;
+                context.Response.ContentType = "application/problem+json";
+                await context.Response.WriteAsJsonAsync(pd);
+            }
+            catch (UnauthorizedException ex)
+            {
+                await Write(context, StatusCodes.Status401Unauthorized, "Unauthorized", ex.Message);
+            }
+        });
+    }
+
+    private static async Task Write(HttpContext context, int status, string title, string detail)
+    {
+        context.Response.StatusCode = status;
+        context.Response.ContentType = "application/problem+json";
+        await context.Response.WriteAsJsonAsync(new
+        {
+            type = "https://httpstatuses.io/" + status,
+            title,
+            status,
+            detail
+        });
+    }
+}

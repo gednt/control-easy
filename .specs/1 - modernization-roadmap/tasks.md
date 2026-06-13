@@ -155,7 +155,7 @@ Continuous tasks (C.1–C.7) are tracked separately and run alongside every phas
 ## Phase 2 — Strangler Pilot (prove the migration pattern)
 *Goal: cut over the *least critical* legacy screen to the new web app, with a feature flag, to prove the Strangler pattern end to end.*
 
-- [ ] **2.1** Implement the `Security` module with the full role set (`PlatformAdmin`, `TenantAdmin`, `Morador`, plus `AttendantProfile` per tenant) and the JWT claim shape from the "Multi-Tenancy" subsection (`sub`, `tenant_id`, `profile_id`, `roles[]`, `permissions[]`). Existing endpoints carried over: `POST /api/v1/auth/login`, `POST /api/v1/auth/refresh`. Endpoints added by the multi-tenant + attendant-profiles work:
+- [x] **2.1** Implement the `Security` module with the full role set (`PlatformAdmin`, `TenantAdmin`, `Morador`, plus `AttendantProfile` per tenant) and the JWT claim shape from the "Multi-Tenancy" subsection (`sub`, `tenant_id`, `profile_id`, `roles[]`, `permissions[]`). Existing endpoints carried over: `POST /api/v1/auth/login`, `POST /api/v1/auth/refresh`. Endpoints added by the multi-tenant + attendant-profiles work:
     - `POST /api/v1/security/attendant-profiles`
     - `GET  /api/v1/security/attendant-profiles?activeOnly=&skip=&take=`
     - `GET  /api/v1/security/attendant-profiles/{id}`
@@ -167,12 +167,12 @@ Continuous tasks (C.1–C.7) are tracked separately and run alongside every phas
     - `GET  /api/v1/security/tenants?email=...` (public, used by the login screen)
     - `POST /api/v1/security/tenant-switch` (re-issues a JWT for a different tenant the user belongs to)
     - Login response payload now includes `tenantId`, `profileId`, `roles`, `permissions`.
-- [ ] **2.2** Add the `Residents` admin page in the Angular SPA (table, edit, soft-delete) and a login page (reactive forms + `AuthService` with signals).
-- [ ] **2.3** Run the legacy WPF app and the new web app in parallel, both pointed at the same MySQL (different app settings). Add `Microsoft.FeatureManagement` flag `Residents.UseWeb` (default `false`).
+- [x] **2.2** Add the `Residents` admin page in the Angular SPA (table, edit, soft-delete) and a login page (reactive forms + `AuthService` with signals).
+- [x] **2.3** Run the legacy WPF app and the new web app in parallel, both pointed at the same MySQL (different app settings). Add `Microsoft.FeatureManagement` flag `Residents.UseWeb` (default `false`).
 - [ ] **2.4** Smoke test: start WPF, perform a CRUD on Residents, verify the change is visible in the web app. Reverse: change in the web app is visible in WPF.
 - [ ] **2.5** Flip `Residents.UseWeb=true` for one test condominium; monitor for 7 days; collect error rates via Serilog/Seq.
-- [ ] **2.6** Update `docs/migration/legacy-mapping.md` marking `Residents` (WPF) as "**Web — pilot live**".
-- [ ] **2.7a** **Attendant profile API surface (backend slice).** Backend-only — the Angular UI for attendant profile management is owned by the Frontend Agent in a separate spec. Deliverables: implement every endpoint listed in the updated 2.1 above, the `IAttendantProfileRepository` and `IShiftRepository` / `IGatehouseRepository` (all going through `TenantAwareLinqFactory`), the `Permissions` static class, the `RequirePermissionAttribute` + handler, the `AttendantProfile` / `Shift` / `Gatehouse` entities with their value objects, the FluentValidation validators, and the OpenAPI surface (so `ng-openapi-gen` produces the TypeScript DTOs for the Frontend Agent).
+- [x] **2.6** Update `docs/migration/legacy-mapping.md` marking `Residents` (WPF) as "**Web — pilot live**".
+- [x] **2.7a** **Attendant profile API surface (backend slice).** Backend-only — the Angular UI for attendant profile management is owned by the Frontend Agent in a separate spec. Deliverables: implement every endpoint listed in the updated 2.1 above, the `IAttendantProfileRepository` and `IShiftRepository` / `IGatehouseRepository` (all going through `TenantAwareLinqFactory`), the `Permissions` static class, the `RequirePermissionAttribute` + handler, the `AttendantProfile` / `Shift` / `Gatehouse` entities with their value objects, the FluentValidation validators, and the OpenAPI surface (so `ng-openapi-gen` produces the TypeScript DTOs for the Frontend Agent).
   - **Acceptance criteria:**
     - Integration tests: create profile as `TenantAdmin`, list as `TenantAdmin`, attempt to create a profile in tenant B while authenticated as tenant A → 403/404 (cross-tenant access denied).
     - Permission check: an attendant JWT with `visits.checkin` is allowed to `POST /api/v1/visits/{id}/checkin` (smoke test against a stub endpoint); the same JWT without that permission is denied 403.

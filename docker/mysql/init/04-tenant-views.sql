@@ -9,6 +9,15 @@ SELECT * FROM Users WHERE tenant_id = '00000000-0000-0000-0000-000000000001';
 CREATE OR REPLACE VIEW Residents_legacy AS
 SELECT * FROM Residents WHERE tenant_id = '00000000-0000-0000-0000-000000000001';
 
+CREATE OR REPLACE VIEW AttendantProfiles_legacy AS
+SELECT * FROM AttendantProfiles WHERE tenant_id = '00000000-0000-0000-0000-000000000001';
+
+CREATE OR REPLACE VIEW Shifts_legacy AS
+SELECT * FROM Shifts WHERE tenant_id = '00000000-0000-0000-0000-000000000001';
+
+CREATE OR REPLACE VIEW Gatehouses_legacy AS
+SELECT * FROM Gatehouses WHERE tenant_id = '00000000-0000-0000-0000-000000000001';
+
 -- [Add new business table views here in the same pattern]
 -- Pattern:
 -- CREATE OR REPLACE VIEW <TableName>_legacy AS

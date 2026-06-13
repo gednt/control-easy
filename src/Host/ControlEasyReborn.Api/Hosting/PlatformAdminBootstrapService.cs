@@ -1,10 +1,10 @@
 using ControlEasyReborn.Infrastructure.MultiTenancy;
+using ControlEasyReborn.Modules.Security.Application.Abstractions;
 using ControlEasyReborn.SharedKernel.MultiTenancy;
 using DBTools.Abstractions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace ControlEasyReborn.Api.Hosting;
 
@@ -12,15 +12,18 @@ public sealed class PlatformAdminBootstrapService : IHostedService
 {
     private readonly IAsyncSqlClient _db;
     private readonly ITenantAwareLinqFactory _linqFactory;
+    private readonly IPasswordHasher _passwordHasher;
     private readonly ILogger<PlatformAdminBootstrapService> _logger;
 
     public PlatformAdminBootstrapService(
         IAsyncSqlClient db,
         ITenantAwareLinqFactory linqFactory,
+        IPasswordHasher passwordHasher,
         ILogger<PlatformAdminBootstrapService> logger)
     {
         _db = db;
         _linqFactory = linqFactory;
+        _passwordHasher = passwordHasher;
         _logger = logger;
     }
 
@@ -43,7 +46,7 @@ public sealed class PlatformAdminBootstrapService : IHostedService
 
         var email = $"platform-admin-{GenerateRandomString(8)}@controleasy.local";
         var password = GenerateRandomString(16);
-        var passwordHash = HashPassword(password);
+        var passwordHash = _passwordHasher.Hash(password);
         var id = Guid.NewGuid();
         var platformTenantId = Guid.Parse("00000000-0000-0000-0000-000000000001");
 
@@ -68,15 +71,5 @@ public sealed class PlatformAdminBootstrapService : IHostedService
         for (var i = 0; i < length; i++)
             result[i] = chars[bytes[i] % chars.Length];
         return new string(result);
-    }
-
-    private static string HashPassword(string password)
-    {
-        // TODO: Replace with BCrypt.Net-Next once the Security module is implemented (task 1.12).
-        // This SHA256 placeholder is NOT suitable for production.
-        using var sha = SHA256.Create();
-        var salt = "ControlEasyReborn-PlaceholderSalt-CHANGE-ME";
-        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(salt + password));
-        return Convert.ToBase64String(bytes);
     }
 }

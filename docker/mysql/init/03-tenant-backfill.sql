@@ -18,6 +18,24 @@ UPDATE Residents SET tenant_id = @defaultTenantId WHERE tenant_id IS NULL;
 ALTER TABLE Residents MODIFY COLUMN tenant_id CHAR(36) NOT NULL;
 CREATE INDEX IF NOT EXISTS IX_Residents_tenant_id ON Residents (tenant_id);
 
+-- AttendantProfiles table
+ALTER TABLE AttendantProfiles ADD COLUMN IF NOT EXISTS tenant_id CHAR(36) NULL;
+UPDATE AttendantProfiles SET tenant_id = @defaultTenantId WHERE tenant_id IS NULL;
+ALTER TABLE AttendantProfiles MODIFY COLUMN tenant_id CHAR(36) NOT NULL;
+CREATE INDEX IF NOT EXISTS IX_AttendantProfiles_tenant_id ON AttendantProfiles (tenant_id);
+
+-- Shifts table
+ALTER TABLE Shifts ADD COLUMN IF NOT EXISTS tenant_id CHAR(36) NULL;
+UPDATE Shifts SET tenant_id = @defaultTenantId WHERE tenant_id IS NULL;
+ALTER TABLE Shifts MODIFY COLUMN tenant_id CHAR(36) NOT NULL;
+CREATE INDEX IF NOT EXISTS IX_Shifts_tenant_id ON Shifts (tenant_id);
+
+-- Gatehouses table
+ALTER TABLE Gatehouses ADD COLUMN IF NOT EXISTS tenant_id CHAR(36) NULL;
+UPDATE Gatehouses SET tenant_id = @defaultTenantId WHERE tenant_id IS NULL;
+ALTER TABLE Gatehouses MODIFY COLUMN tenant_id CHAR(36) NOT NULL;
+CREATE INDEX IF NOT EXISTS IX_Gatehouses_tenant_id ON Gatehouses (tenant_id);
+
 -- [Add new business tables here in the same pattern]
 -- Pattern:
 -- ALTER TABLE <TableName> ADD COLUMN IF NOT EXISTS tenant_id CHAR(36) NULL;

@@ -19,6 +19,7 @@ public sealed class LayerDependencyTests
             .HaveDependencyOnAny(
                 "ControlEasyReborn.Modules.Residents.Infrastructure",
                 "ControlEasyReborn.Modules.Tenants.Infrastructure",
+                "ControlEasyReborn.Modules.Security.Infrastructure",
                 "ControlEasyReborn.Infrastructure")
             .GetResult();
 

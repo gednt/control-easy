@@ -3,6 +3,10 @@ using ControlEasyReborn.Infrastructure.Data;
 using ControlEasyReborn.Infrastructure.MultiTenancy;
 using ControlEasyReborn.Modules.Residents.Api.Endpoints;
 using ControlEasyReborn.Modules.Residents.Infrastructure.DI;
+using ControlEasyReborn.Modules.Security.Api.Auth;
+using ControlEasyReborn.Modules.Security.Api.DI;
+using ControlEasyReborn.Modules.Security.Api.Endpoints;
+using ControlEasyReborn.Modules.Security.Infrastructure.DI;
 using ControlEasyReborn.Modules.Tenants.Api.Auth;
 using ControlEasyReborn.Modules.Tenants.Api.Endpoints;
 using ControlEasyReborn.Modules.Tenants.Infrastructure.DI;
@@ -52,6 +56,7 @@ try
             policy.Requirements.Add(new PlatformAdminRequirement()));
     });
     builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, PlatformAdminAuthorizationHandler>();
+    builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, RequirePermissionAuthorizationHandler>();
 
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>
@@ -90,6 +95,7 @@ try
 
     builder.Services.AddTenantsModule();
     builder.Services.AddResidentsModule();
+    builder.Services.AddSecurityModule();
 
     builder.Services.AddHostedService<PlatformAdminBootstrapService>();
 
@@ -122,8 +128,10 @@ try
     app.UseAuthorization();
 
     app.MapHealthChecks("/health");
+    app.MapFeatureEndpoints();
     app.MapTenantEndpoints();
     app.MapResidentEndpoints();
+    app.MapSecurityApi();
 
     app.Run();
 }
@@ -151,6 +159,10 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
             ControlEasyReborn.Modules.Residents.Application.Errors.NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
             ControlEasyReborn.Modules.Residents.Application.Errors.ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
             ControlEasyReborn.Modules.Residents.Application.Errors.ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
+            ControlEasyReborn.Modules.Security.Application.Errors.NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
+            ControlEasyReborn.Modules.Security.Application.Errors.ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
+            ControlEasyReborn.Modules.Security.Application.Errors.ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
+            ControlEasyReborn.Modules.Security.Application.Errors.UnauthorizedException => (StatusCodes.Status401Unauthorized, "Unauthorized"),
             _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred")
         };
 
@@ -172,6 +184,10 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
         else if (exception is ControlEasyReborn.Modules.Residents.Application.Errors.ValidationException resValEx)
         {
             problemDetails.Extensions["errors"] = resValEx.Errors;
+        }
+        else if (exception is ControlEasyReborn.Modules.Security.Application.Errors.ValidationException secValEx)
+        {
+            problemDetails.Extensions["errors"] = secValEx.Errors;
         }
 
         httpContext.Response.StatusCode = status;
