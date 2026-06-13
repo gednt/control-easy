@@ -3034,7 +3034,7 @@
     ]
   },
   "packageFolders": {
-    "/var/folders/bq/qjt0vcpx4n7fdfky3l6fy0cw0000gn/T/cursor-sandbox-cache/9813923162e9f40b9b19d03e43921849/nuget": {}
+    "/Users/felipecoelhosilva/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
@@ -3042,7 +3042,7 @@
       "projectUniqueName": "/Users/felipecoelhosilva/Repos/ControlEasy/src/lib/DBTools_SQL/DBTools/DBTools.csproj",
       "projectName": "DBTools",
       "projectPath": "/Users/felipecoelhosilva/Repos/ControlEasy/src/lib/DBTools_SQL/DBTools/DBTools.csproj",
-      "packagesPath": "/var/folders/bq/qjt0vcpx4n7fdfky3l6fy0cw0000gn/T/cursor-sandbox-cache/9813923162e9f40b9b19d03e43921849/nuget",
+      "packagesPath": "/Users/felipecoelhosilva/.nuget/packages/",
       "outputPath": "/Users/felipecoelhosilva/Repos/ControlEasy/src/lib/DBTools_SQL/DBTools/obj/",
       "projectStyle": "PackageReference",
       "crossTargeting": true,

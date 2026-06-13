@@ -1,35 +1,33 @@
 using ControlEasyReborn.Infrastructure.MultiTenancy;
 using ControlEasyReborn.Modules.Security.Application.Abstractions;
 using ControlEasyReborn.SharedKernel.MultiTenancy;
-using DBTools.Abstractions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using System.Security.Cryptography;
 
 namespace ControlEasyReborn.Api.Hosting;
 
 public sealed class PlatformAdminBootstrapService : IHostedService
 {
-    private readonly IAsyncSqlClient _db;
-    private readonly ITenantAwareLinqFactory _linqFactory;
-    private readonly IPasswordHasher _passwordHasher;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<PlatformAdminBootstrapService> _logger;
 
     public PlatformAdminBootstrapService(
-        IAsyncSqlClient db,
-        ITenantAwareLinqFactory linqFactory,
-        IPasswordHasher passwordHasher,
+        IServiceScopeFactory scopeFactory,
         ILogger<PlatformAdminBootstrapService> logger)
     {
-        _db = db;
-        _linqFactory = linqFactory;
-        _passwordHasher = passwordHasher;
+        _scopeFactory = scopeFactory;
         _logger = logger;
     }
 
     public async Task StartAsync(CancellationToken ct)
     {
-        var bypassClient = _linqFactory.Create(NullTenantContext.Instance, bypassTenantFilter: true);
+        using var scope = _scopeFactory.CreateScope();
+        var linqFactory = scope.ServiceProvider.GetRequiredService<ITenantAwareLinqFactory>();
+        var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+
+        var bypassClient = linqFactory.Create(NullTenantContext.Instance, bypassTenantFilter: true);
 
         var existing = await bypassClient.SelectAsync(
             fields: "Id",
@@ -46,7 +44,7 @@ public sealed class PlatformAdminBootstrapService : IHostedService
 
         var email = $"platform-admin-{GenerateRandomString(8)}@controleasy.local";
         var password = GenerateRandomString(16);
-        var passwordHash = _passwordHasher.Hash(password);
+        var passwordHash = passwordHasher.Hash(password);
         var id = Guid.NewGuid();
         var platformTenantId = Guid.Parse("00000000-0000-0000-0000-000000000001");
 
