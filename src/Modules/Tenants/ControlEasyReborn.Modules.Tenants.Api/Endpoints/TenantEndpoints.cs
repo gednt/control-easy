@@ -56,6 +56,53 @@ public static class TenantEndpoints
             return Results.Ok(response);
         });
 
+        group.MapPost("/{id:guid}/admins", async (
+            Guid id,
+            [FromBody] CreateTenantAdminRequest request,
+            CreateTenantAdminHandler handler,
+            CancellationToken ct) =>
+        {
+            var response = await handler.HandleAsync(id, request, ct);
+            return Results.Created($"/api/v1/tenants/{id}/admins/{response.UserId}", response);
+        });
+
+        group.MapGet("/{id:guid}/admins", async (
+            Guid id,
+            ListTenantAdminsHandler handler,
+            CancellationToken ct) =>
+        {
+            var response = await handler.HandleAsync(id, ct);
+            return Results.Ok(response);
+        });
+
+        group.MapPost("/{id:guid}/admins/{userId:guid}/revoke", async (
+            Guid id,
+            Guid userId,
+            RevokeTenantAdminHandler handler,
+            CancellationToken ct) =>
+        {
+            await handler.HandleAsync(userId, ct);
+            return Results.NoContent();
+        });
+
+        return app;
+    }
+
+    public static IEndpointRouteBuilder MapTenantBackupEndpoints(this IEndpointRouteBuilder app)
+    {
+        var group = app.MapGroup("/api/v1/admin/backups")
+            .RequireAuthorization(PlatformAdminRequirement.PolicyName)
+            .WithTags("Admin");
+
+        group.MapPost("/{tenantId:guid}", async (
+            Guid tenantId,
+            CreateTenantBackupHandler handler,
+            CancellationToken ct) =>
+        {
+            var response = await handler.HandleAsync(tenantId, ct);
+            return Results.Ok(response);
+        });
+
         return app;
     }
 }

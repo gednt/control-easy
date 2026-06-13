@@ -1,15 +1,27 @@
 using ControlEasyReborn.Api.Hosting;
 using ControlEasyReborn.Infrastructure.Data;
 using ControlEasyReborn.Infrastructure.MultiTenancy;
+using ControlEasyReborn.Modules.Administration.Api.Endpoints;
+using ControlEasyReborn.Modules.Administration.Api.DI;
+using ControlEasyReborn.Modules.Administration.Infrastructure.DI;
 using ControlEasyReborn.Modules.Residents.Api.Endpoints;
 using ControlEasyReborn.Modules.Residents.Infrastructure.DI;
 using ControlEasyReborn.Modules.Security.Api.Auth;
 using ControlEasyReborn.Modules.Security.Api.DI;
 using ControlEasyReborn.Modules.Security.Api.Endpoints;
 using ControlEasyReborn.Modules.Security.Infrastructure.DI;
+using ControlEasyReborn.Modules.ServiceProviders.Api.DI;
+using ControlEasyReborn.Modules.ServiceProviders.Api.Endpoints;
+using ControlEasyReborn.Modules.ServiceProviders.Infrastructure.DI;
 using ControlEasyReborn.Modules.Tenants.Api.Auth;
 using ControlEasyReborn.Modules.Tenants.Api.Endpoints;
 using ControlEasyReborn.Modules.Tenants.Infrastructure.DI;
+using ControlEasyReborn.Modules.Vehicles.Api.DI;
+using ControlEasyReborn.Modules.Vehicles.Api.Endpoints;
+using ControlEasyReborn.Modules.Vehicles.Infrastructure.DI;
+using ControlEasyReborn.Modules.Visits.Api.Endpoints;
+using ControlEasyReborn.Modules.Visits.Api.DI;
+using ControlEasyReborn.Modules.Visits.Infrastructure.DI;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.FeatureManagement;
 using Serilog;
@@ -96,6 +108,10 @@ try
     builder.Services.AddTenantsModule();
     builder.Services.AddResidentsModule();
     builder.Services.AddSecurityModule();
+    builder.Services.AddAdministrationModule();
+    builder.Services.AddServiceProvidersModule();
+    builder.Services.AddVehiclesModule();
+    builder.Services.AddVisitsModule();
 
     builder.Services.AddHostedService<PlatformAdminBootstrapService>();
 
@@ -130,8 +146,13 @@ try
     app.MapHealthChecks("/health");
     app.MapFeatureEndpoints();
     app.MapTenantEndpoints();
+    app.MapTenantBackupEndpoints();
     app.MapResidentEndpoints();
     app.MapSecurityApi();
+    app.MapServiceProvidersApi();
+    app.MapVehiclesApi();
+    app.MapVisitsApi();
+    app.MapAdministrationApi();
 
     app.Run();
 }
@@ -163,6 +184,18 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
             ControlEasyReborn.Modules.Security.Application.Errors.ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
             ControlEasyReborn.Modules.Security.Application.Errors.ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
             ControlEasyReborn.Modules.Security.Application.Errors.UnauthorizedException => (StatusCodes.Status401Unauthorized, "Unauthorized"),
+            ControlEasyReborn.Modules.ServiceProviders.Application.Errors.NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
+            ControlEasyReborn.Modules.ServiceProviders.Application.Errors.ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
+            ControlEasyReborn.Modules.ServiceProviders.Application.Errors.ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
+            ControlEasyReborn.Modules.Vehicles.Application.Errors.NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
+            ControlEasyReborn.Modules.Vehicles.Application.Errors.ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
+            ControlEasyReborn.Modules.Vehicles.Application.Errors.ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
+            ControlEasyReborn.Modules.Visits.Application.Errors.NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
+            ControlEasyReborn.Modules.Visits.Application.Errors.ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
+            ControlEasyReborn.Modules.Visits.Application.Errors.ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
+            ControlEasyReborn.Modules.Administration.Application.Errors.NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
+            ControlEasyReborn.Modules.Administration.Application.Errors.ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
+            ControlEasyReborn.Modules.Administration.Application.Errors.ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
             _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred")
         };
 
@@ -188,6 +221,22 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
         else if (exception is ControlEasyReborn.Modules.Security.Application.Errors.ValidationException secValEx)
         {
             problemDetails.Extensions["errors"] = secValEx.Errors;
+        }
+        else if (exception is ControlEasyReborn.Modules.Administration.Application.Errors.ValidationException admValEx)
+        {
+            problemDetails.Extensions["errors"] = admValEx.Errors;
+        }
+        else if (exception is ControlEasyReborn.Modules.ServiceProviders.Application.Errors.ValidationException spValEx)
+        {
+            problemDetails.Extensions["errors"] = spValEx.Errors;
+        }
+        else if (exception is ControlEasyReborn.Modules.Vehicles.Application.Errors.ValidationException vehValEx)
+        {
+            problemDetails.Extensions["errors"] = vehValEx.Errors;
+        }
+        else if (exception is ControlEasyReborn.Modules.Visits.Application.Errors.ValidationException visValEx)
+        {
+            problemDetails.Extensions["errors"] = visValEx.Errors;
         }
 
         httpContext.Response.StatusCode = status;

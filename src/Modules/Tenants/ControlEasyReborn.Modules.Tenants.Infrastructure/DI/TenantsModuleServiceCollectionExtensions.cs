@@ -1,5 +1,6 @@
 using ControlEasyReborn.Infrastructure.MultiTenancy;
 using ControlEasyReborn.Modules.Tenants.Application.Abstractions;
+using ControlEasyReborn.Modules.Tenants.Application.Contracts;
 using ControlEasyReborn.Modules.Tenants.Application.Handlers;
 using ControlEasyReborn.Modules.Tenants.Application.Validators;
 using ControlEasyReborn.Modules.Tenants.Infrastructure.Persistence;
@@ -19,11 +20,22 @@ public static class TenantsModuleServiceCollectionExtensions
         services.AddSingleton<ITenantAwareLinqFactory>(sp => sp.GetRequiredService<TenantAwareLinqFactory>());
 
         services.AddScoped<ITenantRepository, TenantRepository>();
+        services.AddScoped<ITenantAdminRepository, TenantAdminRepository>();
+        services.AddScoped<IPasswordHasher, TenantPasswordHasher>();
+        services.AddScoped<ITenantBackupService, TenantBackupService>();
+
         services.AddScoped<CreateTenantHandler>();
         services.AddScoped<GetTenantHandler>();
         services.AddScoped<SuspendTenantHandler>();
         services.AddScoped<ResumeTenantHandler>();
-        services.AddScoped<IValidator<ControlEasyReborn.Modules.Tenants.Application.Contracts.CreateTenantRequest>, CreateTenantRequestValidator>();
+        services.AddScoped<CreateTenantAdminHandler>();
+        services.AddScoped<ListTenantAdminsHandler>();
+        services.AddScoped<RevokeTenantAdminHandler>();
+        services.AddScoped<CreateTenantBackupHandler>();
+
+        services.AddScoped<IValidator<CreateTenantRequest>, CreateTenantRequestValidator>();
+        services.AddScoped<IValidator<CreateTenantAdminRequest>, CreateTenantAdminRequestValidator>();
+
         return services;
     }
 }

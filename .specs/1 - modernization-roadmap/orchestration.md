@@ -344,4 +344,43 @@ The spec is ready for backend implementation.
 - **Open issues for Phase 2:**
   - **O1 (1.8 — npm peer dependency conflict):** `@tailwindcss/postcss@^4.1.0` conflicts with `@angular-devkit/build-angular@18`'s peer dep on `tailwindcss@"^2.0.0 || ^3.0.0"`. Installed with `--legacy-peer-deps`. Should be monitored; Angular 19+ may resolve this natively.
   - **O2 (1.14 — Integration tests require Docker):** The 4 integration tests boot a MySQL container via Testcontainers. CI must have Docker available.
-  - **O3 (1.8 — `ng-openapi-gen` not yet run):** The OpenAPI client generation is configured but requires a running API server. Will generate TypeScript DTOs when the API is running.
+   - **O3 (1.8 — `ng-openapi-gen` not yet run):** The OpenAPI client generation is configured but requires a running API server. Will generate TypeScript DTOs when the API is running.
+
+### Phase 10 — Orchestrator (WPF coexistence tasks cancelled, Phase 2 complete)
+
+- **Date:** 2026-06-13
+- **Decision:** Tasks 2.4 (WPF/web cross-verify smoke test) and 2.5 (7-day pilot flip) are **cancelled**. Rationale: the dev environment is macOS (WPF cannot run locally), and the legacy WPF app is no longer in production use. The Strangler Fig coexistence validation is unnecessary when there is no WPF app to coexist with.
+- **Phase 2 is now complete** (all tasks either done or cancelled).
+- **Phase 3 Wave 1 begins:** tasks 3.1 (Visits), 3.2 (Vehicles), 3.3 (ServiceProviders), 3.4 (Administration), 3.9a (Tenant administration API). All five are backend-only, independent, and follow the module template proven in Phase 1 (Residents) and Phase 2 (Security).
+- **Files modified:**
+  - `.specs/1 - modernization-roadmap/tasks.md` — 2.4 and 2.5 struck through with cancellation reason.
+  - `.specs/1 - modernization-roadmap/orchestration.md` — this entry.
+
+### Phase 11 — Backend Agents (Phase 3 Wave 1: tasks 3.1, 3.2, 3.3, 3.4, 3.9a)
+
+- **Date:** 2026-06-13
+- **5 parallel Backend Agent sessions:**
+  - **3.1 (Visits)** — 21 files created (4-layer module + SQL schema). Endpoints: GET/POST /api/v1/visits, POST checkin, POST checkout. Domain: Visit entity + VisitStatus enum, VisitorDocument VO, VisitCreated event.
+  - **3.2 (Vehicles)** — 19 files created (4-layer module + SQL schema). Endpoints: GET/POST/PUT /api/v1/vehicles. Domain: Vehicle entity + VehicleType enum, LicensePlate VO, VehicleCreated event.
+  - **3.3 (ServiceProviders)** — 21 files created (4-layer module + SQL schema). Endpoints: GET/POST/PUT /api/v1/service-providers. Domain: ServiceProvider entity, ServiceProviderDocument VO, ServiceProviderCreated event.
+  - **3.4 (Administration)** — 23 files created (4-layer module + SQL schema). Endpoints: GET/POST /api/v1/administration/audit-logs, GET/POST/PUT /api/v1/administration/configurations. Domain: AuditLogEntry, ConfigurationEntry entities.
+  - **3.9a (Tenant admin API)** — 12 files created (extending existing Tenants module). New endpoints: POST/GET /api/v1/tenants/{id}/admins, POST .../revoke, POST /api/v1/admin/backups/{tenantId}. New: TenantAdminRepository, TenantBackupService, TenantPasswordHasher, CreateTenantAdminHandler, ListTenantAdminsHandler, RevokeTenantAdminHandler, CreateTenantBackupHandler.
+- **Cross-cutting updates (all 5 agents edited these files — consolidated successfully):**
+  - `src/Host/ControlEasyReborn.Api/Program.cs` — all 5 new modules registered (DI + endpoint mapping + exception handler entries). 34 projects in solution.
+  - `docker/mysql/init/03-tenant-backfill.sql` — 10 tables now listed (Users, Residents, AttendantProfiles, Shifts, Gatehouses, Vehicles, Visits, ServiceProviders, AuditLog, Configurations).
+  - `src/ControlEasyReborn.sln` — all 4-layer projects for Visits, Vehicles, ServiceProviders, Administration added.
+  - `src/Host/ControlEasyReborn.Api/ControlEasyReborn.Api.csproj` — project references for all new modules.
+- **New MySQL schemas:** 06-visits-schema.sql, 07-vehicles-schema.sql, 08-service-providers-schema.sql, 09-administration-schema.sql.
+- **Verification commands (all green):**
+  - `dotnet build src/ControlEasyReborn.sln -nologo --framework net10.0` — Build succeeded. 3 Warning(s) 0 Error(s) (pre-existing NU1902/NU1903 from DBTools vendor lib).
+  - `dotnet test tests/ControlEasyReborn.UnitTests/ --nologo --framework net10.0` — Passed: 42, Failed: 0, Skipped: 0.
+  - `dotnet test tests/ControlEasyReborn.ArchitectureTests/ --nologo --framework net10.0` — Passed: 5, Failed: 0, Skipped: 0.
+  - `git grep -ri "MySql.Data" src/Modules src/BuildingBlocks src/Host src/Web` — empty.
+- **Remaining Phase 3 tasks:**
+  - **3.5** — Angular pages + integration tests + feature flags + pilot cutover per module (Frontend Agent).
+  - **3.6** — CQRS-lite for reports (reads on Visits + Residents).
+  - **3.7** — Playwright UI tests per module page.
+  - **3.8** — Update legacy-mapping.md marking each module "Web -- live".
+- **Spec files modified:**
+  - `.specs/1 - modernization-roadmap/tasks.md` — 3.1, 3.2, 3.3, 3.4, 3.9a marked `[x]`.
+  - `.specs/1 - modernization-roadmap/orchestration.md` — this entry.

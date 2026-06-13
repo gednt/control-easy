@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ControlEasyReborn.Modules.Visits.Domain</RootNamespace>
+    <AssemblyName>ControlEasyReborn.Modules.Visits.Domain</AssemblyName>
+  </PropertyGroup>
+</Project>

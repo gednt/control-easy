@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ControlEasyReborn.Modules.ServiceProviders.Application</RootNamespace>
+    <AssemblyName>ControlEasyReborn.Modules.ServiceProviders.Application</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ControlEasyReborn.Modules.ServiceProviders.Domain\ControlEasyReborn.Modules.ServiceProviders.Domain.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" />
+  </ItemGroup>
+</Project>

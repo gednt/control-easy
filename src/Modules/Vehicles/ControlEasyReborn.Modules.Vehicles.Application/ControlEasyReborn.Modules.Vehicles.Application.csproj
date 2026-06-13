@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ControlEasyReborn.Modules.Vehicles.Application</RootNamespace>
+    <AssemblyName>ControlEasyReborn.Modules.Vehicles.Application</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ControlEasyReborn.Modules.Vehicles.Domain\ControlEasyReborn.Modules.Vehicles.Domain.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" />
+  </ItemGroup>
+</Project>

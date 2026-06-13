@@ -17,6 +17,17 @@
     <ProjectReference Include="..\..\Modules\Security\ControlEasyReborn.Modules.Security.Api\ControlEasyReborn.Modules.Security.Api.csproj" />
     <ProjectReference Include="..\..\Modules\Security\ControlEasyReborn.Modules.Security.Application\ControlEasyReborn.Modules.Security.Application.csproj" />
     <ProjectReference Include="..\..\Modules\Security\ControlEasyReborn.Modules.Security.Infrastructure\ControlEasyReborn.Modules.Security.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\Administration\ControlEasyReborn.Modules.Administration.Api\ControlEasyReborn.Modules.Administration.Api.csproj" />
+    <ProjectReference Include="..\..\Modules\Administration\ControlEasyReborn.Modules.Administration.Application\ControlEasyReborn.Modules.Administration.Application.csproj" />
+    <ProjectReference Include="..\..\Modules\Administration\ControlEasyReborn.Modules.Administration.Infrastructure\ControlEasyReborn.Modules.Administration.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\ServiceProviders\ControlEasyReborn.Modules.ServiceProviders.Api\ControlEasyReborn.Modules.ServiceProviders.Api.csproj" />
+    <ProjectReference Include="..\..\Modules\ServiceProviders\ControlEasyReborn.Modules.ServiceProviders.Application\ControlEasyReborn.Modules.ServiceProviders.Application.csproj" />
+    <ProjectReference Include="..\..\Modules\ServiceProviders\ControlEasyReborn.Modules.ServiceProviders.Infrastructure\ControlEasyReborn.Modules.ServiceProviders.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\Vehicles\ControlEasyReborn.Modules.Vehicles.Api\ControlEasyReborn.Modules.Vehicles.Api.csproj" />
+    <ProjectReference Include="..\..\Modules\Vehicles\ControlEasyReborn.Modules.Vehicles.Application\ControlEasyReborn.Modules.Vehicles.Application.csproj" />
+    <ProjectReference Include="..\..\Modules\Visits\ControlEasyReborn.Modules.Visits.Api\ControlEasyReborn.Modules.Visits.Api.csproj" />
+    <ProjectReference Include="..\..\Modules\Visits\ControlEasyReborn.Modules.Visits.Application\ControlEasyReborn.Modules.Visits.Application.csproj" />
+    <ProjectReference Include="..\..\Modules\Visits\ControlEasyReborn.Modules.Visits.Infrastructure\ControlEasyReborn.Modules.Visits.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />

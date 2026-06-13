@@ -30,6 +30,10 @@
     <ProjectReference Include="..\..\src\Modules\Security\ControlEasyReborn.Modules.Security.Application\ControlEasyReborn.Modules.Security.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Security\ControlEasyReborn.Modules.Security.Infrastructure\ControlEasyReborn.Modules.Security.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\Security\ControlEasyReborn.Modules.Security.Api\ControlEasyReborn.Modules.Security.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Visits\ControlEasyReborn.Modules.Visits.Domain\ControlEasyReborn.Modules.Visits.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Visits\ControlEasyReborn.Modules.Visits.Application\ControlEasyReborn.Modules.Visits.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Visits\ControlEasyReborn.Modules.Visits.Infrastructure\ControlEasyReborn.Modules.Visits.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Visits\ControlEasyReborn.Modules.Visits.Api\ControlEasyReborn.Modules.Visits.Api.csproj" />
     <ProjectReference Include="..\..\src\Host\ControlEasyReborn.Api\ControlEasyReborn.Api.csproj" />
   </ItemGroup>
 </Project>

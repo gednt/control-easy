@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ControlEasyReborn.Modules.Vehicles.Domain</RootNamespace>
+    <AssemblyName>ControlEasyReborn.Modules.Vehicles.Domain</AssemblyName>
+  </PropertyGroup>
+</Project>

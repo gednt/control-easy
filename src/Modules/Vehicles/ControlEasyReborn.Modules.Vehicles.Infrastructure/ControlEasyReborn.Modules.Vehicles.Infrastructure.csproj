@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ControlEasyReborn.Modules.Vehicles.Infrastructure</RootNamespace>
+    <AssemblyName>ControlEasyReborn.Modules.Vehicles.Infrastructure</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\ControlEasyReborn.Infrastructure\ControlEasyReborn.Infrastructure.csproj" />
+    <ProjectReference Include="..\ControlEasyReborn.Modules.Vehicles.Application\ControlEasyReborn.Modules.Vehicles.Application.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+</Project>

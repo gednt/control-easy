@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ControlEasyReborn.Modules.ServiceProviders.Api</RootNamespace>
+    <AssemblyName>ControlEasyReborn.Modules.ServiceProviders.Api</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ControlEasyReborn.Modules.ServiceProviders.Application\ControlEasyReborn.Modules.ServiceProviders.Application.csproj" />
+    <ProjectReference Include="..\ControlEasyReborn.Modules.ServiceProviders.Infrastructure\ControlEasyReborn.Modules.ServiceProviders.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+</Project>

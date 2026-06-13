@@ -36,6 +36,36 @@ UPDATE Gatehouses SET tenant_id = @defaultTenantId WHERE tenant_id IS NULL;
 ALTER TABLE Gatehouses MODIFY COLUMN tenant_id CHAR(36) NOT NULL;
 CREATE INDEX IF NOT EXISTS IX_Gatehouses_tenant_id ON Gatehouses (tenant_id);
 
+-- Vehicles table
+ALTER TABLE Vehicles ADD COLUMN IF NOT EXISTS tenant_id CHAR(36) NULL;
+UPDATE Vehicles SET tenant_id = @defaultTenantId WHERE tenant_id IS NULL;
+ALTER TABLE Vehicles MODIFY COLUMN tenant_id CHAR(36) NOT NULL;
+CREATE INDEX IF NOT EXISTS IX_Vehicles_tenant_id ON Vehicles (tenant_id);
+
+-- Visits table
+ALTER TABLE Visits ADD COLUMN IF NOT EXISTS tenant_id CHAR(36) NULL;
+UPDATE Visits SET tenant_id = @defaultTenantId WHERE tenant_id IS NULL;
+ALTER TABLE Visits MODIFY COLUMN tenant_id CHAR(36) NOT NULL;
+CREATE INDEX IF NOT EXISTS IX_Visits_tenant_id ON Visits (tenant_id);
+
+-- ServiceProviders table
+ALTER TABLE ServiceProviders ADD COLUMN IF NOT EXISTS tenant_id CHAR(36) NULL;
+UPDATE ServiceProviders SET tenant_id = @defaultTenantId WHERE tenant_id IS NULL;
+ALTER TABLE ServiceProviders MODIFY COLUMN tenant_id CHAR(36) NOT NULL;
+CREATE INDEX IF NOT EXISTS IX_ServiceProviders_tenant_id ON ServiceProviders (tenant_id);
+
+-- AuditLog table
+ALTER TABLE AuditLog ADD COLUMN IF NOT EXISTS tenant_id CHAR(36) NULL;
+UPDATE AuditLog SET tenant_id = @defaultTenantId WHERE tenant_id IS NULL;
+ALTER TABLE AuditLog MODIFY COLUMN tenant_id CHAR(36) NOT NULL;
+CREATE INDEX IF NOT EXISTS IX_AuditLog_tenant_id ON AuditLog (tenant_id);
+
+-- Configurations table
+ALTER TABLE Configurations ADD COLUMN IF NOT EXISTS tenant_id CHAR(36) NULL;
+UPDATE Configurations SET tenant_id = @defaultTenantId WHERE tenant_id IS NULL;
+ALTER TABLE Configurations MODIFY COLUMN tenant_id CHAR(36) NOT NULL;
+CREATE INDEX IF NOT EXISTS IX_Configurations_tenant_id ON Configurations (tenant_id);
+
 -- [Add new business tables here in the same pattern]
 -- Pattern:
 -- ALTER TABLE <TableName> ADD COLUMN IF NOT EXISTS tenant_id CHAR(36) NULL;

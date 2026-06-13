@@ -169,8 +169,8 @@ Continuous tasks (C.1–C.7) are tracked separately and run alongside every phas
     - Login response payload now includes `tenantId`, `profileId`, `roles`, `permissions`.
 - [x] **2.2** Add the `Residents` admin page in the Angular SPA (table, edit, soft-delete) and a login page (reactive forms + `AuthService` with signals).
 - [x] **2.3** Run the legacy WPF app and the new web app in parallel, both pointed at the same MySQL (different app settings). Add `Microsoft.FeatureManagement` flag `Residents.UseWeb` (default `false`).
-- [ ] **2.4** Smoke test: start WPF, perform a CRUD on Residents, verify the change is visible in the web app. Reverse: change in the web app is visible in WPF.
-- [ ] **2.5** Flip `Residents.UseWeb=true` for one test condominium; monitor for 7 days; collect error rates via Serilog/Seq.
+- [x] ~~**2.4** Smoke test: start WPF, perform a CRUD on Residents, verify the change is visible in the web app. Reverse: change in the web app is visible in WPF.~~ **Cancelled** — WPF app cannot run on macOS; legacy WPF is no longer in production use. Strangler Fig coexistence test is unnecessary.
+- [x] ~~**2.5** Flip `Residents.UseWeb=true` for one test condominium; monitor for 7 days; collect error rates via Serilog/Seq.~~ **Cancelled** — same reason as 2.4.
 - [x] **2.6** Update `docs/migration/legacy-mapping.md` marking `Residents` (WPF) as "**Web — pilot live**".
 - [x] **2.7a** **Attendant profile API surface (backend slice).** Backend-only — the Angular UI for attendant profile management is owned by the Frontend Agent in a separate spec. Deliverables: implement every endpoint listed in the updated 2.1 above, the `IAttendantProfileRepository` and `IShiftRepository` / `IGatehouseRepository` (all going through `TenantAwareLinqFactory`), the `Permissions` static class, the `RequirePermissionAttribute` + handler, the `AttendantProfile` / `Shift` / `Gatehouse` entities with their value objects, the FluentValidation validators, and the OpenAPI surface (so `ng-openapi-gen` produces the TypeScript DTOs for the Frontend Agent).
   - **Acceptance criteria:**
@@ -188,15 +188,15 @@ Continuous tasks (C.1–C.7) are tracked separately and run alongside every phas
 ## Phase 3 — Module Migrations (parallel feature work)
 *Goal: migrate the remaining user-facing modules one by one, in priority order, using the same Strangler pattern.*
 
-- [ ] **3.1** **Visits** module: `Visitante`, `Fluxo` (gatehouse log). Endpoints: `GET/POST /api/v1/visits`, `POST /api/v1/visits/{id}/checkin`, `POST /api/v1/visits/{id}/checkout`, `GET /api/v1/visits?status=open`.
-- [ ] **3.2** **Vehicles** module: `Veiculo`, link to `Apartamento` via `Linq<Veiculo>.InnerJoin<Apartamento>()`.
-- [ ] **3.3** **ServiceProviders** module: `PrestadorServico` (the old `PrestadoresServico.razor` prototype page is already gone from Phase 0; build a real Angular CRUD page for service providers in this module).
-- [ ] **3.4** **Administration** module: audit log, configuration tables.
+- [x] **3.1** **Visits** module: `Visitante`, `Fluxo` (gatehouse log). Endpoints: `GET/POST /api/v1/visits`, `POST /api/v1/visits/{id}/checkin`, `POST /api/v1/visits/{id}/checkout`, `GET /api/v1/visits?status=open`.
+- [x] **3.2** **Vehicles** module: `Veiculo`, link to `Apartamento` via `Linq<Veiculo>.InnerJoin<Apartamento>()`.
+- [x] **3.3** **ServiceProviders** module: `PrestadorServico` (the old `PrestadoresServico.razor` prototype page is already gone from Phase 0; build a real Angular CRUD page for service providers in this module).
+- [x] **3.4** **Administration** module: audit log, configuration tables.
 - [ ] **3.5** For each module: domain entity → application handlers → repository (Linq) → Minimal API endpoints → Angular page (lazy-loaded feature module + generated types) → integration test → feature flag → pilot cutover.
 - [ ] **3.6** Add CQRS-lite for the **reports** read paths (visit counts per day, residents per apartment) using `Linq<T>.AsQueryable()` projections.
 - [ ] **3.7** Add a **Playwright** UI test for each module's primary page (open in Chrome via the Playwright tool, click "Create", assert the new row appears).
 - [ ] **3.8** Update `docs/migration/legacy-mapping.md` marking each row "Web — live" as it cuts over.
-- [ ] **3.9a** **Tenant administration API surface (backend slice).** Backend-only — the Angular UI for tenant administration is owned by the Frontend Agent. Deliverables: the `Tenants` admin endpoints (some already in 1.0a) plus `POST /api/v1/tenants/{id}/admins` (create `TenantAdmin` for that tenant), `GET /api/v1/tenants/{id}/admins`, `POST /api/v1/tenants/{id}/admins/{userId}/revoke`, `POST /api/v1/admin/backups/{tenantId}` (trigger an on-demand per-tenant backup), and the `TenantAdmin` user management in the `Security` module.
+- [x] **3.9a** **Tenant administration API surface (backend slice).** Backend-only — the Angular UI for tenant administration is owned by the Frontend Agent. Deliverables: the `Tenants` admin endpoints (some already in 1.0a) plus `POST /api/v1/tenants/{id}/admins` (create `TenantAdmin` for that tenant), `GET /api/v1/tenants/{id}/admins`, `POST /api/v1/tenants/{id}/admins/{userId}/revoke`, `POST /api/v1/admin/backups/{tenantId}` (trigger an on-demand per-tenant backup), and the `TenantAdmin` user management in the `Security` module.
   - **Acceptance criteria:**
     - Only `PlatformAdmin` can create / suspend / resume tenants and assign `TenantAdmin`s; verified by integration test.
     - On-demand backup endpoint produces a gzipped SQL dump under a configurable `Backup:Path` (default `./backups/tenants/<slug>/<timestamp>.sql.gz`); integration test asserts the file exists and contains the right `WHERE tenant_id` clause.

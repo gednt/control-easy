@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ControlEasyReborn.Modules.ServiceProviders.Infrastructure</RootNamespace>
+    <AssemblyName>ControlEasyReborn.Modules.ServiceProviders.Infrastructure</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\ControlEasyReborn.Infrastructure\ControlEasyReborn.Infrastructure.csproj" />
+    <ProjectReference Include="..\ControlEasyReborn.Modules.ServiceProviders.Application\ControlEasyReborn.Modules.ServiceProviders.Application.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+</Project>

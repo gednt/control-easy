@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS Visits (
+    Id CHAR(36) NOT NULL PRIMARY KEY,
+    TenantId CHAR(36) NOT NULL,
+    VisitorName VARCHAR(200) NOT NULL,
+    VisitorDocument VARCHAR(20) NOT NULL,
+    VisitorPhone VARCHAR(20) NULL,
+    ApartmentId CHAR(36) NULL,
+    Purpose VARCHAR(500) NULL,
+    Status INT NOT NULL DEFAULT 0,
+    AttendantProfileId CHAR(36) NULL,
+    GatehouseId CHAR(36) NULL,
+    CheckedInAtUtc DATETIME(6) NULL,
+    CheckedOutAtUtc DATETIME(6) NULL,
+    CreatedAtUtc DATETIME NOT NULL DEFAULT UTC_TIMESTAMP(),
+    UpdatedAtUtc DATETIME NULL,
+    INDEX IX_Visits_TenantId (TenantId),
+    INDEX IX_Visits_Status (Status),
+    INDEX IX_Visits_VisitorName (VisitorName),
+    INDEX IX_Visits_VisitorDocument (VisitorDocument),
+    INDEX IX_Visits_CheckedInAtUtc (CheckedInAtUtc)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
