@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <RootNamespace>DBTools</RootNamespace>
+    <AssemblyName>DBTools</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Deterministic>false</Deterministic>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Physical" />
+    <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" />
+    <PackageReference Include="NPOI" />
+    <PackageReference Include="Portable.BouncyCastle" />
+    <PackageReference Include="SharpZipLib" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

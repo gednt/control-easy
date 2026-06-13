@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ControlEasyReborn.UnitTests</RootNamespace>
+    <AssemblyName>ControlEasyReborn.UnitTests</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NSubstitute" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\BuildingBlocks\ControlEasyReborn.Infrastructure\ControlEasyReborn.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\BuildingBlocks\ControlEasyReborn.SharedKernel\ControlEasyReborn.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tenants\ControlEasyReborn.Modules.Tenants.Api\ControlEasyReborn.Modules.Tenants.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tenants\ControlEasyReborn.Modules.Tenants.Application\ControlEasyReborn.Modules.Tenants.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tenants\ControlEasyReborn.Modules.Tenants.Domain\ControlEasyReborn.Modules.Tenants.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tenants\ControlEasyReborn.Modules.Tenants.Infrastructure\ControlEasyReborn.Modules.Tenants.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

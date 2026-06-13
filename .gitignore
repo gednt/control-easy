@@ -8,12 +8,21 @@
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
-[Ll]ib/
-[Ll]ib64/
+# `Lib/` is the Visual Studio convention for C++ project outputs. The original
+# template uses `[Ll]ib/` which matches at any depth and therefore also matches
+# our vendored C# source under src/lib/DBTools_SQL/. Anchor to repo root and
+# re-include the vendor below.
+/[Ll]ib/
+/[Ll]ib64/
 [Oo]ut/
 [Oo]bj/
 .vs/
 .vscode/
+# Allow vendored DBTools_SQL source (src/lib/DBTools_SQL/ is a C# project, not
+# a VS C++ Lib/ output). Build artifacts inside the vendor are still ignored
+# via [Bb]in/, [Oo]bj/ at the top of this file.
+!/src/lib/
+!/src/lib/**
 *.user
 *.suo
 *.userprefs
@@ -197,8 +206,8 @@ pnpm-debug.log
 .angular/
 .angular/cache/
 coverage/
-lib/
-lib-cov/
+# (Root-anchored `/lib/` and the src/lib/DBTools_SQL/ vendored-source
+# negations are at the top of this file.)
 *.tgz
 .yarn-integrity
 .pnp.*

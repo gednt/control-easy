@@ -1,109 +1,47 @@
-# Project Overview: 
-This project intends to 
+# Project Overview
+
+**ControlEasy Reborn** is a greenfield rewrite of the legacy ControlEasy 5 WPF desktop system. The repo today contains the **spec-only** skeleton: AGENTS.md (root), `agents/`, `docs/penpot/`, `mockup/`, and `.specs/`. The legacy `ControlEasy5/` (WPF) and `ControlEasyWeb/` (Blazor prototype) folders are already gone from disk; this PR must not reintroduce references to them. Target: a modular monolith on **ASP.NET Core 8 (LTS)** with an **Angular 18+ SPA** (standalone components + signals) frontend, containerized via Docker + Compose, with **DBTools_SQL** as the sole data-access library. Multi-tenant from day one (shared schema, `tenant_id` discriminator enforced by a global query interceptor).
 
 # Technical details
 
-## Project Discovery
+## Stack confirmed
+- **Backend:** .NET 8 (only the 8.0 runtime is installed locally; the only SDK is 10.0 which still supports `<TargetFramework>net8.0</TargetFramework>`).
+- **DBTools_SQL:** vendored under `src/lib/DBTools_SQL/DBTools/` as a faithful stub that exposes the exact public surface the Tenants module and `TenantFilterInterceptor` require. The vendor stub:
+  - implements `IAsyncSqlClient`, `Linq<TModel>`, `LinqHelper<TModel>`, `IQueryInterceptor`
+  - ships `AddDbTools(Action<DbToolsOptions>)` + `DbToolsOptions` + `DatabaseProvider` enum
+  - ships a trivial in-memory `IDbProvider` for unit tests (canned rows, no real SQL)
+  - carries a `// TODO(migration): replace with real DBTools_SQL` marker at the top of the main type so the swap point is obvious
+  - inherits `LangVersion=latest`, `Nullable=enable`, `TreatWarningsAsErrors=true` via a local `Directory.Build.props` link
+  - is consumed via `<ProjectReference>` (vendored projects do not appear in CPM)
+- **MySQL provider package:** `MySqlConnector` 2.3.7 (declared in `src/Directory.Packages.props` for completeness even though the vendor stub does not yet bind to it).
+- **CPM:** `src/Directory.Packages.props` (pinned versions) + `src/Directory.Build.props` (compiler settings). Both applied via the standard MSBuild import search up the tree.
+- **Module layout:** `src/Modules/{Module}/{Domain,Application,Infrastructure,Api}` with one .csproj per layer, plus a `TenantAwareLinqFactory` in `src/BuildingBlocks/Infrastructure/MultiTenancy/`.
+- **Project naming convention** (per design.md line 95+): `ControlEasyReborn.Modules.{Module}.{Layer}`.
 
-Before starting any work, you MUST first search through the repo or folder to understand the project and its patterns. Do not assume you know the project — discover it:
+## Discovered environment facts
+- `dotnet --list-sdks` → `10.0.203`; `dotnet --list-runtimes` → `Microsoft.NETCore.App 8.0.26` and `10.0.7`. The 8.0 runtime is present, so `net8.0` targets build and run.
+- NuGet cache (`~/.nuget/packages/`) has the basics but **not** `DBTools_SQL`, `MySqlConnector`, `FluentValidation`, `Swashbuckle`, `xunit`, `Serilog`, `Testcontainers`, `Mapster`, `Microsoft.AspNetCore.Authentication.JwtBearer`, `NSubstitute`. The first `dotnet restore` will fetch them; the machine has internet.
+- Legacy `ControlEasy5/`, `ControlEasyWeb/`, `db/` are not present in the working tree; do not add references to them. The new `mockup/` is the build-free HTML prototype owned by the visual-design-system spec — do not modify.
+- `dotnet new sln` and `dotnet sln add` work on macOS via the installed SDK.
 
-- **Search the codebase** to understand what the project is about, its purpose, and its structure.
-- **Identify patterns** for key subjects such as:
-    - Programming paradigms and architectural patterns (DDD, MVC, MVP, MVVM, Clean Architecture, CQRS, Event-Driven, etc.)
-    - Database operations (ORM, query patterns, migrations, models)
-    - Naming conventions (files, variables, classes, functions, exports)
-    - API patterns (REST, GraphQL, route structure, middleware, auth)
-    - Testing patterns (framework, file location, mocking, assertions)
-    - Folder structure and module organization
-    - Coding style (language version, linters, formatters, type systems)
-    - State management and data flow patterns
-    - Error handling and logging conventions
-- **Use glob and grep tools** to quickly scan for these patterns before writing any code.
-- **Read key files** like package.json, README, config files, and existing source to understand the tech stack and conventions.
-- **Write your findings concisely** into the **Project Overview** and **Technical details** sections above, so they persist for future reference.
+## Conventions (confirmed from repo-root AGENTS.md)
+- C# 12, file-scoped namespaces, `record` types for DTOs, `sealed` classes by default, `_camelCase` private fields, `PascalCase` types/methods, ALL_CAPS only for const.
+- Async end-to-end via `IAsyncSqlClient`.
+- Routes: kebab-case, plural nouns, versioned `/api/v1/...`.
+- Errors: `ProblemDetails` (RFC 7807).
+- Multi-tenant: per-tenant entities carry `TenantId` (non-null). `Platform*` entities are exempt.
+- **No** raw SQL, no `MySql.Data`, no `EntityFramework` anywhere under `src/` or `tests/`.
+- **No emojis** in code, commits, or docs.
 
-### If the project is new (empty or no existing patterns found)
+## Orchestrator decisions (binding)
+- **DBTools_SQL:** vendored under `src/lib/DBTools_SQL/`. Not on NuGet; no placeholder project reference. Vendor stub carries the swap-point marker.
+- **IQueryInterceptor shape:** isolated in `MultiTenancy/TenantFilterInterceptor.cs` (one file, one swap point).
+- **Thin async extension methods on `Linq<TModel>`:** accepted (`LinqTenantExtensions`).
+- **Factory-resolved `Linq<T>` per request:** accepted.
 
-Survey the user with the following questions and document their answers into the **Project Overview** and **Technical details** sections above. For each question, provide suggestions based on what you find in the codebase OR based on your knowledge of common patterns and best practices — the user can accept a suggestion, modify it, or provide their own answer. If the project is new and empty, help the user brainstorm by suggesting well-known options and trade-offs for each question:
-
-1. What is the purpose and scope of this project? What problem does it solve and for whom?
-2. What programming language(s) and framework(s) will be used?
-3. What architectural or paradigm patterns should be followed? (e.g., DDD, MVC, Clean Architecture, Event-Driven)
-4. What database and ORM/ODM will be used? What are the naming conventions for models, tables, and fields?
-5. What are the naming conventions for files, variables, classes, functions, and exports?
-6. What API style will be used? (e.g., REST, GraphQL, gRPC) Any auth or middleware patterns?
-7. What testing framework and strategy will be used? Where do tests live?
-8. Is there a preferred folder structure or module organization?
-9. What linters, formatters, or type systems are in use?
-10. How should state be managed? What are the data flow patterns?
-11. What are the error handling and logging conventions?
-12. Are there any build, CI/CD, or deployment instructions to document?
-
-### After discovery is complete
-
-Once all findings have been documented into the **Project Overview** and **Technical details** sections — or if the user opts not to answer the survey questions — remove this entire **Project Discovery** section from AGENTS.md. Its purpose is one-time bootstrapping only.
-
-# Strategy
-For each implementation, generate a folder with the implementation name in the format `.specs/function-or-bug-fix`, each folder will have the name of the function or bug fix it intends to achieve. 
-- Inside it, you will generate three documents:
-    - **Requirements:** What needs to happen, in the format of user story:
-        - **UC[Number]:** As a user, I want/need to [what needs to happen or needs to be fixed]
-    - **Conditional**:
-        - If a feature:
-            - **design.md:** How it will be done.
-                - **Overview**: The context of the task being achieved. A concise three paragraphs introduction to the task.
-                - **Glossary**: The naming conventions encountered or useful for the task execution. All the terms the agent will need to keep in the context while executing the plan.
-                    - **Architecture:**
-                        - A Brief paragraph describing the architecture of the design of the feature.
-                        - Titles with mermaid diagrams, flow, sucess criteria, components, files to be created, code snippets, testing strategy, verification approach, etc... Everything the design needs to be achieved... More items can be added as needed.
-                            - Each item will be a title or subtitle.
-        - If a bug:
-            - **bugfix.md**:
-                 - **Overview**: The context of the task being achieved. A concise three paragraphs introduction to the task.
-                - **Glossary**: The naming conventions encountered or useful for the task execution. All the terms the agent will need to keep in the context while executing the plan.
-                - **Bug details**: What is the anomaly?
-                - **Bug condition**: This bug manifests when... [details]                             
-                - **Examples:** Examples of the bug occurrence.
-                - **Unchanged behaviors**
-                - **Fix Implementation**
-                    - Assuming our root analysis is correct:
-                        - Implementation description
-        - **tasks.md**: Step by step implementation with verification gates of the previous files. The tasks itself.
-            - [ ] 1. Task
-            - [ ] 2. Task
-            - [ ] 3. Task
-            - [ ] etc...
-            - Each task can have as many subtasks as needed.
-            - ## Task Dependency Graph
-            ```json
-            {
-              "waves": [
-                { "wave": 1, "tasks": ["<task_id>", "..."] },
-                { "wave": 2, "tasks": ["<task_id>", "..."] }
-              ]
-            }
-            ```
-            Task IDs reference the numbered tasks above. Tasks in the same wave have no dependencies on each other and can run in parallel. A wave only starts after all tasks in the previous wave are complete. Add as many waves as the task complexity demands.
-        - After the conclusion of any task is completed, mark it as done.
-        - Update AGENTS.md regularly to match the project architecture, code standards, build instructions and things as such.
-
-## Browser Testing & Verification
-
-You MUST use Chrome (via the Playwright browser tools) to verify work that can be observed in a browser — this applies to all cases, not just UX/UI changes:
-
-- **Present the current state** to the user so they can see how things look before proceeding. Take screenshots or snapshots after each meaningful change and share them with the user for feedback.
-- **Test browser-dependent functionality** (e.g., WebSocket real-time feeds, map rendering, form interactions, API responses, page rendering, responsive layouts) directly in Chrome rather than relying solely on code review.
-- **Iterate** by making changes, reloading in Chrome, and presenting the result to the user for approval before moving on.
-
-Do not skip this step — the user should always be able to visually verify work in a real browser before it is considered done.
-
-You are allowed to open a Chrome browser (via the Playwright browser tools) whenever needed — no additional permission is required.
-
-## User Confirmation Before Proceeding
-
-Before starting the implementation of a spec, you MUST present the plan to the user and wait for explicit confirmation. This is not optional — no spec implementation should be started without user approval.
-
-- **Always wait for user confirmation** before beginning implementation of a spec (i.e., after requirements, design, and tasks documents are created). No exceptions.
-- Present a clear summary of what will be done, which files will be affected, and any potential risks.
-- Only proceed after the user explicitly confirms (e.g., "yes", "go ahead", "proceed").
-- If the user rejects or requests changes, update the plan accordingly and ask for confirmation again.
+## Open issues handed off to Wave 2
+- `TenantRepository` uses the in-memory vendor stub; will need real DBTools_SQL swap before the integration tests in 1.14 land.
+- The `PlatformAdminOnly` policy is registered in the Tenants module's API project (so the endpoints compile and tests can exercise the policy) but the *handler* currently checks the `roles` claim only; the `Host/Program.cs` wiring (Serilog, JWT, Swagger, `AddDbTools`, health checks, `Microsoft.FeatureManagement`) is owned by task 1.4.
+- The `DefaultTenantSeeder` (design.md) is owned by task 1.0c.
+- The `docker/mysql/init/02-tenants-seed.sql` (which creates the `Tenants` table) is owned by task 1.0b.
+- The NetArchTest rule from task 1.0b (shipped in the same PR as 1.0b) is owned by Wave 6 (task 1.15).
