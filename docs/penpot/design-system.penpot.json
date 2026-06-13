@@ -1,0 +1,412 @@
+{
+  "$schema": "https://penpot.app/penpotv2-schema.json",
+  "format": "penpot-library",
+  "formatVersion": "2",
+  "name": "ControlEasy Reborn Design System",
+  "version": "0.1.0",
+  "description": "Source-of-truth design library for the ControlEasy Reborn Angular SPA. Tokens and components are 1:1 with .specs/2 - visual-design-system/design.md and docs/penpot/tokens.json. Import this file into Penpot via 'Design library > Import library'.",
+  "generated": "2026-06-11",
+  "importInstructions": "In Penpot, go to Libraries > Import library and select this file. Each top-level entry below becomes a page. Components inside the components page become draggable Penpot components. Colors and typographies become shared assets.",
+  "pages": [
+    {
+      "id": "page-tokens",
+      "name": "01 Tokens",
+      "description": "Color, radius, spacing, type, shadow, motion tokens. Names match CSS custom properties in src/Web/ControlEasyReborn.Web/src/styles.css and docs/penpot/tokens.json.",
+      "background": "#f8fafc",
+      "shapes": []
+    },
+    {
+      "id": "page-components",
+      "name": "02 Components",
+      "description": "One component per ce-* selector. Each shows default, hover, focus, active, disabled, loading, error states where applicable. Buttons/inputs also show sm/md/lg sizes.",
+      "background": "#f8fafc",
+      "shapes": []
+    },
+    {
+      "id": "page-layout-shell",
+      "name": "03 Layout Shell",
+      "description": "Sidebar (expanded 256 / collapsed rail / mobile drawer) + Topbar + main grid. Three breakpoints annotated.",
+      "background": "#f8fafc",
+      "shapes": []
+    },
+    {
+      "id": "page-theme-variants",
+      "name": "04 Theme Variants",
+      "description": "Light and dark theme comparison. Every component pattern is duplicated here for side-by-side review.",
+      "background": "#f8fafc",
+      "shapes": []
+    }
+  ],
+  "colors": [
+    { "name": "ce/light/background",         "value": "#f8fafc", "path": "colors/ce/light/background" },
+    { "name": "ce/light/surface",            "value": "#ffffff", "path": "colors/ce/light/surface" },
+    { "name": "ce/light/surface-elevated",   "value": "#ffffff", "path": "colors/ce/light/surface-elevated" },
+    { "name": "ce/light/border",             "value": "#e2e8f0", "path": "colors/ce/light/border" },
+    { "name": "ce/light/text-primary",       "value": "#0f172a", "path": "colors/ce/light/text-primary" },
+    { "name": "ce/light/text-secondary",     "value": "#475569", "path": "colors/ce/light/text-secondary" },
+    { "name": "ce/light/primary-raw",        "value": "#4f46e5", "path": "colors/ce/light/primary-raw" },
+    { "name": "ce/light/primary-hover",      "value": "#4338ca", "path": "colors/ce/light/primary-hover" },
+    { "name": "ce/light/primary-light",      "value": "#eef2ff", "path": "colors/ce/light/primary-light" },
+    { "name": "ce/light/danger",             "value": "#ef4444", "path": "colors/ce/light/danger" },
+    { "name": "ce/light/danger-light",       "value": "#fee2e2", "path": "colors/ce/light/danger-light" },
+    { "name": "ce/light/warning",            "value": "#f59e0b", "path": "colors/ce/light/warning" },
+    { "name": "ce/light/warning-light",      "value": "#fef3c7", "path": "colors/ce/light/warning-light" },
+    { "name": "ce/light/success",            "value": "#22c55e", "path": "colors/ce/light/success" },
+    { "name": "ce/light/success-light",      "value": "#dcfce7", "path": "colors/ce/light/success-light" },
+    { "name": "ce/light/info",               "value": "#3b82f6", "path": "colors/ce/light/info" },
+    { "name": "ce/light/info-light",         "value": "#dbeafe", "path": "colors/ce/light/info-light" },
+    { "name": "ce/sidebar/bg",               "value": "#0f172a", "path": "colors/ce/sidebar/bg" },
+    { "name": "ce/sidebar/text",             "value": "#cbd5e1", "path": "colors/ce/sidebar/text" },
+    { "name": "ce/sidebar/active-bg",        "value": "#4f46e5", "path": "colors/ce/sidebar/active-bg" },
+    { "name": "ce/sidebar/active-text",      "value": "#ffffff", "path": "colors/ce/sidebar/active-text" },
+    { "name": "ce/dark/background",          "value": "#0b1020", "path": "colors/ce/dark/background" },
+    { "name": "ce/dark/surface",             "value": "#111827", "path": "colors/ce/dark/surface" },
+    { "name": "ce/dark/surface-elevated",    "value": "#1f2937", "path": "colors/ce/dark/surface-elevated" },
+    { "name": "ce/dark/border",              "value": "#1f2937", "path": "colors/ce/dark/border" },
+    { "name": "ce/dark/text-primary",        "value": "#f1f5f9", "path": "colors/ce/dark/text-primary" },
+    { "name": "ce/dark/text-secondary",      "value": "#94a3b8", "path": "colors/ce/dark/text-secondary" },
+    { "name": "ce/dark/primary-raw",         "value": "#818cf8", "path": "colors/ce/dark/primary-raw" },
+    { "name": "ce/dark/primary-hover",       "value": "#a5b4fc", "path": "colors/ce/dark/primary-hover" },
+    { "name": "ce/dark/primary-light",       "value": "#1e1b4b", "path": "colors/ce/dark/primary-light" },
+    { "name": "ce/dark/danger",              "value": "#f87171", "path": "colors/ce/dark/danger" },
+    { "name": "ce/dark/danger-light",        "value": "#7f1d1d", "path": "colors/ce/dark/danger-light" },
+    { "name": "ce/dark/warning",             "value": "#fbbf24", "path": "colors/ce/dark/warning" },
+    { "name": "ce/dark/warning-light",       "value": "#78350f", "path": "colors/ce/dark/warning-light" },
+    { "name": "ce/dark/success",             "value": "#4ade80", "path": "colors/ce/dark/success" },
+    { "name": "ce/dark/success-light",       "value": "#14532d", "path": "colors/ce/dark/success-light" },
+    { "name": "ce/dark/info",                "value": "#60a5fa", "path": "colors/ce/dark/info" },
+    { "name": "ce/dark/info-light",          "value": "#1e3a8a", "path": "colors/ce/dark/info-light" }
+  ],
+  "typographies": [
+    { "name": "ce/text/xs",      "fontFamily": "Inter, system-ui, sans-serif", "fontSize": "12px", "fontWeight": "400", "lineHeight": "1.5" },
+    { "name": "ce/text/sm",      "fontFamily": "Inter, system-ui, sans-serif", "fontSize": "14px", "fontWeight": "400", "lineHeight": "1.5" },
+    { "name": "ce/text/base",    "fontFamily": "Inter, system-ui, sans-serif", "fontSize": "16px", "fontWeight": "400", "lineHeight": "1.5" },
+    { "name": "ce/text/lg",      "fontFamily": "Inter, system-ui, sans-serif", "fontSize": "18px", "fontWeight": "500", "lineHeight": "1.5" },
+    { "name": "ce/text/xl",      "fontFamily": "Inter, system-ui, sans-serif", "fontSize": "20px", "fontWeight": "600", "lineHeight": "1.25" },
+    { "name": "ce/text/2xl",     "fontFamily": "Inter, system-ui, sans-serif", "fontSize": "24px", "fontWeight": "600", "lineHeight": "1.25" },
+    { "name": "ce/text/3xl",     "fontFamily": "Inter, system-ui, sans-serif", "fontSize": "30px", "fontWeight": "700", "lineHeight": "1.25" },
+    { "name": "ce/text/label",   "fontFamily": "Inter, system-ui, sans-serif", "fontSize": "12px", "fontWeight": "500", "lineHeight": "1.5", "letterSpacing": "0.04em" }
+  ],
+  "components": [
+    {
+      "id": "ce-button",
+      "name": "Button",
+      "selector": "ce-button",
+      "description": "Primary, secondary, ghost, and danger variants in sm/md/lg sizes with loading and disabled states. Hover on primary: translateY(-1px) + primary-tinted shadow. Disabled and loading render aria-disabled and aria-busy correctly. See requirements.md UC-009 and design.md ce-button section.",
+      "states": ["default", "hover", "focus", "active", "disabled", "loading"],
+      "variants": [
+        { "id": "primary", "name": "Primary",   "bg": "var(--color-primary)",         "fg": "#ffffff", "border": "none" },
+        { "id": "secondary", "name": "Secondary", "bg": "var(--color-surface)",     "fg": "var(--color-text-primary)", "border": "1px solid var(--color-border)" },
+        { "id": "ghost",   "name": "Ghost",     "bg": "transparent",                "fg": "var(--color-text-primary)", "border": "none" },
+        { "id": "danger",  "name": "Danger",    "bg": "var(--color-danger)",         "fg": "#ffffff", "border": "none" }
+      ],
+      "sizes": [
+        { "id": "sm", "name": "Small",  "height": "32px", "paddingX": "12px", "fontSize": "var(--font-size-sm)" },
+        { "id": "md", "name": "Medium", "height": "40px", "paddingX": "16px", "fontSize": "var(--font-size-sm)" },
+        { "id": "lg", "name": "Large",  "height": "48px", "paddingX": "24px", "fontSize": "var(--font-size-base)" }
+      ],
+      "a11y": {
+        "role": "button",
+        "focusRing": "outline: 2px solid var(--color-primary); outline-offset: 2px;",
+        "keyboard": "Space and Enter activate",
+        "aria": "aria-disabled when disabled, aria-busy when loading"
+      },
+      "svgFallback": "docs/penpot/svg/components/button.svg"
+    },
+    {
+      "id": "ce-card",
+      "name": "Card",
+      "selector": "ce-card",
+      "description": "Generic surface with optional header, body, footer, and left accent border. Rounded var(--radius-xl), soft var(--shadow-card), bg-surface-elevated. See UC-010.",
+      "states": ["default", "hover", "focus"],
+      "variants": [
+        { "id": "accent-primary", "name": "Accent Primary", "borderLeft": "4px solid var(--color-primary)" },
+        { "id": "accent-success", "name": "Accent Success", "borderLeft": "4px solid var(--color-success)" },
+        { "id": "accent-warning", "name": "Accent Warning", "borderLeft": "4px solid var(--color-warning)" },
+        { "id": "accent-danger",  "name": "Accent Danger",  "borderLeft": "4px solid var(--color-danger)" },
+        { "id": "accent-info",    "name": "Accent Info",    "borderLeft": "4px solid var(--color-info)" },
+        { "id": "no-accent",      "name": "No Accent",      "borderLeft": "none" }
+      ],
+      "tokens": { "radius": "var(--radius-xl)", "shadow": "var(--shadow-card)", "bg": "var(--color-surface-elevated)" },
+      "a11y": { "role": "region (implicit)", "focusRing": "inherits global :focus-visible" },
+      "svgFallback": "docs/penpot/svg/components/card.svg"
+    },
+    {
+      "id": "ce-input",
+      "name": "Input",
+      "selector": "ce-input",
+      "description": "Styled text input with label, helper, error, prefix/suffix slot, and clear focus ring. See UC-011.",
+      "states": ["default", "hover", "focus", "filled", "error", "disabled"],
+      "sizes": [
+        { "id": "sm", "name": "Small",  "height": "32px" },
+        { "id": "md", "name": "Medium", "height": "40px" },
+        { "id": "lg", "name": "Large",  "height": "48px" }
+      ],
+      "tokens": {
+        "radius": "var(--radius-lg)",
+        "bg": "var(--color-surface)",
+        "border": "var(--color-border)",
+        "focusRing": "0 0 0 3px color-mix(in oklch, var(--color-primary) 15%, transparent)",
+        "errorRing": "0 0 0 3px color-mix(in oklch, var(--color-danger) 20%, transparent)"
+      },
+      "a11y": {
+        "role": "textbox (native input)",
+        "focusRing": "3px primary-tinted ring",
+        "aria": "aria-invalid=true and aria-describedby=error-id when error is set"
+      },
+      "svgFallback": "docs/penpot/svg/components/input.svg"
+    },
+    {
+      "id": "ce-stat-tile",
+      "name": "StatTile",
+      "selector": "ce-stat-tile",
+      "description": "KPI tile with label, big number, optional trend chip, and content slot for sparkline. See UC-012.",
+      "states": ["default", "hover"],
+      "tokens": { "radius": "var(--radius-xl)", "bg": "var(--color-surface-elevated)", "shadow": "var(--shadow-card)" },
+      "trendTones": ["success-up", "danger-down", "neutral-flat"],
+      "a11y": { "role": "group", "focusRing": "inherits global :focus-visible" },
+      "svgFallback": "docs/penpot/svg/components/stat-tile.svg"
+    },
+    {
+      "id": "ce-badge",
+      "name": "StatusBadge",
+      "selector": "ce-badge",
+      "description": "Colored pill for status values. Rounded-full, tone-light background, strong tone for text/border. See UC-013.",
+      "states": ["default"],
+      "variants": [
+        { "id": "primary", "name": "Primary", "bg": "var(--color-primary-light)", "fg": "var(--color-primary)" },
+        { "id": "success", "name": "Success", "bg": "var(--color-success-light)", "fg": "var(--color-success)" },
+        { "id": "warning", "name": "Warning", "bg": "var(--color-warning-light)", "fg": "var(--color-warning)" },
+        { "id": "danger",  "name": "Danger",  "bg": "var(--color-danger-light)",  "fg": "var(--color-danger)" },
+        { "id": "info",    "name": "Info",    "bg": "var(--color-info-light)",    "fg": "var(--color-info)" },
+        { "id": "neutral", "name": "Neutral", "bg": "var(--color-surface-elevated)", "fg": "var(--color-text-secondary)" }
+      ],
+      "sizes": [
+        { "id": "sm", "name": "Small",  "height": "20px", "paddingX": "8px",  "fontSize": "var(--font-size-xs)" },
+        { "id": "md", "name": "Medium", "height": "24px", "paddingX": "10px", "fontSize": "var(--font-size-xs)" }
+      ],
+      "a11y": { "role": "status (implicit)", "aria": "aria-label = visible text" },
+      "svgFallback": "docs/penpot/svg/components/badge.svg"
+    },
+    {
+      "id": "ce-modal",
+      "name": "Modal",
+      "selector": "ce-modal",
+      "description": "Focus-trapped dialog on Angular CDK Overlay. Closes on Escape and backdrop click, restores focus to trigger. See UC-014.",
+      "states": ["default (open)", "closed"],
+      "sizes": [
+        { "id": "sm", "name": "Small",  "width": "384px" },
+        { "id": "md", "name": "Medium", "width": "512px" },
+        { "id": "lg", "name": "Large",  "width": "672px" },
+        { "id": "xl", "name": "X-Large", "width": "896px" }
+      ],
+      "tokens": { "radius": "var(--radius-xl)", "shadow": "var(--shadow-lg)", "bg": "var(--color-surface-elevated)" },
+      "animation": { "name": "zoom-in", "from": "scale(0.96)", "to": "scale(1)", "duration": "var(--duration-slow)" },
+      "a11y": {
+        "role": "dialog",
+        "aria": "aria-modal=true, aria-labelledby=title-id",
+        "focus": "cdkTrapFocus, Escape closes, focus restored to trigger"
+      },
+      "svgFallback": "docs/penpot/svg/components/modal.svg"
+    },
+    {
+      "id": "ce-toast",
+      "name": "Toast (service + host)",
+      "selector": "ce-toast",
+      "description": "Non-blocking notification stack with auto-dismiss. Stacks bottom-right, animates in/out, respects prefers-reduced-motion. See UC-015.",
+      "states": ["info", "success", "warning", "danger"],
+      "tokens": { "radius": "var(--radius-lg)", "shadow": "var(--shadow-md)" },
+      "animation": { "in": "toast-in (slide+fade from right)", "out": "toast-out", "duration": "var(--duration-base)" },
+      "a11y": {
+        "role": "region",
+        "aria": "aria-live=polite, aria-label=Notifications"
+      },
+      "svgFallback": "docs/penpot/svg/components/toast.svg"
+    },
+    {
+      "id": "ce-table",
+      "name": "Table",
+      "selector": "ce-table",
+      "description": "Presentational wrapper around <table> with sticky thead, row hover, defined cell-padding rhythm. See UC-016.",
+      "states": ["default", "row-hover"],
+      "tokens": {
+        "cellPadding": "var(--space-3) var(--space-4)",
+        "headerBg": "var(--color-surface)",
+        "rowHoverBg": "color-mix(in oklch, var(--color-surface) 50%, transparent)"
+      },
+      "a11y": { "role": "table (native)", "aria": "th scope=col always set" },
+      "svgFallback": "docs/penpot/svg/components/table.svg"
+    },
+    {
+      "id": "ce-empty-state",
+      "name": "EmptyState",
+      "selector": "ce-empty-state",
+      "description": "Centered illustration + headline + description + optional CTA. See UC-017.",
+      "states": ["default", "with-cta"],
+      "a11y": { "role": "status (implicit)", "aria": "icon gets aria-hidden=true" },
+      "svgFallback": "docs/penpot/svg/components/empty-state.svg"
+    },
+    {
+      "id": "ce-spinner",
+      "name": "Spinner",
+      "selector": "ce-spinner",
+      "description": "Loading indicator. Respects prefers-reduced-motion (becomes a static dashed circle). See UC-018.",
+      "states": ["default", "reduced-motion"],
+      "sizes": [
+        { "id": "sm", "name": "Small",  "dimension": "16px" },
+        { "id": "md", "name": "Medium", "dimension": "24px" },
+        { "id": "lg", "name": "Large",  "dimension": "32px" }
+      ],
+      "animation": { "name": "spin-slow", "duration": "1.4s", "timing": "linear infinite" },
+      "a11y": { "role": "status", "aria": "aria-label=Loading" },
+      "svgFallback": "docs/penpot/svg/components/spinner.svg"
+    },
+    {
+      "id": "ce-avatar",
+      "name": "Avatar",
+      "selector": "ce-avatar",
+      "description": "Circular image-or-initials avatar. Initials fallback on deterministic background hashed from the name. See UC-019.",
+      "states": ["default", "image", "initials"],
+      "sizes": [
+        { "id": "xs", "name": "X-Small", "dimension": "24px" },
+        { "id": "sm", "name": "Small",   "dimension": "32px" },
+        { "id": "md", "name": "Medium",  "dimension": "40px" },
+        { "id": "lg", "name": "Large",   "dimension": "48px" },
+        { "id": "xl", "name": "X-Large", "dimension": "64px" }
+      ],
+      "tokens": { "radius": "var(--radius-full)" },
+      "a11y": { "role": "img", "aria": "alt=user name" },
+      "svgFallback": "docs/penpot/svg/components/avatar.svg"
+    },
+    {
+      "id": "ce-tabs",
+      "name": "Tabs",
+      "selector": "ce-tabs",
+      "description": "WAI-ARIA tabs pattern. Roving tabindex, arrow-key navigation, animated underline. See UC-020.",
+      "states": ["default", "tab-focus", "tab-active"],
+      "animation": { "name": "underline-slide", "duration": "150ms" },
+      "a11y": {
+        "role": "tablist / tab / tabpanel",
+        "keyboard": "ArrowLeft/Right move and activate, Home/End jump to first/last"
+      },
+      "svgFallback": "docs/penpot/svg/components/tabs.svg"
+    },
+    {
+      "id": "ce-dropdown",
+      "name": "DropdownMenu",
+      "selector": "ce-dropdown",
+      "description": "Accessible menu via CDK Overlay. Opens on click, closes on Escape/outside, navigates with Up/Down, activates with Enter/Space. See UC-021.",
+      "states": ["closed", "open"],
+      "tokens": { "radius": "var(--radius-md)", "shadow": "var(--shadow-md)", "bg": "var(--color-surface-elevated)" },
+      "a11y": {
+        "role": "menu / menuitem",
+        "keyboard": "Up/Down navigate, Enter/Space activate, Escape close, Tab close"
+      },
+      "svgFallback": "docs/penpot/svg/components/dropdown.svg"
+    },
+    {
+      "id": "ce-tooltip",
+      "name": "Tooltip",
+      "selector": "[ceTooltip]",
+      "description": "Hover/focus tooltip on icon-only buttons. Shows after 400ms hover, hides on leave. CDK Overlay positioning. See UC-022.",
+      "states": ["hidden", "visible"],
+      "tokens": { "radius": "var(--radius-md)", "bg": "var(--color-text-primary)", "fg": "var(--color-surface)" },
+      "a11y": { "role": "tooltip", "keyboard": "shows on focus, hides on blur or Escape" },
+      "svgFallback": "docs/penpot/svg/components/tooltip.svg"
+    },
+    {
+      "id": "ce-pagination",
+      "name": "Pagination",
+      "selector": "ce-pagination",
+      "description": "First/prev/next/last + page list with ellipsis. See UC-023.",
+      "states": ["default", "first-page", "last-page", "single-page"],
+      "tokens": { "radius": "var(--radius-md)" },
+      "a11y": { "role": "nav", "aria": "aria-label=Pagination" },
+      "svgFallback": "docs/penpot/svg/components/pagination.svg"
+    },
+    {
+      "id": "ce-breadcrumbs",
+      "name": "Breadcrumbs",
+      "selector": "ce-breadcrumbs",
+      "description": "Trail fed by router data.breadcrumb. Static crumbs input overrides. See UC-024.",
+      "states": ["default"],
+      "a11y": {
+        "role": "nav",
+        "aria": "aria-label=Breadcrumb, <ol> ordered list, aria-current=page on last"
+      },
+      "svgFallback": "docs/penpot/svg/components/breadcrumbs.svg"
+    }
+  ],
+  "layouts": [
+    {
+      "id": "sidebar-expanded",
+      "name": "Sidebar - Expanded (>=1024px)",
+      "width": "256px",
+      "tokens": {
+        "bg": "var(--sidebar-bg)",
+        "text": "var(--sidebar-text)",
+        "activeBg": "var(--sidebar-active-bg)",
+        "activeText": "var(--sidebar-active-text)"
+      },
+      "breakpoint": ">=1024px (md+ in Tailwind v4 = 768px; expanded from md)",
+      "a11y": { "role": "navigation", "aria": "aria-label=Primary" }
+    },
+    {
+      "id": "sidebar-collapsed",
+      "name": "Sidebar - Collapsed rail (640-1024px)",
+      "width": "64px",
+      "tokens": { "bg": "var(--sidebar-bg)", "text": "var(--sidebar-text)" },
+      "breakpoint": "640-1024px (sm to md)",
+      "notes": "Icon-only. Tooltips on hover for accessibility (ce-tooltip directive).",
+      "a11y": { "role": "navigation", "aria": "aria-label=Primary" }
+    },
+    {
+      "id": "sidebar-drawer",
+      "name": "Sidebar - Mobile drawer (<640px)",
+      "width": "256px (drawer)",
+      "tokens": { "bg": "var(--sidebar-bg)", "text": "var(--sidebar-text)" },
+      "breakpoint": "<640px (below sm)",
+      "notes": "Slide-in from left via slide-in keyframe. Backdrop clickable, Escape closes.",
+      "animation": { "name": "slide-in", "duration": "var(--duration-slow)" },
+      "a11y": { "role": "dialog (when open)", "aria": "aria-modal=true" }
+    },
+    {
+      "id": "topbar",
+      "name": "Topbar",
+      "height": "64px",
+      "tokens": {
+        "bg": "var(--color-surface)",
+        "borderBottom": "1px solid var(--color-border)"
+      },
+      "layout": "Sticky top-0. Left: mobile-menu button (visible <md) + breadcrumbs. Right: global search (collapses to icon <sm), theme toggle, user menu (ce-avatar + ce-dropdown). Z-index 50.",
+      "a11y": { "role": "banner (implicit <header>)" }
+    },
+    {
+      "id": "app-shell-grid",
+      "name": "AppShell grid",
+      "description": "grid-cols-[16rem_1fr] on md+, single column on mobile (sidebar becomes overlay drawer). Main has overflow-y-auto. Skip-to-content link is the first focusable element and jumps to <main id=\"main\" tabindex=\"-1\">.",
+      "tokens": { "padding": "var(--space-6)", "bg": "var(--color-background)" }
+    }
+  ],
+  "screens": [
+    { "id": "screen-attendant-dashboard",       "file": "docs/penpot/screens/attendant-dashboard.svg" },
+    { "id": "screen-resident-pre-register",     "file": "docs/penpot/screens/resident-pre-register.svg" },
+    { "id": "screen-tenant-admin-attendant",    "file": "docs/penpot/screens/tenant-admin-attendant.svg" },
+    { "id": "screen-platform-admin-tenant",     "file": "docs/penpot/screens/platform-admin-tenant.svg" }
+  ],
+  "responsiveBreakpoints": [
+    { "name": "base",  "minWidth": 0,      "label": "Single column, sidebar = drawer" },
+    { "name": "sm",    "minWidth": 640,    "label": "Sidebar = icon rail (w-16), topbar expands" },
+    { "name": "md",    "minWidth": 768,    "label": "Sidebar = full (w-64), table density relaxes" },
+    { "name": "lg",    "minWidth": 1024,   "label": "Two-column forms, side panels" },
+    { "name": "xl",    "minWidth": 1280,   "label": "Max content width 1440px, generous gutters" },
+    { "name": "2xl",   "minWidth": 1536,   "label": "No further layout changes (cap at 1440px content)" }
+  ],
+  "accessibility": {
+    "wcagLevel": "2.1 AA",
+    "focusRing": "outline: 2px solid var(--color-primary); outline-offset: 2px;",
+    "reducedMotion": "All keyframes and transitions collapse to 0ms under @media (prefers-reduced-motion: reduce).",
+    "contrastMinimum": "4.5:1 for body text, 3:1 for large text and UI components",
+    "touchTargetMinimum": "44x44px on viewports <640px"
+  }
+}

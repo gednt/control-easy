@@ -1,0 +1,50 @@
+{
+  "$schema": "https://controlease-reborn.local/schemas/penpot-svg-manifest.v1.json",
+  "version": "0.1.0",
+  "generated": "2026-06-11",
+  "sourceSpec": ".specs/2 - visual-design-system/design.md",
+  "designSystemFile": "docs/penpot/design-system.penpot.json",
+  "tokensFile": "docs/penpot/tokens.json",
+  "layout": {
+    "tokens/": "Token swatches (one per category, e.g. colors, radii, spacing, type, shadow, motion).",
+    "components/": "One SVG per ce-* component, showing all variants, sizes, states, and dark-theme variants.",
+    "layout/": "AppShell and responsive breakpoints (mobile / tablet / desktop).",
+    "screens/": "End-to-end user-journey mockups composed of design-system components."
+  },
+  "tokens": [
+    "doc: see docs/penpot/tokens.json for the machine-readable token table. Visual swatches can be generated from that file with a one-off script if needed."
+  ],
+  "components": [
+    { "id": "ce-button",         "file": "docs/penpot/svg/components/button.svg",         "spec": "UC-009" },
+    { "id": "ce-card",           "file": "docs/penpot/svg/components/card.svg",           "spec": "UC-010" },
+    { "id": "ce-input",          "file": "docs/penpot/svg/components/input.svg",          "spec": "UC-011" },
+    { "id": "ce-stat-tile",      "file": "docs/penpot/svg/components/stat-tile.svg",      "spec": "UC-012" },
+    { "id": "ce-badge",          "file": "docs/penpot/svg/components/badge.svg",          "spec": "UC-013" },
+    { "id": "ce-modal",          "file": "docs/penpot/svg/components/modal.svg",          "spec": "UC-014" },
+    { "id": "ce-toast",          "file": "docs/penpot/svg/components/toast.svg",          "spec": "UC-015" },
+    { "id": "ce-table",          "file": "docs/penpot/svg/components/table.svg",          "spec": "UC-016" },
+    { "id": "ce-empty-state",    "file": "docs/penpot/svg/components/empty-state.svg",    "spec": "UC-017" },
+    { "id": "ce-spinner",        "file": "docs/penpot/svg/components/spinner.svg",        "spec": "UC-018" },
+    { "id": "ce-avatar",         "file": "docs/penpot/svg/components/avatar.svg",         "spec": "UC-019" },
+    { "id": "ce-tabs",           "file": "docs/penpot/svg/components/tabs.svg",           "spec": "UC-020" },
+    { "id": "ce-dropdown",       "file": "docs/penpot/svg/components/dropdown.svg",       "spec": "UC-021" },
+    { "id": "ce-tooltip",        "file": "docs/penpot/svg/components/tooltip.svg",        "spec": "UC-022" },
+    { "id": "ce-pagination",     "file": "docs/penpot/svg/components/pagination.svg",     "spec": "UC-023" },
+    { "id": "ce-breadcrumbs",    "file": "docs/penpot/svg/components/breadcrumbs.svg",    "spec": "UC-024" }
+  ],
+  "layouts": [
+    { "id": "app-shell", "file": "docs/penpot/svg/layout/app-shell.svg", "description": "Sidebar + Topbar + main grid for mobile (<640, drawer), tablet (640-1024, rail), desktop (>=1024, expanded)." }
+  ],
+  "screens": [
+    { "id": "attendant-dashboard",    "file": "docs/penpot/screens/attendant-dashboard.svg",    "user": "AttendantProfile", "uc": "UC-4, UC-9" },
+    { "id": "resident-pre-register",  "file": "docs/penpot/screens/resident-pre-register.svg",  "user": "Morador",         "uc": "UC-4, UC-9" },
+    { "id": "tenant-admin-attendant", "file": "docs/penpot/screens/tenant-admin-attendant.svg", "user": "TenantAdmin",     "uc": "UC-24, UC-25" },
+    { "id": "platform-admin-tenant",  "file": "docs/penpot/screens/platform-admin-tenant.svg",  "user": "PlatformAdmin",   "uc": "UC-23" }
+  ],
+  "notes": [
+    "Every interactive component includes a visible a11y annotation (focus ring, ARIA role, keyboard pattern) inside the SVG frame.",
+    "Every screen and the AppShell layout include responsive annotations for mobile / tablet / desktop.",
+    "Every screen is composed exclusively of design-system components - no one-off shapes.",
+    "Color values inside the SVGs are inlined hex (resolved from the light-theme block of docs/penpot/tokens.json) so a designer can read the SVGs without a CSS engine. Dark-theme variants are shown in dedicated frames within the same SVG."
+  ]
+}

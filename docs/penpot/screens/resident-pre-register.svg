@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Screen 2: Resident pre-registers a visitor.
+  Composed of: ce-sidebar, ce-topbar, ce-breadcrumbs, ce-card, ce-input, ce-button,
+  ce-tabs, ce-badge, ce-empty-state (when no past visits).
+  Role: Morador (resident) per UC-9.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" width="1440" height="900" font-family="Inter, system-ui, sans-serif">
+  <title>Screen 2: Resident pre-registers a visitor</title>
+  <desc>User journey: Morador (Maria Silva, apt 102-A) pre-registers her father Joao to visit on Sunday 14:00-16:00.</desc>
+
+  <rect width="1440" height="900" fill="#f8fafc"/>
+
+  <!-- sidebar -->
+  <rect width="256" height="900" fill="#0f172a"/>
+  <text x="20" y="36" font-size="14" font-weight="700" fill="#cbd5e1">ControlEasy</text>
+  <text x="20" y="52" font-size="10" fill="#94a3b8">My condominium</text>
+  <line x1="12" y1="68" x2="244" y2="68" stroke="#1f2937"/>
+
+  <text x="32" y="104" font-size="13" fill="#cbd5e1">Home</text>
+  <rect x="12" y="116" width="232" height="36" rx="8" fill="#4f46e5"/>
+  <text x="32" y="140" font-size="13" font-weight="500" fill="#ffffff">Pre-register visits</text>
+
+  <text x="32" y="172" font-size="13" fill="#cbd5e1">My visits</text>
+  <text x="32" y="204" font-size="13" fill="#cbd5e1">Vehicles</text>
+  <text x="32" y="236" font-size="13" fill="#cbd5e1">Service providers</text>
+  <text x="32" y="268" font-size="13" fill="#cbd5e1">Profile</text>
+
+  <line x1="12" y1="780" x2="244" y2="780" stroke="#1f2937"/>
+  <circle cx="36" cy="820" r="16" fill="#4f46e5"/>
+  <text x="36" y="824" font-size="12" font-weight="600" fill="#ffffff" text-anchor="middle">MS</text>
+  <text x="60" y="816" font-size="12" font-weight="500" fill="#cbd5e1">Maria Silva</text>
+  <text x="60" y="832" font-size="10" fill="#94a3b8">Morador - Apt 102-A</text>
+  <text x="60" y="848" font-size="10" fill="#94a3b8">Tenant: Acme</text>
+
+  <!-- topbar -->
+  <rect x="256" width="1184" height="64" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="280" y="28" font-size="10" font-weight="500" fill="#94a3b8" letter-spacing="0.04em">PRE-REGISTER VISITS</text>
+  <text x="280" y="46" font-size="13" font-weight="600" fill="#0f172a">Home / Pre-register visits</text>
+  <rect x="900" y="16" width="200" height="32" rx="8" fill="#f1f5f9"/>
+  <text x="916" y="36" font-size="12" fill="#94a3b8">Search...</text>
+  <circle cx="1156" cy="32" r="14" fill="#eef2ff"/>
+  <text x="1156" y="36" font-size="11" font-weight="600" fill="#4f46e5" text-anchor="middle">v</text>
+  <circle cx="1196" cy="32" r="14" fill="#4f46e5"/>
+  <text x="1196" y="36" font-size="11" font-weight="600" fill="#ffffff" text-anchor="middle">MS</text>
+
+  <!-- tabs -->
+  <g transform="translate(280,100)">
+    <line x1="0" y1="40" x2="1128" y2="40" stroke="#e2e8f0"/>
+    <text x="0" y="26" font-size="14" font-weight="600" fill="#0f172a">Upcoming</text>
+    <line x1="0" y1="36" x2="80" y2="36" stroke="#4f46e5" stroke-width="2"/>
+    <text x="120" y="26" font-size="14" font-weight="500" fill="#475569">Past (24)</text>
+    <text x="200" y="26" font-size="14" font-weight="500" fill="#475569">Recurring</text>
+    <text x="320" y="26" font-size="14" font-weight="500" fill="#475569">Service providers</text>
+  </g>
+
+  <!-- form card -->
+  <g transform="translate(280,160)">
+    <rect width="800" height="660" rx="16" fill="#ffffff"/>
+    <text x="24" y="36" font-size="16" font-weight="600" fill="#0f172a">New pre-registered visit</text>
+    <text x="24" y="56" font-size="12" fill="#475569">Your visitor will be on the attendant's allow-list and won't need a phone confirmation at the gatehouse.</text>
+    <line x1="24" y1="76" x2="776" y2="76" stroke="#e2e8f0"/>
+
+    <!-- visitor name -->
+    <text x="24" y="112" font-size="12" font-weight="500" fill="#0f172a">Visitor name *</text>
+    <rect x="24" y="120" width="376" height="40" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="36" y="144" font-size="13" fill="#0f172a">Joao Silva</text>
+    <text x="24" y="172" font-size="11" fill="#94a3b8">Reuse: a previous visitor</text>
+
+    <!-- document -->
+    <text x="424" y="112" font-size="12" font-weight="500" fill="#0f172a">Document</text>
+    <rect x="424" y="120" width="352" height="40" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="436" y="144" font-size="13" fill="#94a3b8">CPF or RG (optional)</text>
+
+    <!-- date -->
+    <text x="24" y="216" font-size="12" font-weight="500" fill="#0f172a">Date *</text>
+    <rect x="24" y="224" width="248" height="40" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="36" y="248" font-size="13" fill="#0f172a">2026-06-14 (Sun)</text>
+
+    <!-- time window -->
+    <text x="288" y="216" font-size="12" font-weight="500" fill="#0f172a">Arrival window *</text>
+    <rect x="288" y="224" width="120" height="40" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="300" y="248" font-size="13" fill="#0f172a">14:00</text>
+    <text x="424" y="216" font-size="12" font-weight="500" fill="#0f172a">to</text>
+    <rect x="456" y="224" width="120" height="40" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="468" y="248" font-size="13" fill="#0f172a">16:00</text>
+
+    <text x="592" y="216" font-size="12" font-weight="500" fill="#0f172a">Gatehouse</text>
+    <rect x="592" y="224" width="184" height="40" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="604" y="248" font-size="13" fill="#0f172a">Gate A (main)</text>
+
+    <!-- apartment -->
+    <text x="24" y="304" font-size="12" font-weight="500" fill="#0f172a">Apartment *</text>
+    <rect x="24" y="312" width="376" height="40" rx="12" fill="#f1f5f9" stroke="#e2e8f0"/>
+    <text x="36" y="336" font-size="13" fill="#475569">102-A (locked to your unit)</text>
+
+    <!-- vehicle plate -->
+    <text x="424" y="304" font-size="12" font-weight="500" fill="#0f172a">Vehicle plate</text>
+    <rect x="424" y="312" width="352" height="40" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="436" y="336" font-size="13" fill="#94a3b8">Optional</text>
+
+    <!-- notes -->
+    <text x="24" y="392" font-size="12" font-weight="500" fill="#0f172a">Notes for the attendant</text>
+    <rect x="24" y="400" width="752" height="80" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="36" y="424" font-size="12" fill="#94a3b8">My father, picking me up for lunch. Will arrive by car.</text>
+
+    <!-- recurring -->
+    <rect x="24" y="500" width="16" height="16" rx="4" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="48" y="514" font-size="13" fill="#0f172a">Make this a recurring visit (weekly)</text>
+
+    <line x1="24" y1="552" x2="776" y2="552" stroke="#e2e8f0"/>
+    <rect x="600" y="572" width="80" height="40" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="640" y="596" font-size="13" font-weight="500" fill="#0f172a" text-anchor="middle">Cancel</text>
+    <rect x="688" y="572" width="88" height="40" rx="12" fill="#4f46e5"/>
+    <text x="732" y="596" font-size="13" font-weight="500" fill="#ffffff" text-anchor="middle">Schedule</text>
+  </g>
+
+  <!-- side card: upcoming summary -->
+  <g transform="translate(1100,160)">
+    <rect width="308" height="320" rx="16" fill="#ffffff"/>
+    <text x="20" y="32" font-size="14" font-weight="600" fill="#0f172a">Upcoming (3)</text>
+    <line x1="20" y1="48" x2="288" y2="48" stroke="#e2e8f0"/>
+
+    <text x="20" y="76" font-size="12" font-weight="600" fill="#0f172a">Sun 14 Jun, 14:00-16:00</text>
+    <text x="20" y="94" font-size="12" fill="#475569">Joao Silva (father)</text>
+    <rect x="20" y="104" width="68" height="20" rx="10" fill="#dbeafe"/>
+    <text x="54" y="118" font-size="11" font-weight="500" fill="#3b82f6" text-anchor="middle">Pending</text>
+
+    <text x="20" y="148" font-size="12" font-weight="600" fill="#0f172a">Wed 18 Jun, 09:00-10:00</text>
+    <text x="20" y="166" font-size="12" fill="#475569">Delivery: Mercado Central</text>
+    <rect x="20" y="176" width="68" height="20" rx="10" fill="#dcfce7"/>
+    <text x="54" y="190" font-size="11" font-weight="500" fill="#22c55e" text-anchor="middle">Approved</text>
+
+    <text x="20" y="220" font-size="12" font-weight="600" fill="#0f172a">Sat 21 Jun, 19:00-23:00</text>
+    <text x="20" y="238" font-size="12" fill="#475569">Friends for dinner (3 pax)</text>
+    <rect x="20" y="248" width="68" height="20" rx="10" fill="#dbeafe"/>
+    <text x="54" y="262" font-size="11" font-weight="500" fill="#3b82f6" text-anchor="middle">Pending</text>
+  </g>
+
+  <!-- annotation -->
+  <g transform="translate(20,860)">
+    <text x="0" y="0" font-size="11" fill="#475569">Screen 2 - Resident pre-registers a visitor. User: Morador (Maria Silva, 102-A). Components: ce-sidebar + ce-topbar + ce-breadcrumbs (Home / Pre-register visits) + ce-tabs (Upcoming / Past / Recurring / Service providers) + ce-card (form) + ce-input x6 + ce-button (Schedule) + ce-badge (status). a11y: labels are bound to inputs (for/id), error states set aria-invalid, focus ring on input.</text>
+  </g>
+</svg>

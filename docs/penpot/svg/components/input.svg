@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ce-input - States and sizes
+  Source: .specs/2 - visual-design-system/design.md (ce-input section) - UC-011
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" font-family="Inter, system-ui, sans-serif">
+  <title>ce-input - Component Reference</title>
+  <desc>States: default, hover, focus, filled, error, disabled. Sizes: sm, md, lg. A11y: aria-invalid and aria-describedby on error, focus ring 3px primary-tinted.</desc>
+
+  <rect width="1280" height="720" fill="#f8fafc"/>
+  <text x="40" y="48" font-size="24" font-weight="600" fill="#0f172a">ce-input</text>
+  <text x="40" y="72" font-size="14" fill="#475569">selector: ce-input  |  props: label, helper, error, placeholder  |  slots: [input-prefix], [input-suffix]  |  UC-011</text>
+
+  <!-- States column -->
+  <text x="40" y="120" font-size="14" font-weight="600" fill="#0f172a">States (size md)</text>
+
+  <g transform="translate(40,140)">
+    <text x="0" y="14" font-size="12" font-weight="500" fill="#0f172a">Apartment number</text>
+    <rect y="22" width="320" height="40" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="14" y="48" font-size="14" fill="#94a3b8">102-A</text>
+    <text x="0" y="84" font-size="11" fill="#475569">default</text>
+  </g>
+
+  <g transform="translate(40,250)">
+    <text x="0" y="14" font-size="12" font-weight="500" fill="#0f172a">Apartment number</text>
+    <rect y="22" width="320" height="40" rx="12" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="14" y="48" font-size="14" fill="#94a3b8">102-A</text>
+    <text x="0" y="84" font-size="11" fill="#475569">hover</text>
+  </g>
+
+  <g transform="translate(40,360)">
+    <text x="0" y="14" font-size="12" font-weight="500" fill="#0f172a">Apartment number</text>
+    <rect y="19" width="326" height="46" rx="14" fill="none" stroke="#4f46e5" stroke-opacity="0.15" stroke-width="3"/>
+    <rect y="22" width="320" height="40" rx="12" fill="#ffffff" stroke="#4f46e5"/>
+    <text x="14" y="48" font-size="14" fill="#0f172a">102-A</text>
+    <text x="0" y="84" font-size="11" fill="#475569">focus (3px primary-tinted ring)</text>
+  </g>
+
+  <g transform="translate(40,470)">
+    <text x="0" y="14" font-size="12" font-weight="500" fill="#0f172a">Apartment number</text>
+    <rect y="19" width="326" height="46" rx="14" fill="none" stroke="#ef4444" stroke-opacity="0.2" stroke-width="3"/>
+    <rect y="22" width="320" height="40" rx="12" fill="#ffffff" stroke="#ef4444"/>
+    <text x="14" y="48" font-size="14" fill="#0f172a">10A</text>
+    <text x="0" y="84" font-size="12" fill="#ef4444" font-weight="500">Apartment format must be NN-L</text>
+    <text x="0" y="100" font-size="11" fill="#475569">error (aria-invalid=true, aria-describedby)</text>
+  </g>
+
+  <g transform="translate(40,590)">
+    <text x="0" y="14" font-size="12" font-weight="500" fill="#475569">Apartment number</text>
+    <rect y="22" width="320" height="40" rx="12" fill="#f1f5f9" stroke="#e2e8f0"/>
+    <text x="14" y="48" font-size="14" fill="#94a3b8">102-A</text>
+    <text x="0" y="84" font-size="11" fill="#475569">disabled</text>
+  </g>
+
+  <!-- Sizes column -->
+  <text x="440" y="120" font-size="14" font-weight="600" fill="#0f172a">Sizes</text>
+
+  <g transform="translate(440,140)">
+    <text x="0" y="14" font-size="12" font-weight="500" fill="#0f172a">Label</text>
+    <rect y="22" width="320" height="32" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="14" y="42" font-size="12" fill="#94a3b8">Small input</text>
+    <text x="0" y="72" font-size="11" fill="#475569">size=sm  (h32)</text>
+  </g>
+
+  <g transform="translate(440,230)">
+    <text x="0" y="14" font-size="12" font-weight="500" fill="#0f172a">Label</text>
+    <rect y="22" width="320" height="40" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="14" y="48" font-size="14" fill="#94a3b8">Medium input</text>
+    <text x="0" y="84" font-size="11" fill="#475569">size=md  (h40)</text>
+  </g>
+
+  <g transform="translate(440,340)">
+    <text x="0" y="14" font-size="12" font-weight="500" fill="#0f172a">Label</text>
+    <rect y="22" width="320" height="48" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="14" y="52" font-size="16" fill="#94a3b8">Large input</text>
+    <text x="0" y="92" font-size="11" fill="#475569">size=lg  (h48)</text>
+  </g>
+
+  <!-- With prefix/suffix -->
+  <g transform="translate(440,470)">
+    <text x="0" y="14" font-size="12" font-weight="500" fill="#0f172a">Visitor plate</text>
+    <rect y="22" width="320" height="40" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="14" y="48" font-size="14" fill="#0f172a">ABC-1D23</text>
+    <text x="240" y="48" font-size="11" fill="#475569">BRL</text>
+    <text x="0" y="84" font-size="11" fill="#475569">with [input-suffix]</text>
+  </g>
+
+  <!-- A11y -->
+  <g transform="translate(40,650)">
+    <rect width="1200" height="56" rx="12" fill="#eef2ff" stroke="#4f46e5"/>
+    <text x="20" y="22" font-size="13" font-weight="600" fill="#0f172a">Accessibility (a11y)</text>
+    <text x="20" y="42" font-size="12" fill="#0f172a">role: textbox (native input)  |  error: aria-invalid=true + aria-describedby=helperId  |  focus ring: 3px color-mix(in oklch, var(--color-primary) 15%, transparent)</text>
+  </g>
+</svg>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ce-stat-tile
+  Source: design.md (ce-stat-tile section) - UC-012
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 360" width="1280" height="360" font-family="Inter, system-ui, sans-serif">
+  <title>ce-stat-tile - Component Reference</title>
+  <desc>KPI tile: label, value, optional trend chip. Trend tones: success-up, danger-down, neutral-flat.</desc>
+
+  <rect width="1280" height="360" fill="#f8fafc"/>
+  <text x="40" y="48" font-size="24" font-weight="600" fill="#0f172a">ce-stat-tile</text>
+  <text x="40" y="72" font-size="14" fill="#475569">props: label, value, trend { direction, value, tone }  |  UC-012</text>
+
+  <!-- null trend -->
+  <g transform="translate(40,120)">
+    <rect width="280" height="160" rx="16" fill="#ffffff"/>
+    <text x="20" y="36" font-size="12" font-weight="500" fill="#475569">VISITS TODAY</text>
+    <text x="20" y="84" font-size="30" font-weight="700" fill="#0f172a">42</text>
+    <text x="20" y="130" font-size="11" fill="#94a3b8">No trend data</text>
+    <text x="20" y="148" font-size="11" fill="#475569">trend=null</text>
+  </g>
+
+  <!-- success-up -->
+  <g transform="translate(340,120)">
+    <rect width="280" height="160" rx="16" fill="#ffffff"/>
+    <text x="20" y="36" font-size="12" font-weight="500" fill="#475569">RESIDENTS</text>
+    <text x="20" y="84" font-size="30" font-weight="700" fill="#0f172a">312</text>
+    <rect x="20" y="100" width="76" height="22" rx="11" fill="#dcfce7"/>
+    <text x="58" y="115" font-size="12" font-weight="500" fill="#22c55e" text-anchor="middle">+4.2%</text>
+    <text x="20" y="148" font-size="11" fill="#475569">trend: up, success</text>
+  </g>
+
+  <!-- danger-down -->
+  <g transform="translate(640,120)">
+    <rect width="280" height="160" rx="16" fill="#ffffff"/>
+    <text x="20" y="36" font-size="12" font-weight="500" fill="#475569">DENIED ACCESS</text>
+    <text x="20" y="84" font-size="30" font-weight="700" fill="#0f172a">7</text>
+    <rect x="20" y="100" width="76" height="22" rx="11" fill="#fee2e2"/>
+    <text x="58" y="115" font-size="12" font-weight="500" fill="#ef4444" text-anchor="middle">-1.8%</text>
+    <text x="20" y="148" font-size="11" fill="#475569">trend: down, danger</text>
+  </g>
+
+  <!-- neutral-flat -->
+  <g transform="translate(940,120)">
+    <rect width="280" height="160" rx="16" fill="#ffffff"/>
+    <text x="20" y="36" font-size="12" font-weight="500" fill="#475569">SERVICE PROVIDERS</text>
+    <text x="20" y="84" font-size="30" font-weight="700" fill="#0f172a">18</text>
+    <rect x="20" y="100" width="76" height="22" rx="11" fill="#f1f5f9"/>
+    <text x="58" y="115" font-size="12" font-weight="500" fill="#475569" text-anchor="middle">flat</text>
+    <text x="20" y="148" font-size="11" fill="#475569">trend: flat, neutral</text>
+  </g>
+
+  <!-- A11y -->
+  <g transform="translate(40,310)">
+    <rect width="1200" height="40" rx="12" fill="#eef2ff" stroke="#4f46e5"/>
+    <text x="20" y="24" font-size="12" fill="#0f172a">role: group  |  trend chip has aria-label="Trending up 4.2%"  |  sparkline slot is decorative (aria-hidden=true)  |  Tokens: --radius-xl, --shadow-card, --color-{tone}-light</text>
+  </g>
+</svg>

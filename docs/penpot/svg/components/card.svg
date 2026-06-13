@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ce-card - All accent variants and the flat (no-accent) variant
+  Source: .specs/2 - visual-design-system/design.md (ce-card section) - UC-010
+  Tokens: color-surface-elevated, shadow-card, radius-xl, color-{tone}, color-{tone}-light
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 600" width="1280" height="600" font-family="Inter, system-ui, sans-serif">
+  <title>ce-card - Component Reference</title>
+  <desc>Accent variants: primary, success, warning, danger, info, none. Rounded var(--radius-xl), soft var(--shadow-card), bg-surface-elevated. Slots: default (body), [card-header], [card-footer].</desc>
+
+  <rect width="1280" height="600" fill="#f8fafc"/>
+  <text x="40" y="48" font-size="24" font-weight="600" fill="#0f172a">ce-card</text>
+  <text x="40" y="72" font-size="14" fill="#475569">selector: ce-card  |  props: accent, padded  |  slots: default, [card-header], [card-footer]  |  UC-010</text>
+
+  <!-- accent=primary -->
+  <g transform="translate(40,120)">
+    <rect width="240" height="200" rx="16" fill="#ffffff"/>
+    <rect x="0" y="0" width="4" height="200" fill="#4f46e5"/>
+    <text x="20" y="36" font-size="14" font-weight="600" fill="#0f172a">Resident profile</text>
+    <text x="20" y="60" font-size="12" fill="#475569">Last updated 2 hours ago</text>
+    <line x1="20" y1="80" x2="220" y2="80" stroke="#e2e8f0"/>
+    <text x="20" y="110" font-size="12" fill="#0f172a">Name: Maria Silva</text>
+    <text x="20" y="130" font-size="12" fill="#0f172a">Apartment: 302-B</text>
+    <text x="20" y="150" font-size="12" fill="#0f172a">Phone: +55 11 9...</text>
+    <line x1="20" y1="170" x2="220" y2="170" stroke="#e2e8f0"/>
+    <text x="20" y="190" font-size="11" fill="#4f46e5">accent=primary</text>
+  </g>
+
+  <!-- accent=success -->
+  <g transform="translate(300,120)">
+    <rect width="240" height="200" rx="16" fill="#ffffff"/>
+    <rect x="0" y="0" width="4" height="200" fill="#22c55e"/>
+    <text x="20" y="36" font-size="14" font-weight="600" fill="#0f172a">Visit approved</text>
+    <text x="20" y="60" font-size="12" fill="#475569">Visitor Carlos arrived</text>
+    <line x1="20" y1="80" x2="220" y2="80" stroke="#e2e8f0"/>
+    <text x="20" y="110" font-size="12" fill="#0f172a">Apartment: 102-A</text>
+    <text x="20" y="130" font-size="12" fill="#0f172a">Arrived: 14:32</text>
+    <text x="20" y="150" font-size="12" fill="#0f172a">Authorized by: Morador</text>
+    <text x="20" y="190" font-size="11" fill="#22c55e">accent=success</text>
+  </g>
+
+  <!-- accent=warning -->
+  <g transform="translate(560,120)">
+    <rect width="240" height="200" rx="16" fill="#ffffff"/>
+    <rect x="0" y="0" width="4" height="200" fill="#f59e0b"/>
+    <text x="20" y="36" font-size="14" font-weight="600" fill="#0f172a">Vehicle expiring</text>
+    <text x="20" y="60" font-size="12" fill="#475569">Insurance renewal due</text>
+    <line x1="20" y1="80" x2="220" y2="80" stroke="#e2e8f0"/>
+    <text x="20" y="110" font-size="12" fill="#0f172a">Plate: ABC-1D23</text>
+    <text x="20" y="130" font-size="12" fill="#0f172a">Expires: 2026-07-01</text>
+    <text x="20" y="190" font-size="11" fill="#f59e0b">accent=warning</text>
+  </g>
+
+  <!-- accent=danger -->
+  <g transform="translate(820,120)">
+    <rect width="240" height="200" rx="16" fill="#ffffff"/>
+    <rect x="0" y="0" width="4" height="200" fill="#ef4444"/>
+    <text x="20" y="36" font-size="14" font-weight="600" fill="#0f172a">Access denied</text>
+    <text x="20" y="60" font-size="12" fill="#475569">Service provider not in list</text>
+    <line x1="20" y1="80" x2="220" y2="80" stroke="#e2e8f0"/>
+    <text x="20" y="110" font-size="12" fill="#0f172a">Name: Unknown visitor</text>
+    <text x="20" y="130" font-size="12" fill="#0f172a">Time: 02:14</text>
+    <text x="20" y="190" font-size="11" fill="#ef4444">accent=danger</text>
+  </g>
+
+  <!-- accent=info -->
+  <g transform="translate(40,360)">
+    <rect width="240" height="200" rx="16" fill="#ffffff"/>
+    <rect x="0" y="0" width="4" height="200" fill="#3b82f6"/>
+    <text x="20" y="36" font-size="14" font-weight="600" fill="#0f172a">Shift change</text>
+    <text x="20" y="60" font-size="12" fill="#475569">Day shift ends in 30 min</text>
+    <line x1="20" y1="80" x2="220" y2="80" stroke="#e2e8f0"/>
+    <text x="20" y="110" font-size="12" fill="#0f172a">Current: Day team (3)</text>
+    <text x="20" y="130" font-size="12" fill="#0f172a">Next: Night team (2)</text>
+    <text x="20" y="190" font-size="11" fill="#3b82f6">accent=info</text>
+  </g>
+
+  <!-- accent=null (no accent) -->
+  <g transform="translate(300,360)">
+    <rect width="240" height="200" rx="16" fill="#ffffff"/>
+    <text x="20" y="36" font-size="14" font-weight="600" fill="#0f172a">Settings</text>
+    <text x="20" y="60" font-size="12" fill="#475569">No accent</text>
+    <line x1="20" y1="80" x2="220" y2="80" stroke="#e2e8f0"/>
+    <text x="20" y="110" font-size="12" fill="#0f172a">Plain surface, no left border.</text>
+    <text x="20" y="190" font-size="11" fill="#475569">accent=null</text>
+  </g>
+
+  <!-- A11y -->
+  <g transform="translate(560,360)">
+    <rect width="640" height="200" rx="16" fill="#eef2ff" stroke="#4f46e5"/>
+    <text x="20" y="36" font-size="14" font-weight="600" fill="#0f172a">Accessibility (a11y)</text>
+    <text x="20" y="64" font-size="13" fill="#0f172a">role: region (implicit)  |  clickable cards: role=button + tabindex=0</text>
+    <text x="20" y="86" font-size="13" fill="#0f172a">Focus: inherits global :focus-visible (2px primary ring, offset 2px).</text>
+    <text x="20" y="108" font-size="13" fill="#0f172a">Header/footer slots use semantic h2/h3 and footer element internally.</text>
+    <text x="20" y="130" font-size="13" fill="#0f172a">padded=false: body has 0 padding; consumers add their own.</text>
+    <text x="20" y="160" font-size="11" fill="#475569">Tokens: --color-surface-elevated #ffffff, --shadow-card, --radius-xl 16px, --color-{tone} 4px border</text>
+    <text x="20" y="180" font-size="11" fill="#475569">Dark theme: bg #1f2937, text #f1f5f9, accent tones use dark palette from tokens.json dark block</text>
+  </g>
+</svg>

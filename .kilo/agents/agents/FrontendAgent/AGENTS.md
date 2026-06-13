@@ -1,5 +1,7 @@
 # Project Overview
 
+**Penpot design system source-of-truth** lives at `docs/penpot/` (Penpot-importable JSON at `docs/penpot/design-system.penpot.json`, machine-readable tokens at `docs/penpot/tokens.json`, parallel SVG asset library under `docs/penpot/svg/`, four user-journey mockups under `docs/penpot/screens/`, index at `docs/penpot/manifest.json`). The hand-off document is at `.specs/2 - visual-design-system/penpot-handoff.md`. Last updated: 2026-06-11 (v0.1.0).
+
 ControlEasy Reborn is the modernization of a legacy WPF/.NET Framework 4.8 condominium access-control application ("ControlEasy 5"). The target platform is a modular, web-based, containerized system with:
 
 - **Frontend:** Angular 18+ SPA (standalone components, signals, TypeScript strict). Frontend work lives in this repo at `src/Web/ControlEasyReborn.Web` (planned in `.specs/1 - modernization-roadmap/tasks.md` task 1.8).

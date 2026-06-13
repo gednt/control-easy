@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ce-spinner
+  Source: design.md (ce-spinner section) - UC-018
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 240" width="1280" height="240" font-family="Inter, system-ui, sans-serif">
+  <title>ce-spinner - Component Reference</title>
+  <desc>Loading indicator. Sizes 16/24/32. Reduced-motion: static dashed circle.</desc>
+
+  <rect width="1280" height="240" fill="#f8fafc"/>
+  <text x="40" y="48" font-size="24" font-weight="600" fill="#0f172a">ce-spinner</text>
+  <text x="40" y="72" font-size="14" fill="#475569">props: size (sm/md/lg), tone (primary/current)  |  UC-018</text>
+
+  <!-- sm -->
+  <g transform="translate(80,140)">
+    <circle cx="8" cy="8" r="6" fill="none" stroke="#4f46e5" stroke-width="2" stroke-dasharray="6 4"/>
+    <text x="8" y="44" font-size="11" fill="#475569" text-anchor="middle">size=sm  (16px)</text>
+  </g>
+
+  <!-- md -->
+  <g transform="translate(180,128)">
+    <circle cx="12" cy="12" r="10" fill="none" stroke="#4f46e5" stroke-width="2" stroke-dasharray="10 6"/>
+    <text x="12" y="56" font-size="11" fill="#475569" text-anchor="middle">size=md  (24px)</text>
+  </g>
+
+  <!-- lg -->
+  <g transform="translate(280,120)">
+    <circle cx="16" cy="16" r="14" fill="none" stroke="#4f46e5" stroke-width="2" stroke-dasharray="14 8"/>
+    <text x="16" y="64" font-size="11" fill="#475569" text-anchor="middle">size=lg  (32px)</text>
+  </g>
+
+  <!-- reduced motion -->
+  <g transform="translate(420,120)">
+    <circle cx="16" cy="16" r="14" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="3 3"/>
+    <text x="16" y="64" font-size="11" fill="#475569" text-anchor="middle">prefers-reduced-motion: reduce</text>
+  </g>
+
+  <!-- in context -->
+  <g transform="translate(620,128)">
+    <rect width="220" height="40" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <circle cx="22" cy="20" r="8" fill="none" stroke="#4f46e5" stroke-width="2" stroke-dasharray="8 5"/>
+    <text x="44" y="25" font-size="13" fill="#475569">Loading residents...</text>
+  </g>
+
+  <g transform="translate(40,210)">
+    <text x="0" y="0" font-size="12" fill="#475569">role: status  |  aria-label=Loading  |  spin-slow keyframe 1.4s linear infinite  |  reduced-motion: static dashed circle (no animation)</text>
+  </g>
+</svg>

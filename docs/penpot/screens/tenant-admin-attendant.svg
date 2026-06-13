@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Screen 3: TenantAdmin creates an attendant profile.
+  Composed of: ce-sidebar, ce-topbar, ce-breadcrumbs, ce-tabs, ce-input, ce-button,
+  ce-card, ce-table, ce-pagination, ce-badge.
+  Role: TenantAdmin per UC-9; AttendantProfile per UC-24/25.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" width="1440" height="900" font-family="Inter, system-ui, sans-serif">
+  <title>Screen 3: TenantAdmin creates an attendant profile</title>
+  <desc>User journey: TenantAdmin (Acme) creates a new AttendantProfile bound to a shift and a gatehouse. The form is shown in a modal above the attendants list.</desc>
+
+  <rect width="1440" height="900" fill="#f8fafc"/>
+
+  <!-- sidebar -->
+  <rect width="256" height="900" fill="#0f172a"/>
+  <text x="20" y="36" font-size="14" font-weight="700" fill="#cbd5e1">ControlEasy</text>
+  <text x="20" y="52" font-size="10" fill="#94a3b8">Acme Condominium</text>
+  <line x1="12" y1="68" x2="244" y2="68" stroke="#1f2937"/>
+
+  <text x="32" y="104" font-size="13" fill="#cbd5e1">Dashboard</text>
+  <text x="32" y="136" font-size="13" fill="#cbd5e1">Residents</text>
+  <text x="32" y="168" font-size="13" fill="#cbd5e1">Visits</text>
+  <text x="32" y="200" font-size="13" fill="#cbd5e1">Vehicles</text>
+  <text x="32" y="232" font-size="13" fill="#cbd5e1">Service providers</text>
+  <rect x="12" y="248" width="232" height="36" rx="8" fill="#4f46e5"/>
+  <text x="32" y="272" font-size="13" font-weight="500" fill="#ffffff">Administration</text>
+  <text x="32" y="304" font-size="13" fill="#cbd5e1">Settings</text>
+
+  <line x1="12" y1="780" x2="244" y2="780" stroke="#1f2937"/>
+  <circle cx="36" cy="820" r="16" fill="#4f46e5"/>
+  <text x="36" y="824" font-size="12" font-weight="600" fill="#ffffff" text-anchor="middle">RF</text>
+  <text x="60" y="816" font-size="12" font-weight="500" fill="#cbd5e1">Renata Ferreira</text>
+  <text x="60" y="832" font-size="10" fill="#94a3b8">TenantAdmin - Acme</text>
+
+  <!-- topbar -->
+  <rect x="256" width="1184" height="64" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="280" y="28" font-size="10" font-weight="500" fill="#94a3b8" letter-spacing="0.04em">ADMINISTRATION</text>
+  <text x="280" y="46" font-size="13" font-weight="600" fill="#0f172a">Administration / Attendants</text>
+  <rect x="900" y="16" width="200" height="32" rx="8" fill="#f1f5f9"/>
+  <text x="916" y="36" font-size="12" fill="#94a3b8">Search...</text>
+  <circle cx="1156" cy="32" r="14" fill="#eef2ff"/>
+  <text x="1156" y="36" font-size="11" font-weight="600" fill="#4f46e5" text-anchor="middle">v</text>
+  <circle cx="1196" cy="32" r="14" fill="#4f46e5"/>
+  <text x="1196" y="36" font-size="11" font-weight="600" fill="#ffffff" text-anchor="middle">RF</text>
+
+  <!-- tabs (sub-nav) -->
+  <g transform="translate(280,96)">
+    <line x1="0" y1="40" x2="1128" y2="40" stroke="#e2e8f0"/>
+    <text x="0" y="26" font-size="14" font-weight="500" fill="#475569">Users</text>
+    <text x="80" y="26" font-size="14" font-weight="500" fill="#475569">Shifts</text>
+    <text x="160" y="26" font-size="14" font-weight="500" fill="#475569">Gatehouses</text>
+    <text x="280" y="26" font-size="14" font-weight="600" fill="#0f172a">Attendant profiles</text>
+    <line x1="280" y1="36" x2="412" y2="36" stroke="#4f46e5" stroke-width="2"/>
+    <text x="460" y="26" font-size="14" font-weight="500" fill="#475569">Audit log</text>
+  </g>
+
+  <!-- attendants table card -->
+  <g transform="translate(280,156)">
+    <rect width="1128" height="600" rx="16" fill="#ffffff"/>
+    <text x="24" y="36" font-size="16" font-weight="600" fill="#0f172a">Attendant profiles</text>
+    <text x="24" y="56" font-size="12" fill="#475569">Each profile binds a user to a shift and a gatehouse. Profile is the unit of permission.</text>
+
+    <!-- search + new -->
+    <rect x="640" y="22" width="240" height="32" rx="8" fill="#f1f5f9"/>
+    <text x="656" y="42" font-size="12" fill="#94a3b8">Search attendants...</text>
+    <rect x="1000" y="22" width="100" height="32" rx="8" fill="#4f46e5"/>
+    <text x="1050" y="42" font-size="13" font-weight="500" fill="#ffffff" text-anchor="middle">+ New</text>
+
+    <line x1="24" y1="80" x2="1104" y2="80" stroke="#e2e8f0"/>
+
+    <!-- table header -->
+    <text x="24" y="110" font-size="10" font-weight="600" fill="#475569" letter-spacing="0.04em">NAME</text>
+    <text x="240" y="110" font-size="10" font-weight="600" fill="#475569" letter-spacing="0.04em">SHIFT</text>
+    <text x="440" y="110" font-size="10" font-weight="600" fill="#475569" letter-spacing="0.04em">GATEHOUSE</text>
+    <text x="640" y="110" font-size="10" font-weight="600" fill="#475569" letter-spacing="0.04em">PERMISSIONS</text>
+    <text x="840" y="110" font-size="10" font-weight="600" fill="#475569" letter-spacing="0.04em">ACTIVE</text>
+    <text x="980" y="110" font-size="10" font-weight="600" fill="#475569" letter-spacing="0.04em">ACTIONS</text>
+
+    <!-- row 1 -->
+    <line x1="24" y1="124" x2="1104" y2="124" stroke="#e2e8f0"/>
+    <circle cx="40" cy="156" r="14" fill="#4f46e5"/>
+    <text x="40" y="160" font-size="10" font-weight="600" fill="#ffffff" text-anchor="middle">AT</text>
+    <text x="64" y="160" font-size="13" fill="#0f172a">Andre Torres</text>
+    <text x="240" y="160" font-size="13" fill="#475569">Day 07:00-19:00</text>
+    <text x="440" y="160" font-size="13" fill="#475569">Gate A (main)</text>
+    <text x="640" y="160" font-size="12" fill="#475569">visits:open, residents:read</text>
+    <rect x="840" y="146" width="48" height="20" rx="10" fill="#dcfce7"/>
+    <text x="864" y="160" font-size="11" font-weight="500" fill="#22c55e" text-anchor="middle">Yes</text>
+    <text x="980" y="160" font-size="13" fill="#4f46e5">Edit</text>
+    <text x="1040" y="160" font-size="13" fill="#ef4444">Suspend</text>
+
+    <line x1="24" y1="180" x2="1104" y2="180" stroke="#e2e8f0"/>
+
+    <!-- row 2 -->
+    <circle cx="40" cy="212" r="14" fill="#22c55e"/>
+    <text x="40" y="216" font-size="10" font-weight="600" fill="#ffffff" text-anchor="middle">MR</text>
+    <text x="64" y="216" font-size="13" fill="#0f172a">Marina Rocha</text>
+    <text x="240" y="216" font-size="13" fill="#475569">Day 07:00-19:00</text>
+    <text x="440" y="216" font-size="13" fill="#475569">Gate B (service)</text>
+    <text x="640" y="216" font-size="12" fill="#475569">visits:open, vehicles:read</text>
+    <rect x="840" y="202" width="48" height="20" rx="10" fill="#dcfce7"/>
+    <text x="864" y="216" font-size="11" font-weight="500" fill="#22c55e" text-anchor="middle">Yes</text>
+    <text x="980" y="216" font-size="13" fill="#4f46e5">Edit</text>
+    <text x="1040" y="216" font-size="13" fill="#ef4444">Suspend</text>
+
+    <line x1="24" y1="236" x2="1104" y2="236" stroke="#e2e8f0"/>
+
+    <!-- row 3 -->
+    <circle cx="40" cy="268" r="14" fill="#f59e0b"/>
+    <text x="40" y="272" font-size="10" font-weight="600" fill="#ffffff" text-anchor="middle">PD</text>
+    <text x="64" y="272" font-size="13" fill="#0f172a">Paulo Dias</text>
+    <text x="240" y="272" font-size="13" fill="#475569">Night 19:00-07:00</text>
+    <text x="440" y="272" font-size="13" fill="#475569">Gate A (main)</text>
+    <text x="640" y="272" font-size="12" fill="#475569">visits:open, providers:read</text>
+    <rect x="840" y="258" width="48" height="20" rx="10" fill="#dcfce7"/>
+    <text x="864" y="272" font-size="11" font-weight="500" fill="#22c55e" text-anchor="middle">Yes</text>
+    <text x="980" y="272" font-size="13" fill="#4f46e5">Edit</text>
+    <text x="1040" y="272" font-size="13" fill="#ef4444">Suspend</text>
+
+    <line x1="24" y1="292" x2="1104" y2="292" stroke="#e2e8f0"/>
+
+    <!-- row 4 -->
+    <circle cx="40" cy="324" r="14" fill="#3b82f6"/>
+    <text x="40" y="328" font-size="10" font-weight="600" fill="#ffffff" text-anchor="middle">CS</text>
+    <text x="64" y="328" font-size="13" fill="#0f172a">Camila Silva</text>
+    <text x="240" y="328" font-size="13" fill="#475569">Day 07:00-19:00</text>
+    <text x="440" y="328" font-size="13" fill="#475569">Gate B (service)</text>
+    <text x="640" y="328" font-size="12" fill="#475569">visits:open</text>
+    <rect x="840" y="314" width="48" height="20" rx="10" fill="#fee2e2"/>
+    <text x="864" y="328" font-size="11" font-weight="500" fill="#ef4444" text-anchor="middle">No</text>
+    <text x="980" y="328" font-size="13" fill="#4f46e5">Edit</text>
+    <text x="1040" y="328" font-size="13" fill="#22c55e">Activate</text>
+
+    <!-- pagination -->
+    <line x1="24" y1="496" x2="1104" y2="496" stroke="#e2e8f0"/>
+    <text x="24" y="528" font-size="12" fill="#475569">Rows per page:</text>
+    <rect x="124" y="510" width="48" height="28" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="148" y="528" font-size="12" fill="#0f172a" text-anchor="middle">10</text>
+
+    <text x="200" y="528" font-size="12" fill="#475569">1-4 of 4</text>
+
+    <rect x="800" y="510" width="32" height="28" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="816" y="528" font-size="12" fill="#94a3b8" text-anchor="middle">&lt;</text>
+    <rect x="836" y="510" width="32" height="28" rx="6" fill="#4f46e5"/>
+    <text x="852" y="528" font-size="12" font-weight="600" fill="#ffffff" text-anchor="middle">1</text>
+    <rect x="872" y="510" width="32" height="28" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="888" y="528" font-size="12" fill="#0f172a" text-anchor="middle">&gt;</text>
+  </g>
+
+  <!-- modal: create new attendant profile -->
+  <rect x="0" y="0" width="1440" height="900" fill="#0b1020" opacity="0.4"/>
+
+  <g transform="translate(360,150)">
+    <rect width="720" height="600" rx="16" fill="#ffffff"/>
+    <text x="24" y="36" font-size="16" font-weight="600" fill="#0f172a">New attendant profile</text>
+    <text x="24" y="56" font-size="12" fill="#475569">Binds a user to a shift and a gatehouse. They will inherit the Attendant role on the active tenant.</text>
+    <line x1="24" y1="76" x2="696" y2="76" stroke="#e2e8f0"/>
+
+    <!-- user picker -->
+    <text x="24" y="116" font-size="12" font-weight="500" fill="#0f172a">User *</text>
+    <rect x="24" y="124" width="336" height="40" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="36" y="148" font-size="13" fill="#0f172a">Beatriz Lima</text>
+    <text x="320" y="148" font-size="10" fill="#475569" text-anchor="middle">v</text>
+
+    <!-- shift -->
+    <text x="376" y="116" font-size="12" font-weight="500" fill="#0f172a">Shift *</text>
+    <rect x="376" y="124" width="320" height="40" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="388" y="148" font-size="13" fill="#0f172a">Day 07:00-19:00</text>
+    <text x="656" y="148" font-size="10" fill="#475569" text-anchor="middle">v</text>
+
+    <!-- gatehouse -->
+    <text x="24" y="188" font-size="12" font-weight="500" fill="#0f172a">Gatehouse *</text>
+    <rect x="24" y="196" width="336" height="40" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="36" y="220" font-size="13" fill="#0f172a">Gate A (main)</text>
+    <text x="320" y="220" font-size="10" fill="#475569" text-anchor="middle">v</text>
+
+    <!-- active -->
+    <text x="376" y="188" font-size="12" font-weight="500" fill="#0f172a">Active</text>
+    <rect x="376" y="196" width="48" height="24" rx="12" fill="#4f46e5"/>
+    <circle cx="412" cy="208" r="10" fill="#ffffff"/>
+    <text x="436" y="214" font-size="12" fill="#475569">Active immediately</text>
+
+    <!-- permissions -->
+    <text x="24" y="260" font-size="12" font-weight="500" fill="#0f172a">Permission set *</text>
+    <rect x="24" y="268" width="672" height="160" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+
+    <rect x="40" y="284" width="16" height="16" rx="4" fill="#4f46e5"/>
+    <text x="64" y="298" font-size="13" fill="#0f172a">visits:open</text>
+    <rect x="40" y="312" width="16" height="16" rx="4" fill="#4f46e5"/>
+    <text x="64" y="326" font-size="13" fill="#0f172a">visits:close</text>
+    <rect x="40" y="340" width="16" height="16" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="64" y="354" font-size="13" fill="#0f172a">visits:override-deny</text>
+    <rect x="280" y="284" width="16" height="16" rx="4" fill="#4f46e5"/>
+    <text x="304" y="298" font-size="13" fill="#0f172a">residents:read</text>
+    <rect x="280" y="312" width="16" height="16" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="304" y="326" font-size="13" fill="#0f172a">residents:write</text>
+    <rect x="280" y="340" width="16" height="16" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="304" y="354" font-size="13" fill="#0f172a">audit:read</text>
+    <rect x="520" y="284" width="16" height="16" rx="4" fill="#4f46e5"/>
+    <text x="544" y="298" font-size="13" fill="#0f172a">vehicles:read</text>
+    <rect x="520" y="312" width="16" height="16" rx="4" fill="#4f46e5"/>
+    <text x="544" y="326" font-size="13" fill="#0f172a">providers:read</text>
+    <text x="40" y="394" font-size="11" fill="#94a3b8">3 of 8 selected (sensible default for a gatehouse attendant)</text>
+
+    <!-- start date -->
+    <text x="24" y="464" font-size="12" font-weight="500" fill="#0f172a">Start date</text>
+    <rect x="24" y="472" width="248" height="40" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="36" y="496" font-size="13" fill="#0f172a">2026-06-15</text>
+
+    <text x="288" y="464" font-size="12" font-weight="500" fill="#0f172a">End date</text>
+    <rect x="288" y="472" width="248" height="40" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="300" y="496" font-size="13" fill="#94a3b8">Open-ended</text>
+
+    <line x1="24" y1="528" x2="696" y2="528" stroke="#e2e8f0"/>
+    <rect x="540" y="544" width="76" height="40" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="578" y="568" font-size="13" font-weight="500" fill="#0f172a" text-anchor="middle">Cancel</text>
+    <rect x="624" y="544" width="72" height="40" rx="12" fill="#4f46e5"/>
+    <text x="660" y="568" font-size="13" font-weight="500" fill="#ffffff" text-anchor="middle">Save</text>
+  </g>
+
+  <!-- annotation -->
+  <g transform="translate(20,860)">
+    <text x="0" y="0" font-size="11" fill="#475569">Screen 3 - TenantAdmin creates an AttendantProfile. User: TenantAdmin (Renata, Acme). Components: ce-sidebar + ce-topbar + ce-breadcrumbs (Administration / Attendants) + ce-tabs (Users / Shifts / Gatehouses / Attendant profiles / Audit log) + ce-card (list) + ce-table (rows) + ce-pagination + ce-modal (form) + ce-input (User / Shift / Gatehouse / Start / End) + ce-button (Save). a11y: modal traps focus; active toggle is a button with aria-pressed; checkboxes are native inputs.</text>
+  </g>
+</svg>
