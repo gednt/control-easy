@@ -2,12 +2,100 @@
 
 > Companion to `requirements.md` and `design.md`. Each task is a single, verifiable unit of work. **Phases must be completed in order**; a phase gate (last task of the phase) must be green before starting the next phase.
 
+## Task Dependency Graph
+
+The roadmap is decomposed into execution **waves** for parallel work. Waves execute strictly in order: wave *N+1* starts only after **every** task in wave *N* is complete and its verification gate is green. Tasks inside a wave have **no** inter-dependencies and can be picked up by separate agents in parallel. A single agent (or human) may also execute them serially in any order.
+
+Continuous tasks (C.1–C.7) are tracked separately and run alongside every phase — they are not in the wave graph below.
+
+### Phase 1 — Foundation
+
+```json
+{
+  "phase": 1,
+  "waves": [
+    { "wave": 1, "tasks": ["1.1", "1.0a"] },
+    { "wave": 2, "tasks": ["1.2", "1.3", "1.0b", "1.0c"] },
+    { "wave": 3, "tasks": ["1.4", "1.5", "1.6", "1.16"] },
+    { "wave": 4, "tasks": ["1.7", "1.8", "1.12", "1.17"] },
+    { "wave": 5, "tasks": ["1.9", "1.10", "1.11", "1.13"] },
+    { "wave": 6, "tasks": ["1.14", "1.15"] }
+  ]
+}
+```
+
+**Wave rationale (Phase 1):**
+- **Wave 1** — bootstrap: empty solution layout (1.1) and the Tenants root aggregate + multi-tenancy infrastructure (1.0a). 1.0a must precede every other Phase 1 task because the `tenant_id` global filter, `ITenantContext`, and `TenantAwareLinqFactory` are prerequisites for every module's repository.
+- **Wave 2** — shared infrastructure: package management (1.2), building blocks (1.3), the default-tenant backfill SQL (1.0b), and the `PlatformAdmin` bootstrap (1.0c). 1.0b and 1.0c depend on the Tenants table being defined (1.0a) but not on each other; the NetArchTest rule referenced by 1.0b is created together with the 1.15 test project in Wave 6 (per F2 in `review.md`).
+- **Wave 3** — host wiring + reference module: ASP.NET Core 8 host with Serilog / JWT / Swagger / DBTools_SQL (1.4), the Residents module template (1.5), the repository implementation (1.6), and the two ADRs (1.16). All four depend on BuildingBlocks (1.3) and Directory.Packages (1.2).
+- **Wave 4** — endpoints + frontend skeleton: Residents Minimal API endpoints (1.7), the Angular 18+ SPA (1.8, depends on 1.7 so the OpenAPI schema is real), the `00-schema.sql` for the smoke test (1.12), and the Makefile (1.17). 1.8 generates the TypeScript client from 1.7's OpenAPI, so 1.7 must land first.
+- **Wave 5** — containerization + unit tests: Dockerfiles (1.9), docker-compose (1.10), Traefik (1.11), and unit tests for the repository + TenantFilterInterceptor (1.13). 1.13 depends on 1.6 and 1.0a; container files depend on 1.7 and 1.8 being buildable.
+- **Wave 6** — full integration + architecture gates: Testcontainers integration tests (1.14) and the NetArchTest architecture rules (1.15). These run last in Phase 1 because they validate every prior wave end-to-end.
+
+### Phase 2 — Strangler Pilot
+
+```json
+{
+  "phase": 2,
+  "waves": [
+    { "wave": 1, "tasks": ["2.1", "2.7a"] },
+    { "wave": 2, "tasks": ["2.2", "2.3"] },
+    { "wave": 3, "tasks": ["2.4", "2.5", "2.6"] }
+  ]
+}
+```
+
+**Wave rationale (Phase 2):**
+- **Wave 1** — backend: the Security module with the full role set, attendant profile / shift / gatehouse / tenant-picker / tenant-switch API surface, and the attendant profile backend slice (2.7a). Both are backend-only and have no inter-dependency.
+- **Wave 2** — frontend + strangler wiring: Angular Residents admin page + login (2.2) and the WPF-in-parallel feature flag plumbing (2.3). 2.2 depends on the API surface from 2.1; 2.3 depends on `Microsoft.FeatureManagement` (1.4) being in place.
+- **Wave 3** — pilot cutover: WPF/web cross-verify smoke test (2.4), the 7-day pilot flip on one condominium (2.5), and the legacy-mapping doc update (2.6). 2.4 must pass before 2.5; 2.6 documents the result of 2.5.
+
+### Phase 3 — Module Migrations
+
+```json
+{
+  "phase": 3,
+  "waves": [
+    { "wave": 1, "tasks": ["3.1", "3.2", "3.3", "3.4", "3.9a"] },
+    { "wave": 2, "tasks": ["3.6"] },
+    { "wave": 3, "tasks": ["3.5", "3.7", "3.8"] }
+  ]
+}
+```
+
+**Wave rationale (Phase 3):**
+- **Wave 1** — module scaffolding: Visits (3.1), Vehicles (3.2), ServiceProviders (3.3), Administration (3.4), and the tenant-administration backend slice (3.9a). All five are independent feature modules with the same template and can be built in parallel by separate agents.
+- **Wave 2** — cross-cutting: CQRS-lite for reports (3.6). 3.6 spans all modules built in Wave 1, so it starts after they land.
+- **Wave 3** — per-module cutover: for-each-module pilot flips (3.5), Playwright UI tests per primary page (3.7), and the per-row legacy-mapping doc updates (3.8). All three can be performed in parallel per module.
+
+### Phase 4 — Legacy Decommission
+
+```json
+{
+  "phase": 4,
+  "waves": [
+    { "wave": 1, "tasks": ["4.1", "4.2"] },
+    { "wave": 2, "tasks": ["4.3", "4.5", "4.6"] },
+    { "wave": 3, "tasks": ["4.4"] }
+  ]
+}
+```
+
+**Wave rationale (Phase 4):**
+- **Wave 1** — feature-flag retirement (4.1) and the WPF project being marked `Deprecated` in the solution and excluded from CI (4.2). Both must land before the read-only-WPF window.
+- **Wave 2** — 30-day read-only-WPF observation (4.3) runs in parallel with the legacy-mapping doc archive (4.5) and the production cutover checklist (4.6).
+- **Wave 3** — WPF removal (4.4) is the *last* commit; it runs only after the 30-day read-only window closes.
+
+---
+
+
+
 ---
 
 ## Phase 1 — Foundation (greenfield skeleton)
 *Goal: build the empty modular monolith + Docker stack + DBTools_SQL wiring, with a single smoke-test module (Residents) that proves the end-to-end flow works.*
 
-- [ ] **1.0a** **Tenants module (root aggregate).** Create `Modules/Tenants/{Domain,Application,Infrastructure,Api}` with the `Tenants` aggregate (`Id`, `Slug`, `DisplayName`, `Status`, `CreatedAtUtc`), the `ITenantContext` interface + `HttpTenantContext` implementation, the `TenantResolutionMiddleware`, the `TenantFilterInterceptor : IQueryInterceptor` registered in `Host/Program.cs`, the `TenantAwareLinqFactory` in `BuildingBlocks/Infrastructure/MultiTenancy/`, and the `Tenants` Minimal API endpoints (`POST /api/v1/tenants`, `GET /api/v1/tenants/{id}`, `POST /api/v1/tenants/{id}/suspend`, `POST /api/v1/tenants/{id}/resume` — `PlatformAdmin` only).
+- [x] **1.0a** **Tenants module (root aggregate).** Create `Modules/Tenants/{Domain,Application,Infrastructure,Api}` with the `Tenants` aggregate (`Id`, `Slug`, `DisplayName`, `Status`, `CreatedAtUtc`), the `ITenantContext` interface + `HttpTenantContext` implementation, the `TenantResolutionMiddleware`, the `TenantFilterInterceptor : IQueryInterceptor` registered in `Host/Program.cs`, the `TenantAwareLinqFactory` in `BuildingBlocks/Infrastructure/MultiTenancy/`, and the `Tenants` Minimal API endpoints (`POST /api/v1/tenants`, `GET /api/v1/tenants/{id}`, `POST /api/v1/tenants/{id}/suspend`, `POST /api/v1/tenants/{id}/resume` — `PlatformAdmin` only).
   - **Acceptance criteria:**
     - `ITenantContext` is registered as scoped; `NullTenantContext` exists for unit tests.
     - `TenantResolutionMiddleware` runs after `UseAuthentication()`; a request without a `tenant_id` claim and without `PlatformAdmin` role returns 403.
@@ -27,7 +115,7 @@
     - `TenantAwareWebApplicationFactory.AsTenantA()` issues a JWT bound to tenant A; `AsTenantB()` issues one bound to tenant B; `AsPlatformAdmin()` issues a `PlatformAdmin` JWT.
     - A smoke test creates a `Resident` as tenant A and asserts tenant B and `PlatformAdmin` see it (only `PlatformAdmin` is allowed to; tenant B must get 404 / empty list).
 
-- [ ] **1.1** Create the new solution layout: `src/`, `tests/`, `docker/`, `docs/`. Add `src/ControlEasyReborn.sln`.
+- [x] **1.1** Create the new solution layout: `src/`, `tests/`, `docker/`, `docs/`. Add `src/ControlEasyReborn.sln`.
 - [ ] **1.2** Add `src/Directory.Packages.props` (CPM) and `src/Directory.Build.props` (`LangVersion=latest`, `Nullable=enable`, `TreatWarningsAsErrors=true`). Pin all package versions per `design.md`.
 - [ ] **1.3** Create `src/BuildingBlocks/ControlEasyReborn.SharedKernel` (Result, Guard, common abstractions) and `src/BuildingBlocks/ControlEasyReborn.Infrastructure` (extension methods for DBTools_SQL DI).
 - [ ] **1.4** Create `src/Host/ControlEasyReborn.Api` (ASP.NET Core 8 Web API) with `Program.cs` registering: Serilog, JWT bearer, Swagger, ProblemDetails, `AddDbTools(...)`, health checks, `Microsoft.FeatureManagement`.

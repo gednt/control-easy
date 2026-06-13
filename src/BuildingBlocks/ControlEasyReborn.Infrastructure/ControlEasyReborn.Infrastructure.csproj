@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ControlEasyReborn.Infrastructure</RootNamespace>
+    <AssemblyName>ControlEasyReborn.Infrastructure</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\lib\DBTools_SQL\DBTools\DBTools.csproj" />
+    <ProjectReference Include="..\ControlEasyReborn.SharedKernel\ControlEasyReborn.SharedKernel.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+</Project>

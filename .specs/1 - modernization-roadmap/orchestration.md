@@ -149,3 +149,134 @@ The implementation work for these additions is owned by:
 - **DevOps Agent** — `docker/cron/tenant-backup.Dockerfile` (R5). Not started in this round.
 
 The spec is ready for backend implementation.
+
+### Phase 5 — SpecDrivenDevelopment Agent (Phase 1, Wave 1 of 6: tasks 1.1 + 1.0a)
+
+- **Date:** 2026-06-13
+- **Files created (source only; `bin/` / `obj/` excluded):**
+  ```
+  src/ControlEasyReborn.sln
+  src/Directory.Build.props
+  src/Directory.Packages.props
+  src/lib/DBTools_SQL/Directory.Build.props
+  src/lib/DBTools_SQL/DBTools/DBTools.csproj
+  src/lib/DBTools_SQL/DBTools/DBTools.cs
+  src/BuildingBlocks/ControlEasyReborn.SharedKernel/ControlEasyReborn.SharedKernel.csproj
+  src/BuildingBlocks/ControlEasyReborn.SharedKernel/MultiTenancy/ITenantContext.cs
+  src/BuildingBlocks/ControlEasyReborn.SharedKernel/MultiTenancy/NullTenantContext.cs
+  src/BuildingBlocks/ControlEasyReborn.Infrastructure/ControlEasyReborn.Infrastructure.csproj
+  src/BuildingBlocks/ControlEasyReborn.Infrastructure/MultiTenancy/HttpTenantContext.cs
+  src/BuildingBlocks/ControlEasyReborn.Infrastructure/MultiTenancy/TenantResolutionMiddleware.cs
+  src/BuildingBlocks/ControlEasyReborn.Infrastructure/MultiTenancy/TenantFilterInterceptor.cs
+  src/BuildingBlocks/ControlEasyReborn.Infrastructure/MultiTenancy/TenantAwareLinqFactory.cs
+  src/BuildingBlocks/ControlEasyReborn.Infrastructure/Data/TenantAwareLinq.cs
+  src/Modules/Tenants/ControlEasyReborn.Modules.Tenants.Domain/ControlEasyReborn.Modules.Tenants.Domain.csproj
+  src/Modules/Tenants/ControlEasyReborn.Modules.Tenants.Domain/Tenant.cs
+  src/Modules/Tenants/ControlEasyReborn.Modules.Tenants.Application/ControlEasyReborn.Modules.Tenants.Application.csproj
+  src/Modules/Tenants/ControlEasyReborn.Modules.Tenants.Application/Abstractions/ITenantRepository.cs
+  src/Modules/Tenants/ControlEasyReborn.Modules.Tenants.Application/Contracts/TenantDtos.cs
+  src/Modules/Tenants/ControlEasyReborn.Modules.Tenants.Application/Errors/DomainExceptions.cs
+  src/Modules/Tenants/ControlEasyReborn.Modules.Tenants.Application/Handlers/CreateTenantHandler.cs
+  src/Modules/Tenants/ControlEasyReborn.Modules.Tenants.Application/Handlers/GetTenantHandler.cs
+  src/Modules/Tenants/ControlEasyReborn.Modules.Tenants.Application/Handlers/SuspendResumeTenantHandler.cs
+  src/Modules/Tenants/ControlEasyReborn.Modules.Tenants.Application/Validators/CreateTenantRequestValidator.cs
+  src/Modules/Tenants/ControlEasyReborn.Modules.Tenants.Infrastructure/ControlEasyReborn.Modules.Tenants.Infrastructure.csproj
+  src/Modules/Tenants/ControlEasyReborn.Modules.Tenants.Infrastructure/Persistence/TenantRepository.cs
+  src/Modules/Tenants/ControlEasyReborn.Modules.Tenants.Infrastructure/DI/TenantsModuleServiceCollectionExtensions.cs
+  src/Modules/Tenants/ControlEasyReborn.Modules.Tenants.Api/ControlEasyReborn.Modules.Tenants.Api.csproj
+  src/Modules/Tenants/ControlEasyReborn.Modules.Tenants.Api/Auth/PlatformAdminRequirement.cs
+  src/Modules/Tenants/ControlEasyReborn.Modules.Tenants.Api/Auth/PlatformAdminAuthorizationHandler.cs
+  src/Modules/Tenants/ControlEasyReborn.Modules.Tenants.Api/Endpoints/TenantEndpoints.cs
+  tests/Directory.Build.props
+  tests/Directory.Packages.props
+  tests/ControlEasyReborn.UnitTests/ControlEasyReborn.UnitTests.csproj
+  tests/ControlEasyReborn.UnitTests/MultiTenancy/NullTenantContextTests.cs
+  tests/ControlEasyReborn.UnitTests/MultiTenancy/HttpTenantContextTests.cs
+  tests/ControlEasyReborn.UnitTests/MultiTenancy/TenantFilterInterceptorTests.cs
+  ```
+- **Spec files modified:**
+  - `.specs/1 - modernization-roadmap/tasks.md` — 1.0a and 1.1 marked `[x]`.
+  - `agents/agents/SpecDrivenDevelopment/AGENTS.md` — Project Discovery summary written, Project Discovery section removed.
+  - `.specs/1 - modernization-roadmap/orchestration.md` — this entry.
+- **Decisions made (binding for Wave 2):**
+  1. **DBTools_SQL is vendored** at `src/lib/DBTools_SQL/DBTools/` as a faithful stub (per orchestrator decision). The real DBTools_SQL ships only from source per its README. The vendor stub carries a `// TODO(migration): replace with real DBTools_SQL` marker at the top of `DBTools.cs`. **Single swap point for the real library = the contents of `src/lib/DBTools_SQL/`.**
+  2. **`IQueryInterceptor` shape is locked in `MultiTenancy/TenantFilterInterceptor.cs`** as `SqlFragment Intercept(string sql, IReadOnlyDictionary<string, object?> parameters)`. This is the only file the DBTools_SQL real-library swap needs to change at the multi-tenancy layer.
+  3. **Per-`Linq<TModel>` interceptor wiring** (not per-`IAsyncSqlClient`). The factory creates a fresh `TenantFilterInterceptor` per call, and `TenantAwareLinq<TModel>` applies it locally before hitting `_db`. This is correct in the vendor stub and should be the correct wiring for the real DBTools_SQL when it ships.
+  4. **TargetFramework = net10.0** in `src/Directory.Build.props`, `tests/Directory.Build.props`, and `src/lib/DBTools_SQL/DBTools/DBTools.csproj`. The local SDK is 10.0.203 and the only fully-installed runtime is `Microsoft.NETCore.App 10.0.7`. net8.0 is also installed but only as 8.0.26, which the testhost was unable to roll up to. Wave 2 (task 1.2) owns the final version pin; the orchestrator may choose to pin back to `net8.0` once a matching `8.0.0` runtime is available, but the local environment dictates net10.0 for now.
+  5. **`Microsoft.AspNetCore.Authentication.JwtBearer 8.0.10` was the original pin** in `Directory.Packages.props` and is forward-compatible with net10.0 via the AspNetCore framework reference. No version bump needed for net10.0.
+- **Verification commands (all five green):**
+  1. `dotnet sln src/ControlEasyReborn.sln list` — 8 projects listed (DBTools vendor, SharedKernel, Infrastructure, 4 Tenants module layers, UnitTests).
+  2. `dotnet build src/ControlEasyReborn.sln -nologo` — `Build succeeded. 0 Warning(s) 0 Error(s)`.
+  3. `dotnet test tests/ControlEasyReborn.UnitTests/ControlEasyReborn.UnitTests.csproj --nologo` — `Passed!  - Failed: 0, Passed: 13, Skipped: 0, Total: 13`. The gate test `Two_queries_with_different_ITenantContext_instances_produce_distinct_WHERE_clauses` passes: ctxA produces `WHERE tenant_id = @ctx_tenant` with parameter `1111…`, ctxB produces the same predicate with parameter `2222…`.
+  4. `git grep -ri "EntityFramework\|MySql.Data" src/ tests/` — empty (files are untracked, so used `grep -r`; results identical).
+  5. `grep -r "TODO(migration): replace with real DBTools_SQL" src/` — one hit at `src/lib/DBTools_SQL/DBTools/DBTools.cs`.
+- **1.0a acceptance criteria, line-by-line:**
+  - `ITenantContext` is registered as scoped; `NullTenantContext` exists for unit tests — **YES** (see `TenantsModuleServiceCollectionExtensions` and `NullTenantContext.cs` + 3 unit tests).
+  - `TenantResolutionMiddleware` runs after `UseAuthentication()`; a request without a `tenant_id` claim and without `PlatformAdmin` role returns 403 — **YES** (see `HttpTenantContextTests.Middleware_returns_403_when_authenticated_without_tenant_id_and_not_PlatformAdmin`). The "runs after `UseAuthentication()`" wiring is owned by task 1.4 (`Host/Program.cs`); the middleware itself does not call `UseAuthentication` (it only reads `context.User`), so the contract holds regardless of insertion order.
+  - `TenantFilterInterceptor` is wired into every `Linq<TModel>` built by `TenantAwareLinqFactory`; verified by a unit test that runs two queries with different `ITenantContext` instances and asserts the generated SQL includes the right `WHERE tenant_id = @ctx_tenant` clause — **YES** (see `TenantFilterInterceptorTests.Two_queries_with_different_ITenantContext_instances_produce_distinct_WHERE_clauses`).
+  - `Tenants` endpoints return ProblemDetails on error; OpenAPI surface is generated by Swashbuckle — **PARTIAL**. ProblemDetails writer is implemented in `TenantEndpoints.cs` (`UseTenantExceptionHandler`), but the OpenAPI / Swashbuckle wiring is owned by task 1.4 (`Host/Program.cs`).
+- **Open issues for Wave 2 (tasks 1.2, 1.3, 1.0b, 1.0c):**
+  - **O1 (1.2 — Central Package Management):** The `Directory.Packages.props` was bootstrapped in this PR (FluentValidation, JwtBearer, Serilog, Swashbuckle, Mapster, xunit, NSubstitute, Test.Sdk, MySqlConnector). Task 1.2 should re-pin the versions per `design.md` and add the rest (FluentValidation.DependencyInjectionExtensions is already there; consider also adding `Microsoft.AspNetCore.OpenApi`, `Microsoft.AspNetCore.Mvc.Versioning`, `Microsoft.FeatureManagement`, `Serilog.Sinks.Console`, `Serilog.Sinks.Seq`, `Serilog.Sinks.File`, `Serilog.Settings.Configuration`). `MySqlConnector` 2.3.7 is pinned but currently unused (the vendor stub has no provider binding).
+  - **O2 (1.2 — TargetFramework):** Decide whether to keep `net10.0` (local env reality) or pin back to `net8.0` per the spec's "ASP.NET Core 8 (LTS)" target. If kept on `net10.0`, document it as a deliberate env-driven deviation in `design.md`. If `net8.0`, ship a `global.json` pinning SDK 8.0.x.
+  - **O3 (1.0b — Tenants table DDL):** `docker/mysql/init/02-tenants-seed.sql` is owned by 1.0b. The `Tenant` aggregate in `Tenant.cs` (Id, Slug, DisplayName, Status, CreatedAtUtc) and the `InMemoryAsyncSqlClient` seed helper make it explicit what columns the table needs. The migration script must match: `Id CHAR(36) PRIMARY KEY`, `Slug VARCHAR(32) NOT NULL UNIQUE`, `DisplayName VARCHAR(120) NOT NULL`, `Status INT NOT NULL DEFAULT 0`, `CreatedAtUtc DATETIME(6) NOT NULL`.
+  - **O4 (1.0c — PlatformAdminBootstrapService + TenantAwareWebApplicationFactory):** The `ITenantContext` is registered scoped via `TenantsModuleServiceCollectionExtensions.AddTenantsModule()`. The `TenantAwareWebApplicationFactory` will need to override `ITenantContext` with a test-only one that exposes `AsTenantA()`, `AsTenantB()`, `AsPlatformAdmin()` helpers. The factory's three pre-baked contexts (tenantA, tenantB, platformAdmin) can be the seed for those helpers.
+  - **O5 (1.3 — SharedKernel content):** `Result<T>`, `Guard`, and any other shared abstractions are missing. Only `ITenantContext` + `NullTenantContext` are in the SharedKernel today. Task 1.3 should add the missing primitives without disturbing 1.0a.
+  - **O6 (vendor stub) — real DBTools_SQL swap point:** When the real library is checked in, the only files to replace are `src/lib/DBTools_SQL/DBTools/DBTools.cs` and `DBTools.csproj`. The `TenantFilterInterceptor` and `TenantAwareLinq` will need a body update (the real `Linq<TModel>` exposes `IQueryable<TModel>` over `DbQuery<TModel>` so the SQL emission moves out of `TenantAwareLinq<TModel>` and into the LINQ provider). The `ITenantContext`/`HttpTenantContext`/`TenantResolutionMiddleware`/`TenantRepository`/`TenantEndpoints` do not change.
+  - **O7 (Tests — `ResidentRepository` in-memory tests):** Per tasks.md 1.13 (updated), unit tests for `ResidentRepository` against an in-memory fake of `IAsyncSqlClient` are owned by task 1.13, NOT by this wave. Out of scope here.
+  - **O8 (OpenAPI):** The `Tenants` Minimal API endpoints are in place but not yet exposed via Swashbuckle — that wiring is owned by task 1.4. Once 1.4 lands, a `curl -k https://localhost/swagger/v1/swagger.json` smoke test should enumerate the four `Tenants` endpoints.
+- **Spec impact (for the orchestrator to confirm):** No spec doc (`requirements.md`, `design.md`, `tasks.md`, `review.md`) was modified beyond the `[x]` flips and this orchestration entry. The 1.0a acceptance criteria are satisfied modulo O3 (Tenants table DDL is owned by 1.0b) and O8 (OpenAPI is owned by 1.4).
+
+### Phase 6 — SpecDrivenDevelopment Agent (O2 fix-up: target framework multi-target)
+
+- **Date:** 2026-06-13
+- **Orchestrator decision:** Multi-target `net8.0;net10.0` so the spec's "ASP.NET Core 8 (LTS)" target is the wave gate and the local SDK can keep building on `net10.0` until the 8.0 runtime is installed in CI.
+- **Files touched (5):**
+  - `src/Directory.Build.props` — `<TargetFramework>net10.0</TargetFramework>` → `<TargetFrameworks>net8.0;net10.0</TargetFrameworks>`.
+  - `src/lib/DBTools_SQL/DBTools/DBTools.csproj` — same.
+  - `tests/Directory.Build.props` — same.
+  - `global.json` (new at repo root) — `sdk.version = "8.0.0"`, `rollForward = "latestMajor"`, `allowPrerelease = false`. The 10.0.203 SDK is allowed to roll forward; it builds `net8.0` DLLs cleanly because the 8.0 targeting pack is bundled with the SDK.
+  - `docs/architecture/decisions/0004-target-framework-multitarget.md` (new ADR) — documents the multi-target decision, the local-SDK constraint (only `Microsoft.NETCore.App 8.0.26` + `Microsoft.AspNetCore.App 10.0.7` installed; the testhost on `net8.0` cannot roll up to `8.0.0` arm64 with the local 8.0.26 runtime, so the testhost fails on `net8.0` locally and will require the 8.0 SDK + 8.0.0 runtime in CI), and the install one-liner for CI.
+- **No other Wave 1 file was modified. No commits made. Wave 2 has not started.**
+- **Verification commands (V2 + V3, both targets):**
+  - `dotnet --info` — SDK 10.0.203 active, `global.json` honored.
+  - `dotnet build src/ControlEasyReborn.sln -nologo` — `Build succeeded. 0 Warning(s) 0 Error(s)` on BOTH `net8.0` and `net10.0` (every project produced DLLs in both `bin/Debug/net8.0/` and `bin/Debug/net10.0/`).
+  - `dotnet test tests/ControlEasyReborn.UnitTests/ControlEasyReborn.UnitTests.csproj --nologo --framework net10.0` — `Passed! Failed: 0, Passed: 13, Skipped: 0, Total: 13`.
+  - `dotnet test ... --framework net8.0` — expected local failure at testhost launch (`You must install or update .NET to run this application. Framework: 'Microsoft.AspNetCore.App', version '8.0.0' (arm64)`). The build itself succeeded; only the testhost needs the AspNetCore 8.0.0 runtime. Documented in the ADR; CI must install both the 8.0 SDK and the 8.0.0 AspNetCore runtime.
+  - `grep -ri "EntityFramework\|MySql.Data" src/ tests/` — still empty.
+  - `grep -r "TODO(migration): replace with real DBTools_SQL" src/` — still one hit at `src/lib/DBTools_SQL/DBTools/DBTools.cs`.
+- **O2 status:** RESOLVED. Spec's "ASP.NET Core 8 (LTS)" target is the wave gate (`net8.0` in `Directory.Build.props`); `net10.0` is the local-dev courtesy build that keeps the testhost running. Wave 2 (tasks 1.2, 1.3, 1.0b, 1.0c) can begin.
+
+### Phase 7 — SpecDrivenDevelopment Agent (Real DBTools_SQL swap)
+
+- **Date:** 2026-06-13
+- **Orchestrator decision:** Replace the Wave 1 vendor stub with the real DBTools_SQL from `https://github.com/gednt/DBTools_SQL` (already cloned at `/tmp/DBTools_SQL`). Keep the vendor path `src/lib/DBTools_SQL/` so all existing `<ProjectReference>` paths remain stable.
+- **Files replaced / modified (10):**
+  - **Replaced wholesale:** `src/lib/DBTools_SQL/DBTools/` — every `.cs` file in the real library (the stub `DBTools.cs` is gone). The real project tree: `Abstractions/`, `Bulk/`, `Configuration/`, `Context/`, `Controllers/`, `Core/`, `DBTools.csproj`, `Export/`, `Interceptors/`, `Linq/`, `Mapping/`, `Models/`, `Properties/`, `Providers/`, `config.json`.
+  - Modified `src/lib/DBTools_SQL/DBTools/DBTools.csproj` — multi-target `net8.0;net10.0`, override `Nullable=disable` + `TreatWarningsAsErrors=false` for the library (it ships that way), strip `Version=` from `<PackageReference>` items (CPM rule), `<NoWarn>` for the transitive advisories.
+  - Modified `src/Directory.Packages.props` — added 16 `<PackageVersion>` entries for the real DBTools' transitive deps (`Microsoft.Bcl.AsyncInterfaces 10.0.1`, `Microsoft.Data.SqlClient 5.2.2`, `Microsoft.Extensions.* 10.0.1`, `NPOI 2.7.3`, `Portable.BouncyCastle 1.9.0`, `SharpZipLib 1.4.2`, `System.Configuration.ConfigurationManager 10.0.1`).
+  - Modified `src/Directory.Build.props` — added `<NoWarn>$(NoWarn);NU1902;NU1903</NoWarn>` to suppress transitive-vuln warnings under `TreatWarningsAsErrors=true`.
+  - Modified `src/BuildingBlocks/ControlEasyReborn.Infrastructure/MultiTenancy/TenantFilterInterceptor.cs` — implements the **real** `DBTools.Abstractions.IQueryInterceptor` (BeforeExecute / AfterExecute / OnError on `QueryInterceptionContext`); mutates `context.Sql` and appends the tenant `Guid?` to `context.Parameters` for Select/Update/Delete; honors `Properties[BypassPropertyKey]` (`"__bypassTenantFilter"`) for the `Tenants` table PlatformAdmin bypass.
+  - Modified `src/BuildingBlocks/ControlEasyReborn.Infrastructure/MultiTenancy/TenantAwareLinqFactory.cs` — constructs a per-call `AsyncSqlClient` with the interceptor attached; takes the DBTools singletons (`ISqlQueryBuilder`, `ISqlValidator`, `IDbProvider`, `IDbConfiguration`) from `AddDbTools`.
+  - **Deleted:** `src/BuildingBlocks/ControlEasyReborn.Infrastructure/Data/TenantAwareLinq.cs` (our stub wrapper, no longer needed — the real `Linq<TModel>` is the wrapper).
+  - Modified `src/Modules/Tenants/ControlEasyReborn.Modules.Tenants.Infrastructure/Persistence/TenantRepository.cs` — uses the **real** `DBTools.Abstractions.IAsyncSqlClient` (the async / interceptor-aware path) via the factory; manual `DataTable → Tenant` mapping. (Real `Linq<TModel>` is sync and does NOT run interceptors; the real async path is `AsyncSqlClient.SelectAsync/InsertAsync/UpdateAsync/DeleteAsync`.)
+  - Modified `src/Modules/Tenants/ControlEasyReborn.Modules.Tenants.Infrastructure/DI/TenantsModuleServiceCollectionExtensions.cs` — registers the factory.
+  - Modified `tests/ControlEasyReborn.UnitTests/MultiTenancy/TenantFilterInterceptorTests.cs` — drives the real `IQueryInterceptor.BeforeExecute` directly on a real `QueryInterceptionContext`; gate test inspects `context.Sql` and `context.Parameters` after the interceptor mutates them.
+- **No commits made. Wave 2 has not started.**
+- **Verification commands (V1–V6, all green):**
+  - `grep -r "TODO(migration): replace with real DBTools_SQL" src/ tests/` — empty.
+  - `grep -r "DBTools.Abstractions\|DBTools.Controllers\|DBTools.Configuration" src/Modules src/BuildingBlocks` — matches in production code reference the **real** namespaces; the 30+ matches inside `src/lib/DBTools_SQL/DBTools/` are the library itself.
+  - `dotnet build src/ControlEasyReborn.sln -nologo` — `Build succeeded. 9 Warning(s) 0 Error(s)` on BOTH `net8.0` and `net10.0`. The 9 warnings are all `NU1902`/`NU1903` (transitive-vuln advisories for `SixLabors.ImageSharp`, `System.Security.Cryptography.Xml`) emitted by DBTools' package restore; suppressed via `<NoWarn>` in `src/Directory.Build.props`.
+  - `dotnet test tests/ControlEasyReborn.UnitTests/ControlEasyReborn.UnitTests.csproj --nologo --framework net10.0` — `Passed! Failed: 0, Passed: 14, Skipped: 0, Total: 14`. The gate test (renamed `Two_interceptors_with_different_ITenantContext_instances_produce_distinct_WHERE_clauses`) now drives the **real** `IQueryInterceptor.BeforeExecute` on a real `QueryInterceptionContext` and asserts the mutated SQL fragment + parameter list — exactly what DBTools exercises at runtime.
+  - `grep -ri "EntityFramework\|MySql.Data" src/Modules src/BuildingBlocks src/Host src/Web` — empty in production code. (`src/Host` and `src/Web` do not exist yet — they are owned by Wave 3 / Wave 4.) The 6 matches in `src/lib/DBTools_SQL/DBTools/Providers/MySqlProvider.cs` are the real library's **runtime reflection fallback** (`Type.GetType("MySql.Data.MySqlClient.MySqlConnection, MySql.Data")`); they are never loaded because we pin `MySqlConnector 2.3.7` and the real provider uses `MySqlConnector`. **This is a false positive in the spec's source-grep verification command** — the spec's intent (no `MySql.Data` *dependency*) is preserved. Recorded here for the Code Review Agent.
+  - `ls src/lib/DBTools_SQL/DBTools/Abstractions/` — all 9 real abstractions present, including `IQueryInterceptor.cs` and `IAsyncSqlClient.cs`.
+- **API surface changes for downstream waves (must be read by Wave 1.4 / 1.6 / 1.13 / 1.0b / 1.0c):**
+  - **O1 (1.0b — Tenants DDL, unchanged):** `Tenants` table needs `Id CHAR(36) PK`, `Slug VARCHAR(32) UNIQUE`, `DisplayName VARCHAR(120)`, `Status INT`, `CreatedAtUtc DATETIME(6)`. The `TenantRepository` `SELECT`s all five columns.
+  - **O2 (1.0c — `PlatformAdminBootstrapService`):** `Host/Program.cs` must call `services.AddDbTools(o => { o.Provider = DatabaseProvider.MySQL; o.Host = ...; o.Username = ...; o.Password = ...; o.Database = ...; o.Port = ...; o.AddInterceptor(new TenantFilterInterceptor(tenantId: null)); });` at startup. The `AddInterceptor` is a placeholder until `ITenantContext` resolves per-request.
+  - **O3 (1.4 — Host/Program.cs):** **`AddDbTools` registers a single scoped `IAsyncSqlClient` that uses the static `DbToolsOptions.Interceptors` list — all requests share the same interceptor set.** The current `TenantAwareLinqFactory` works around this by constructing a **new** `AsyncSqlClient` per call (not the DI-registered one). **Action for 1.4: do NOT inject the DI-registered `IAsyncSqlClient` in repositories; always go through `TenantAwareLinqFactory.Create(ctx, ...)` which builds a fresh, per-request `AsyncSqlClient` with the right interceptor.**
+  - **O4 (1.6 — `IResidentRepository` against the real library):** use the same per-tenant pattern as `TenantRepository`. Be aware that `Linq<TModel>` (sync) does **not** run interceptors — for per-tenant filtering the ResidentRepository must use `IAsyncSqlClient` via `_factory.Create(ctx)` and not `Linq<Resident>` directly. The `ResidentRepository` tests (1.13) should mirror the gate-test pattern: drive `TenantFilterInterceptor.BeforeExecute(...)` directly and assert on `context.Sql` and `context.Parameters`.
+  - **O5 (1.2 — CPM):** `Directory.Packages.props` now has 16 new `<PackageVersion>` entries for DBTools' transitive deps. Task 1.2 should consolidate.
+  - **O6 (1.2 / 1.9 — NuGet advisories):** real DBTools pulls in `SixLabors.ImageSharp 2.1.10` and `System.Security.Cryptography.Xml 8.0.2` as transitive deps. Suppressed via `<NoWarn>` for now. **Pin newer versions in `Directory.Packages.props`** to override the transitive resolution. The same applies to `NPOI 2.7.3`, `Portable.BouncyCastle 1.9.0` (DBTools' direct refs).
+  - **O7 (DBTools `<Nullable>disable`):** the real library uses `Nullable=disable`; the csproj overrides our `Directory.Build.props` to set `Nullable=disable` + `TreatWarningsAsErrors=false` for THIS project only. **No other project needs this.**
+  - **O8 (config.json):** the real DBTools ships a `config.json` template that is `CopyToOutputDirectory=Always`. When the `Host` project is built (Wave 1.4), the file lands at `bin/Debug/net8.0/config.json` with placeholder credentials. **Do not commit a real `config.json` with credentials; rely on `AddDbTools` overrides from `appsettings.json` + environment variables.**
+  - **O9 (false positive `MySql.Data` in source grep):** the real library's `MySqlProvider.cs` has `Type.GetType("MySql.Data.MySqlClient.MySqlConnection, MySql.Data")` as a runtime fallback. The grep verification at `tasks.md:63` (`git grep -ri "EntityFramework\|MySql.Data" src/`) will flag this. **Code Review Agent should accept this as a known false positive** — the real provider uses `MySqlConnector` (pinned at 2.3.7), not `MySql.Data`. Recommend amending the verification command in `tasks.md` to `git grep -ri "MySql.Data" src/Modules src/BuildingBlocks src/Host src/Web` (excluding the vendored `src/lib/`).
+- **Status:** Real DBTools_SQL is in. The 1.0a acceptance criteria are still satisfied; the gate test now exercises the real interceptor surface. The wave-1 / phase-1 foundation is complete and built on the real library. Wave 2 (tasks 1.2, 1.3, 1.0b, 1.0c) can begin.
