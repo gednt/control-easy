@@ -57,10 +57,34 @@ A modular, web-based, containerized platform.
 
 ### Build / Run (target)
 ```bash
-docker compose up -d            # starts api, web, db, reverse-proxy
+docker compose -f docker/docker-compose.yml up -d   # starts api, web, db, reverse-proxy
 dotnet build src/ControlEasyReborn.sln
 dotnet test  tests/ControlEasyReborn.Tests.sln
 ```
+
+### Post-task verification (Docker)
+After completing **every implementation task**, rebuild the affected Docker images and restart Compose before marking the task done. Run from the repo root:
+
+```bash
+docker compose -f docker/docker-compose.yml build api web
+docker compose -f docker/docker-compose.yml up -d --force-recreate api web
+```
+
+When the task touches demo mode (`.specs/4 - demo-mode/`), use the demo overlay instead:
+
+```bash
+docker compose -f docker/docker-compose.yml -f docker/docker-compose.demo.yml build api web
+docker compose -f docker/docker-compose.yml -f docker/docker-compose.demo.yml up -d --force-recreate api web
+```
+
+If the task changed MySQL init scripts, seed SQL, or database schema, reset volumes first:
+
+```bash
+docker compose -f docker/docker-compose.yml down -v
+docker compose -f docker/docker-compose.yml up -d --build
+```
+
+Agents must not close a task until the rebuilt stack starts healthy and the task's verification gate passes against the running containers.
 
 ## Spec Structure
 

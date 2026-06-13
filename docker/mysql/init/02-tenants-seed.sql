@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS Tenants (
     Slug        VARCHAR(32)  NOT NULL UNIQUE,
     DisplayName VARCHAR(120) NOT NULL,
     Status      INT          NOT NULL DEFAULT 0,
-    CreatedAtUtc DATETIME(6) NOT NULL DEFAULT UTC_TIMESTAMP(6),
+    CreatedAtUtc DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     INDEX IX_Tenants_Slug (Slug),
     INDEX IX_Tenants_Status (Status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

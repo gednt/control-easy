@@ -7,7 +7,7 @@ namespace ControlEasyReborn.UnitTests.MultiTenancy;
 
 // 1.0a acceptance criterion: "verified by a unit test that runs two
 // queries with different `ITenantContext` instances and asserts the
-// generated SQL includes the right `WHERE tenant_id = @ctx_tenant` clause."
+// generated SQL includes the right `WHERE tenant_id = @paramN` clause."
 //
 // With the real DBTools_SQL, the interceptor is the only place the
 // filter is applied. The gate test drives the interceptor directly with
@@ -34,8 +34,8 @@ public sealed class TenantFilterInterceptorTests
         interceptorA.BeforeExecute(contextA);
         interceptorB.BeforeExecute(contextB);
 
-        Assert.Contains("WHERE tenant_id = @ctx_tenant", contextA.Sql, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("WHERE tenant_id = @ctx_tenant", contextB.Sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("WHERE tenant_id = @param0", contextA.Sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("WHERE tenant_id = @param0", contextB.Sql, StringComparison.OrdinalIgnoreCase);
 
         // The two contexts produced two different tenant_id parameter values.
         Assert.Contains(ctxA.TenantId!.Value, contextA.Parameters);
@@ -51,11 +51,12 @@ public sealed class TenantFilterInterceptorTests
         var interceptor = new TenantFilterInterceptor(tenantId);
 
         var context = NewSelectContext("SELECT * FROM Residents WHERE Name = @param0");
+        context.Parameters.Add("Chaves");
         interceptor.BeforeExecute(context);
 
         // The tenant filter is inserted as the first predicate after
         // the WHERE keyword; the original predicate is preserved.
-        Assert.Contains("WHERE tenant_id = @ctx_tenant AND Name = @param0", context.Sql, StringComparison.Ordinal);
+        Assert.Contains("WHERE tenant_id = @param1 AND Name = @param0", context.Sql, StringComparison.Ordinal);
         Assert.Contains(tenantId, context.Parameters);
     }
 
@@ -68,7 +69,7 @@ public sealed class TenantFilterInterceptorTests
         var context = NewSelectContext("SELECT * FROM Residents WHERE tenant_id = @param0");
         interceptor.BeforeExecute(context);
 
-        // The SQL must not have `tenant_id = @ctx_tenant` appended because
+        // The SQL must not have another tenant filter appended because
         // the query already references `tenant_id`. The interceptor must
         // not double-filter.
         var count = CountOccurrences(context.Sql, "tenant_id");

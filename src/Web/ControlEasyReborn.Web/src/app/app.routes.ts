@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { demoModeGuard } from './core/guards/demo-mode.guard';
 
 export const routes: Routes = [
   {
@@ -14,6 +15,11 @@ export const routes: Routes = [
       {
         path: '',
         loadComponent: () => import('./features/dashboard/dashboard.page').then(m => m.DashboardPage),
+      },
+      {
+        path: 'help/demo',
+        canActivate: [demoModeGuard],
+        loadComponent: () => import('./features/help/demo-help.page').then(m => m.DemoHelpPageComponent),
       },
       {
         path: 'residents',

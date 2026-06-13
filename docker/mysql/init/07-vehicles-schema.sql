@@ -9,10 +9,12 @@ CREATE TABLE IF NOT EXISTS Vehicles (
     OwnerName VARCHAR(200) NULL,
     VehicleType INT NOT NULL DEFAULT 0,
     Active TINYINT(1) NOT NULL DEFAULT 1,
-    CreatedAtUtc DATETIME NOT NULL DEFAULT UTC_TIMESTAMP(),
+    CreatedAtUtc DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAtUtc DATETIME NULL,
+    tenant_id CHAR(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000001',
     INDEX IX_Vehicles_TenantId (TenantId),
     INDEX IX_Vehicles_Plate (Plate),
     INDEX IX_Vehicles_ApartmentId (ApartmentId),
-    INDEX IX_Vehicles_Active (Active)
+    INDEX IX_Vehicles_Active (Active),
+    INDEX IX_Vehicles_tenant_id (tenant_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

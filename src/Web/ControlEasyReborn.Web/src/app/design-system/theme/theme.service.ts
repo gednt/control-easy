@@ -20,7 +20,7 @@ export class ThemeService {
       this.resolvedTheme.set(resolved);
       this.applyToDocument(resolved);
       this.persistTheme(this.theme());
-    });
+    }, { allowSignalWrites: true });
 
     if (this.prefersDark) {
       this.prefersDark.addEventListener('change', () => {

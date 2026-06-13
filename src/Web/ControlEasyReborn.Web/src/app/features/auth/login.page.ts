@@ -5,6 +5,15 @@ import { Router } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged, switchMap, takeUntil } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import type { TenantLookupResponse } from '../../core/services/auth.service';
+import { DemoInfoService } from '../../core/services/demo-info.service';
+
+const DEMO_ACCOUNTS = [
+  { label: 'Platform Admin', email: 'platform@controleasy.app' },
+  { label: 'Administrador', email: 'admin@controleasy.app' },
+  { label: 'Porteiro', email: 'porteiro@controleasy.app' },
+  { label: 'Morador', email: 'morador@controleasy.app' },
+  { label: 'Multi-condomínio', email: 'multi@controleasy.app' },
+] as const;
 
 @Component({
   selector: 'ce-login-page',
@@ -107,6 +116,21 @@ import type { TenantLookupResponse } from '../../core/services/auth.service';
             <div class="tenant-hint" style="margin-top: var(--spacing-3);">
               <span class="text-secondary text-xs">{{ tenantHint() }}</span>
             </div>
+          }
+
+          @if (demoInfo.enabled()) {
+            <details class="demo-shortcuts">
+              <summary>Try a demo account</summary>
+              <p class="demo-shortcuts-hint">Password: <code>demo123</code> — click to fill, then Sign in.</p>
+              <div class="demo-shortcuts-grid">
+                @for (account of demoAccounts; track account.email) {
+                  <button type="button" class="ce-button variant-ghost size-sm demo-shortcut-btn"
+                          (click)="fillDemoAccount(account.email)">
+                    {{ account.label }}
+                  </button>
+                }
+              </div>
+            </details>
           }
         }
       </div>
@@ -376,15 +400,41 @@ import type { TenantLookupResponse } from '../../core/services/auth.service';
     .ce-spinner.tone-current { color: currentColor; }
 
     @keyframes spin-slow { to { transform: rotate(360deg); } }
+
+    .demo-shortcuts {
+      margin-top: var(--spacing-5);
+      padding-top: var(--spacing-4);
+      border-top: 1px solid var(--color-border);
+    }
+    .demo-shortcuts summary {
+      cursor: pointer;
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
+      color: var(--color-primary);
+    }
+    .demo-shortcuts-hint {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-secondary);
+      margin: var(--spacing-2) 0 var(--spacing-3);
+    }
+    .demo-shortcuts-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-2);
+    }
+    .demo-shortcut-btn { flex: 1 1 calc(50% - var(--spacing-2)); min-width: 8rem; }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginPage implements OnDestroy {
   private readonly authService = inject(AuthService);
+  readonly demoInfo = inject(DemoInfoService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   private readonly destroy$ = new Subject<void>();
   private readonly emailChange$ = new Subject<string>();
+
+  readonly demoAccounts = DEMO_ACCOUNTS;
 
   loginForm: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -449,13 +499,26 @@ export class LoginPage implements OnDestroy {
     this.authService.setRememberedEmail(email, remember);
 
     this.authService.login(email, password).subscribe({
-      next: (response) => {
-        this.submitting.set(false);
-        if (response.mustChangePassword) {
-          this.router.navigate(['/change-password']);
-          return;
-        }
-        this.router.navigate(['/']);
+      next: () => {
+        this.authService.lookupTenants(email).subscribe({
+          next: (tenantList) => {
+            this.submitting.set(false);
+            if (this.authService.mustChangePassword()) {
+              this.router.navigate(['/change-password']);
+              return;
+            }
+            if (tenantList.length > 1) {
+              this.tenants.set(tenantList);
+              this.tenantPickerVisible.set(true);
+              return;
+            }
+            this.router.navigate(['/']);
+          },
+          error: () => {
+            this.submitting.set(false);
+            this.router.navigate(['/']);
+          },
+        });
       },
       error: (err) => {
         this.submitting.set(false);
@@ -483,6 +546,13 @@ export class LoginPage implements OnDestroy {
     this.tenantPickerVisible.set(false);
     this.tenants.set([]);
     this.tenantHint.set(null);
+  }
+
+  fillDemoAccount(email: string): void {
+    this.loginForm.patchValue({ email, password: 'demo123' });
+    this.loginForm.markAsDirty();
+    this.loginForm.updateValueAndValidity();
+    this.loginError.set(null);
   }
 
   private isValidEmail(email: string): boolean {

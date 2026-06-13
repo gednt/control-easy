@@ -46,11 +46,23 @@ The first greenfield commit lands in **Phase 1** of `tasks.md`. The legacy code 
 
 ```bash
 docker compose -f docker/docker-compose.yml up -d
-# api      → https://localhost/api
-# web      → https://localhost
-# adminer  → https://localhost/db
+# api      → http://localhost:8080/api
+# web      → http://localhost:8080
+# adminer  → http://localhost:8080/db
 # seq      → http://localhost:5341
 ```
+
+## Demo mode
+
+Pre-populated stack with fixed credentials and two themed condominiums for sales demos and training:
+
+```bash
+docker compose -f docker/docker-compose.yml -f docker/docker-compose.demo.yml up -d --build
+```
+
+Sign in with `porteiro@controleasy.app` / `demo123` (or any demo persona). See [docs/demo-mode.md](docs/demo-mode.md) for the full credential table, walkthrough script, and reset procedures.
+
+**Never use the demo JWT signing key or demo overlay in production.**
 
 ## License
 

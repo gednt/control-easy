@@ -60,7 +60,7 @@ public sealed class TenantFilterInterceptor : IQueryInterceptor
             {
                 return;
             }
-            context.Sql = InjectPredicate(context.Sql);
+            context.Sql = InjectPredicate(context.Sql, "@param" + context.Parameters.Count);
             context.Parameters.Add(_tenantId);
         }
     }
@@ -68,7 +68,7 @@ public sealed class TenantFilterInterceptor : IQueryInterceptor
     public void AfterExecute(QueryInterceptionContext context) { }
     public void OnError(QueryInterceptionContext context, System.Exception exception) { }
 
-    private static string InjectPredicate(string sql)
+    private static string InjectPredicate(string sql, string parameterName)
     {
         var trimmed = sql.TrimEnd().TrimEnd(';');
         var upper = trimmed.ToUpperInvariant();
@@ -77,8 +77,8 @@ public sealed class TenantFilterInterceptor : IQueryInterceptor
         {
             // Insert "tenant_id = @ctx_tenant AND " right after the WHERE keyword.
             var insertAt = whereIdx + " WHERE ".Length;
-            return trimmed.Insert(insertAt, TenantColumn + " = " + TenantParameterName + " AND ");
+            return trimmed.Insert(insertAt, TenantColumn + " = " + parameterName + " AND ");
         }
-        return trimmed + " WHERE " + TenantColumn + " = " + TenantParameterName;
+        return trimmed + " WHERE " + TenantColumn + " = " + parameterName;
     }
 }

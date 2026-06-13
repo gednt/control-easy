@@ -1,0 +1,24 @@
+# Demo Mode overlay — merge with docker/docker-compose.yml
+#
+# Quick start:
+#   docker compose -f docker/docker-compose.yml -f docker/docker-compose.demo.yml up -d --build
+#
+# Full reset (re-seed from scratch):
+#   docker compose -f docker/docker-compose.yml -f docker/docker-compose.demo.yml down -v
+#   docker compose -f docker/docker-compose.yml -f docker/docker-compose.demo.yml up -d --build
+#
+# Optional nightly reset (hosted demos): call POST /api/v1/demo/reset as PlatformAdmin
+#   curl -X POST http://localhost:8080/api/v1/demo/reset -H "Authorization: Bearer <token>"
+
+services:
+  api:
+    environment:
+      Demo__Enabled: "true"
+      Demo__SeedVersion: "1"
+      Demo__DisableOutboundEmail: "true"
+      FeatureManagement__Residents__UseWeb: "true"
+      FeatureManagement__Visits__UseWeb: "true"
+      FeatureManagement__Vehicles__UseWeb: "true"
+      FeatureManagement__ServiceProviders__UseWeb: "true"
+      FeatureManagement__Administration__UseWeb: "true"
+      Jwt__SigningKey: demo-signing-key-not-for-production-use!!

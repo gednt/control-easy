@@ -6,6 +6,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\lib\DBTools_SQL\DBTools\DBTools.csproj" />
     <ProjectReference Include="..\ControlEasyReborn.SharedKernel\ControlEasyReborn.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\Modules\Security\ControlEasyReborn.Modules.Security.Application\ControlEasyReborn.Modules.Security.Application.csproj" />
   </ItemGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

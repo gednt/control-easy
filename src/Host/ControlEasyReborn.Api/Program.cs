@@ -1,5 +1,6 @@
 using ControlEasyReborn.Api.Hosting;
 using ControlEasyReborn.Infrastructure.Data;
+using ControlEasyReborn.Infrastructure.Demo;
 using ControlEasyReborn.Infrastructure.MultiTenancy;
 using ControlEasyReborn.Modules.Administration.Api.Endpoints;
 using ControlEasyReborn.Modules.Administration.Api.DI;
@@ -116,7 +117,11 @@ try
     builder.Services.AddVisitsModule();
     builder.Services.AddReportsModule();
 
-    builder.Services.AddHostedService<PlatformAdminBootstrapService>();
+    builder.Services.AddControlEasyDemo(builder.Configuration);
+    if (DemoHostingExtensions.ShouldRegisterPlatformAdminBootstrap(builder.Configuration))
+    {
+        builder.Services.AddHostedService<PlatformAdminBootstrapService>();
+    }
 
     builder.Services.AddCors(options =>
     {
@@ -147,6 +152,7 @@ try
     app.UseAuthorization();
 
     app.MapHealthChecks("/health");
+    app.MapDemoEndpoints();
     app.MapFeatureEndpoints();
     app.MapTenantEndpoints();
     app.MapTenantBackupEndpoints();

@@ -8,8 +8,8 @@ services:
       - --entrypoints.websecure.address=:443
       - --api.insecure=true
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:80"
+      - "8443:443"
       - "8082:8080"
     volumes:
       - ./reverse-proxy/traefik.yml:/etc/traefik/static.yml:ro
@@ -68,7 +68,7 @@ services:
       retries: 20
 
   adminer:
-    image: adminer:4.8
+    image: adminer:4
     labels:
       - "traefik.http.routers.adminer.rule=Host(`localhost`) && PathPrefix(`/db`)"
       - "traefik.http.routers.adminer.entrypoints=web"

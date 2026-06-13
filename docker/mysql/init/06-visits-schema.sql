@@ -11,11 +11,13 @@ CREATE TABLE IF NOT EXISTS Visits (
     GatehouseId CHAR(36) NULL,
     CheckedInAtUtc DATETIME(6) NULL,
     CheckedOutAtUtc DATETIME(6) NULL,
-    CreatedAtUtc DATETIME NOT NULL DEFAULT UTC_TIMESTAMP(),
+    CreatedAtUtc DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UpdatedAtUtc DATETIME NULL,
+    tenant_id CHAR(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000001',
     INDEX IX_Visits_TenantId (TenantId),
     INDEX IX_Visits_Status (Status),
     INDEX IX_Visits_VisitorName (VisitorName),
     INDEX IX_Visits_VisitorDocument (VisitorDocument),
-    INDEX IX_Visits_CheckedInAtUtc (CheckedInAtUtc)
+    INDEX IX_Visits_CheckedInAtUtc (CheckedInAtUtc),
+    INDEX IX_Visits_tenant_id (tenant_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

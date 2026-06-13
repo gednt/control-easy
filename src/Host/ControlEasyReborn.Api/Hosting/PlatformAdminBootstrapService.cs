@@ -51,9 +51,9 @@ public sealed class PlatformAdminBootstrapService : IHostedService
         var platformTenantId = Guid.Parse("00000000-0000-0000-0000-000000000001");
 
         await bypassClient.InsertAsync(
-            new[] { "Id", "Email", "PasswordHash", "DisplayName", "Active", "MustChangePassword", "Roles", "CreatedAtUtc", "tenant_id" },
+            new[] { "Id", "TenantId", "Email", "PasswordHash", "DisplayName", "Active", "MustChangePassword", "Roles", "CreatedAtUtc", "tenant_id" },
             "Users",
-            new object[] { id, email, passwordHash, "Platform Admin", true, true, "PlatformAdmin", DateTime.UtcNow, platformTenantId },
+            new object[] { id, platformTenantId, email, passwordHash, "Platform Admin", true, true, "PlatformAdmin", DateTime.UtcNow, platformTenantId },
             primaryKeyName: "Id",
             autoIncrement: false,
             ct: ct);

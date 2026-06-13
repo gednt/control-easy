@@ -2,15 +2,17 @@ import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { TopbarComponent } from '../topbar/topbar.component';
+import { DemoBannerComponent } from '../demo-banner/demo-banner.component';
 
 @Component({
   selector: 'ce-app-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, SidebarComponent, TopbarComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, SidebarComponent, TopbarComponent, DemoBannerComponent],
   template: `
     <div class="app-shell">
       <ce-sidebar />
       <div class="main-area">
+        <ce-demo-banner />
         <ce-topbar />
         <main id="main" class="page-content" tabindex="-1">
           <router-outlet />
