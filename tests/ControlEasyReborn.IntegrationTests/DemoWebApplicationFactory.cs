@@ -31,7 +31,7 @@ public sealed class DemoWebApplicationFactory : TenantAwareWebApplicationFactory
                 ["Jwt:Issuer"] = JwtTestHelper.Issuer,
                 ["Jwt:Audience"] = JwtTestHelper.Audience,
                 ["Demo:Enabled"] = "true",
-                ["Demo:SeedVersion"] = "1",
+                ["Demo:SeedVersion"] = "2",
                 ["Demo:DisableOutboundEmail"] = "true",
             });
         });

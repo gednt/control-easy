@@ -29,6 +29,7 @@ public static class SecurityModuleServiceCollectionExtensions
 
         services.AddScoped<LoginHandler>();
         services.AddScoped<RefreshHandler>();
+        services.AddScoped<ChangePasswordHandler>();
         services.AddScoped<CreateUserHandler>();
         services.AddScoped<CreateAttendantProfileHandler>();
         services.AddScoped<GetAttendantProfileHandler>();
@@ -42,9 +43,11 @@ public static class SecurityModuleServiceCollectionExtensions
         services.AddScoped<ListGatehousesHandler>();
         services.AddScoped<TenantLookupHandler>();
         services.AddScoped<TenantSwitchHandler>();
+        services.AddScoped<GetSessionHandler>();
 
         services.AddScoped<IValidator<CreateUserRequest>, CreateUserRequestValidator>();
         services.AddScoped<IValidator<LoginRequest>, LoginRequestValidator>();
+        services.AddScoped<IValidator<ChangePasswordRequest>, ChangePasswordRequestValidator>();
         services.AddScoped<IValidator<CreateAttendantProfileRequest>, CreateAttendantProfileRequestValidator>();
         services.AddScoped<IValidator<UpdateAttendantProfileRequest>, UpdateAttendantProfileRequestValidator>();
         services.AddScoped<IValidator<CreateShiftRequest>, CreateShiftRequestValidator>();

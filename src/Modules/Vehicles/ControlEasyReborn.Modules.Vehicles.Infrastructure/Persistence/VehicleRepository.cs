@@ -56,9 +56,9 @@ public sealed class VehicleRepository : IVehicleRepository
     {
         var db = _factory.Create(_ctx);
         await db.InsertAsync(
-            new[] { "Id", "TenantId", "Plate", "Brand", "Model", "Color", "ApartmentId", "OwnerName", "VehicleType", "Active", "CreatedAtUtc", "UpdatedAtUtc" },
+            new[] { "Id", "TenantId", "Plate", "Brand", "Model", "Color", "ApartmentId", "OwnerName", "VehicleType", "Active", "CreatedAtUtc", "UpdatedAtUtc", "tenant_id" },
             TableName,
-            new object?[] { vehicle.Id, vehicle.TenantId, vehicle.Plate, vehicle.Brand, vehicle.Model, vehicle.Color, (object?)vehicle.ApartmentId ?? DBNull.Value, vehicle.OwnerName, (int)vehicle.VehicleType, vehicle.Active, vehicle.CreatedAtUtc, (object?)vehicle.UpdatedAtUtc ?? DBNull.Value },
+            new object?[] { vehicle.Id, vehicle.TenantId, vehicle.Plate, vehicle.Brand, vehicle.Model, vehicle.Color, (object?)vehicle.ApartmentId ?? DBNull.Value, vehicle.OwnerName, (int)vehicle.VehicleType, vehicle.Active, vehicle.CreatedAtUtc, (object?)vehicle.UpdatedAtUtc ?? DBNull.Value, vehicle.TenantId },
             primaryKeyName: "Id",
             autoIncrement: false,
             ct: ct);
@@ -71,8 +71,8 @@ public sealed class VehicleRepository : IVehicleRepository
             new[] { "Plate", "Brand", "Model", "Color", "ApartmentId", "OwnerName", "VehicleType", "Active", "UpdatedAtUtc" },
             TableName,
             new[] { vehicle.Plate, vehicle.Brand ?? string.Empty, vehicle.Model ?? string.Empty, vehicle.Color ?? string.Empty, vehicle.ApartmentId.HasValue ? vehicle.ApartmentId.Value.ToString() : string.Empty, vehicle.OwnerName ?? string.Empty, ((int)vehicle.VehicleType).ToString(), vehicle.Active ? "1" : "0", vehicle.UpdatedAtUtc.HasValue ? vehicle.UpdatedAtUtc.Value.ToString("o") : string.Empty },
-            "Id = @param0",
-            new object[] { vehicle.Id },
+            $"Id = '{vehicle.Id}'",
+            Array.Empty<object>(),
             ct: ct);
     }
 

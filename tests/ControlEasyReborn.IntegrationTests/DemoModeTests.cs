@@ -36,7 +36,7 @@ public sealed class DemoModeTests
         var body = await response.Content.ReadFromJsonAsync<DemoEndpoints.DemoInfoResponse>();
         body.Should().NotBeNull();
         body!.Enabled.Should().BeTrue();
-        body.SeedVersion.Should().Be(1);
+        body.SeedVersion.Should().Be(2);
         body.Tenants.Should().HaveCount(2);
     }
 

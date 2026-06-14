@@ -1,6 +1,5 @@
 using ControlEasyReborn.Modules.Security.Application.Abstractions;
 using ControlEasyReborn.Modules.Security.Application.Contracts;
-using ControlEasyReborn.Modules.Security.Application.Errors;
 using ControlEasyReborn.Modules.Tenants.Application.Abstractions;
 
 namespace ControlEasyReborn.Modules.Security.Application.Handlers;
@@ -39,6 +38,9 @@ public sealed class TenantLookupHandler
         var results = new List<TenantLookupResponse>();
         foreach (var profile in activeProfiles)
         {
+            if (!UserTenantAccess.IsCondominiumTenant(profile.TenantId, user.Roles))
+                continue;
+
             var tenant = await _tenants.FindAsync(profile.TenantId, ct);
             if (tenant is null) continue;
 

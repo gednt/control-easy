@@ -1,7 +1,9 @@
 using ControlEasyReborn.Modules.Security.Application.Abstractions;
 using ControlEasyReborn.Modules.Security.Application.Contracts;
 using ControlEasyReborn.Modules.Security.Application.Errors;
+using ControlEasyReborn.SharedKernel.MultiTenancy;
 using FluentValidation;
+using ITenantAdminRepository = ControlEasyReborn.Modules.Tenants.Application.Abstractions.ITenantAdminRepository;
 
 namespace ControlEasyReborn.Modules.Security.Application.Handlers;
 
@@ -10,6 +12,7 @@ public sealed class RefreshHandler
     private readonly IRefreshTokenRepository _refreshTokens;
     private readonly IUserRepository _users;
     private readonly IAttendantProfileRepository _profiles;
+    private readonly ITenantAdminRepository _adminProfiles;
     private readonly IJwtTokenService _jwtService;
     private readonly IValidator<RefreshRequest> _validator;
 
@@ -17,12 +20,14 @@ public sealed class RefreshHandler
         IRefreshTokenRepository refreshTokens,
         IUserRepository users,
         IAttendantProfileRepository profiles,
+        ITenantAdminRepository adminProfiles,
         IJwtTokenService jwtService,
         IValidator<RefreshRequest> validator)
     {
         _refreshTokens = refreshTokens;
         _users = users;
         _profiles = profiles;
+        _adminProfiles = adminProfiles;
         _jwtService = jwtService;
         _validator = validator;
     }
@@ -51,8 +56,8 @@ public sealed class RefreshHandler
             throw new UnauthorizedException("User not found or inactive.");
         }
 
-        var profiles = await _profiles.ListByUserAsync(user.Id, ct);
-        var activeProfile = profiles.FirstOrDefault(p => p.Active);
+        var activeProfile = await AttendantProfileLoginSupport.ResolveActiveProfileAsync(
+            user, _profiles, _adminProfiles, ct);
         if (activeProfile is null)
         {
             throw new UnauthorizedException("No active attendant profile found for user.");

@@ -28,6 +28,79 @@ public sealed class VisitEndpointTests
         var body = await response.Content.ReadFromJsonAsync<VisitResponse>();
         body.Should().NotBeNull();
         body!.VisitorName.Should().Be("Ana Costa");
+        body.Status.Should().Be("Pending");
+    }
+
+    [Fact]
+    public async Task CreateVisit_EmptyVisitorName_Returns400()
+    {
+        var client = _factory.AsTenantA();
+        var request = new CreateVisitRequest("", "12345678901", null, null, null);
+
+        var response = await client.PostAsJsonAsync("/api/v1/visits", request);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task CheckInVisit_AsPending_ReturnsOkWithCheckedInStatus()
+    {
+        var client = _factory.AsTenantA();
+        var createResponse = await client.PostAsJsonAsync("/api/v1/visits",
+            new CreateVisitRequest("Check In Test", "12345678901", null, null, "Visit"));
+        var created = await createResponse.Content.ReadFromJsonAsync<VisitResponse>();
+
+        var checkInResponse = await client.PostAsync($"/api/v1/visits/{created!.Id}/checkin", null);
+        checkInResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await checkInResponse.Content.ReadFromJsonAsync<VisitResponse>();
+        body!.Status.Should().Be("CheckedIn");
+        body.CheckedInAtUtc.Should().NotBeNull();
+        body.CheckedOutAtUtc.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task CheckOutVisit_AfterCheckIn_ReturnsOkWithCheckedOutStatus()
+    {
+        var client = _factory.AsTenantA();
+        var createResponse = await client.PostAsJsonAsync("/api/v1/visits",
+            new CreateVisitRequest("Check Out Test", "98765432100", null, null, null));
+        var created = await createResponse.Content.ReadFromJsonAsync<VisitResponse>();
+
+        await client.PostAsync($"/api/v1/visits/{created!.Id}/checkin", null);
+
+        var checkOutResponse = await client.PostAsync($"/api/v1/visits/{created.Id}/checkout", null);
+        checkOutResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await checkOutResponse.Content.ReadFromJsonAsync<VisitResponse>();
+        body!.Status.Should().Be("CheckedOut");
+        body.CheckedInAtUtc.Should().NotBeNull();
+        body.CheckedOutAtUtc.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task CheckInVisit_AlreadyCheckedIn_Returns409()
+    {
+        var client = _factory.AsTenantA();
+        var createResponse = await client.PostAsJsonAsync("/api/v1/visits",
+            new CreateVisitRequest("Double Check In", "11122233344", null, null, null));
+        var created = await createResponse.Content.ReadFromJsonAsync<VisitResponse>();
+
+        await client.PostAsync($"/api/v1/visits/{created!.Id}/checkin", null);
+
+        var secondCheckIn = await client.PostAsync($"/api/v1/visits/{created.Id}/checkin", null);
+        secondCheckIn.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task CheckOutVisit_WithoutCheckIn_Returns409()
+    {
+        var client = _factory.AsTenantA();
+        var createResponse = await client.PostAsJsonAsync("/api/v1/visits",
+            new CreateVisitRequest("Early Check Out", "55566677788", null, null, null));
+        var created = await createResponse.Content.ReadFromJsonAsync<VisitResponse>();
+
+        var checkOutResponse = await client.PostAsync($"/api/v1/visits/{created!.Id}/checkout", null);
+        checkOutResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 
     [Fact]

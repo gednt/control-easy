@@ -12,9 +12,10 @@ export interface LoginResponse {
   refreshToken: string;
   tenantId: string;
   profileId: string;
-  roles: string[];
-  permissions: string[];
+  roles: string[] | string;
+  permissions: string[] | string;
   mustChangePassword: boolean;
+  isDemoPersona: boolean;
 }
 
 export interface RefreshResponse {
@@ -40,6 +41,29 @@ export interface TenantSwitchResponse {
   profileId: string;
   roles: string[];
   permissions: string[];
+  isDemoPersona: boolean;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface SessionTenantResponse {
+  tenantId: string;
+  slug: string;
+  displayName: string;
+  userDisplayName: string;
+}
+
+export interface SessionResponse {
+  tenantId: string;
+  tenantSlug: string;
+  tenantDisplayName: string;
+  userDisplayName: string;
+  roles: string;
+  isDemoPersona: boolean;
+  switchableTenants: SessionTenantResponse[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -62,5 +86,13 @@ export class SecurityApiService {
 
   switchTenant(tenantId: string): Observable<TenantSwitchResponse> {
     return this.http.post<TenantSwitchResponse>(`${this.baseUrl}/tenant-switch`, { tenantId });
+  }
+
+  changePassword(request: ChangePasswordRequest): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/auth/change-password`, request);
+  }
+
+  getSession(): Observable<SessionResponse> {
+    return this.http.get<SessionResponse>(`${this.baseUrl}/session`);
   }
 }

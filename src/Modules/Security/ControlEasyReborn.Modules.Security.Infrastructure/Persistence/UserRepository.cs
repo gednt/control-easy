@@ -54,13 +54,27 @@ public sealed class UserRepository : IUserRepository
 
     public async Task UpdateAsync(User user, CancellationToken ct)
     {
-        await _db.UpdateAsync(
+        const int fieldCount = 8;
+        var updated = await _db.UpdateAsync(
             new[] { "TenantId", "Email", "PasswordHash", "DisplayName", "Active", "MustChangePassword", "Roles", "UpdatedAtUtc" },
             TableName,
-            new[] { user.TenantId.ToString(), user.Email, user.PasswordHash, user.DisplayName, user.Active ? "1" : "0", user.MustChangePassword ? "1" : "0", user.Roles, user.UpdatedAtUtc.HasValue ? user.UpdatedAtUtc.Value.ToString("o") : string.Empty },
-            "Id = @param0",
-            new object[] { user.Id },
+            new[]
+            {
+                user.TenantId.ToString(),
+                user.Email,
+                user.PasswordHash,
+                user.DisplayName,
+                user.Active ? "1" : "0",
+                user.MustChangePassword ? "1" : "0",
+                user.Roles,
+                user.UpdatedAtUtc?.ToString("yyyy-MM-dd HH:mm:ss") ?? string.Empty
+            },
+            $"Id = @param{fieldCount}",
+            new object[] { user.Id.ToString() },
             ct: ct);
+
+        if (!updated)
+            throw new InvalidOperationException($"Failed to update user {user.Id}. {_db.Error}");
     }
 
     private static User? MapFirstOrDefault(DataTable rows)

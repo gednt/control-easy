@@ -1,6 +1,7 @@
-import { Component, ChangeDetectionStrategy, signal, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { ThemeService } from '../../design-system/theme/theme.service';
+import { AuthService } from '../../core/services/auth.service';
+import { TenantSessionService } from '../../core/services/tenant-session.service';
 
 @Component({
   selector: 'ce-sidebar',
@@ -13,6 +14,15 @@ import { ThemeService } from '../../design-system/theme/theme.service';
         <div class="sidebar-brand-text">ControlEasy</div>
       </div>
       <nav class="sidebar-nav">
+        @if (auth.isPlatformAdmin()) {
+          <div class="sidebar-nav-section">
+            <div class="sidebar-nav-title">Platform</div>
+            <a class="sidebar-nav-item" routerLink="/platform/condominiums" routerLinkActive="active">
+              <span class="sidebar-nav-icon">&#127970;</span>
+              <span class="sidebar-nav-text">Condominiums</span>
+            </a>
+          </div>
+        } @else {
         <div class="sidebar-nav-section">
           <div class="sidebar-nav-title">Overview</div>
           <a class="sidebar-nav-item"
@@ -28,6 +38,10 @@ import { ThemeService } from '../../design-system/theme/theme.service';
           <a class="sidebar-nav-item" routerLink="/residents" routerLinkActive="active">
             <span class="sidebar-nav-icon">&#9787;</span>
             <span class="sidebar-nav-text">Residents</span>
+          </a>
+          <a class="sidebar-nav-item" routerLink="/apartments" routerLinkActive="active">
+            <span class="sidebar-nav-icon">&#127968;</span>
+            <span class="sidebar-nav-text">Apartments</span>
           </a>
           <a class="sidebar-nav-item" routerLink="/visits" routerLinkActive="active">
             <span class="sidebar-nav-icon">&#9788;</span>
@@ -49,12 +63,16 @@ import { ThemeService } from '../../design-system/theme/theme.service';
             <span class="sidebar-nav-text">Administration</span>
           </a>
         </div>
+        }
       </nav>
       <div class="sidebar-footer">
-        <div class="sidebar-footer-avatar">A</div>
+        <div class="sidebar-footer-avatar">{{ initials() }}</div>
         <div class="sidebar-footer-text">
-          <div class="sidebar-footer-name">Admin</div>
-          <div class="sidebar-footer-role">TenantAdmin</div>
+          <div class="sidebar-footer-name">{{ displayName() }}</div>
+          <div class="sidebar-footer-role">{{ roleLabel() }}</div>
+          @if (!auth.isPlatformAdmin() && tenantSession.tenantDisplayName()) {
+            <div class="sidebar-footer-tenant">{{ tenantSession.tenantDisplayName() }}</div>
+          }
         </div>
       </div>
     </aside>
@@ -180,7 +198,41 @@ import { ThemeService } from '../../design-system/theme/theme.service';
       color: var(--color-sidebar-text-muted);
       font-size: 0.7rem;
     }
+    .sidebar-footer-tenant {
+      color: var(--color-sidebar-text-muted);
+      font-size: 0.65rem;
+      margin-top: var(--spacing-1);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SidebarComponent {}
+export class SidebarComponent {
+  readonly auth = inject(AuthService);
+  readonly tenantSession = inject(TenantSessionService);
+
+  readonly displayName = computed(() =>
+    this.tenantSession.userDisplayName() ?? this.fallbackDisplayName(),
+  );
+  readonly roleLabel = computed(() => this.formatRole(this.auth.roles()[0]));
+  readonly initials = computed(() => this.displayName().trim().slice(0, 1).toUpperCase() || 'A');
+
+  private formatRole(role: string | undefined): string {
+    if (!role) return 'Signed in';
+    if (role === 'AttendantProfile') return 'Porteiro';
+    if (role === 'TenantAdmin') return 'Administrador';
+    if (role === 'PlatformAdmin') return 'Platform Admin';
+    return role;
+  }
+
+  private fallbackDisplayName(): string {
+    const roles = this.auth.roles();
+    if (roles.includes('PlatformAdmin')) return 'Platform Admin';
+    if (roles.includes('TenantAdmin')) return 'Administrador';
+    if (roles.includes('AttendantProfile')) return 'Porteiro';
+    if (roles.includes('Morador')) return 'Morador';
+    return 'Account';
+  }
+}

@@ -97,6 +97,7 @@ public sealed class ResidentRepositoryTests
         op.OperationType.Should().Be("Insert");
         op.Sql.Should().Contain("INSERT INTO Residents");
         op.Parameters.Should().Contain(resident.Id);
+        op.Parameters.Should().Contain(resident.TenantId);
     }
 
     [Fact]

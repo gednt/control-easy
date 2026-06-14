@@ -1,6 +1,8 @@
 using System.Data;
+using ControlEasyReborn.Modules.Tenants.Application;
 using ControlEasyReborn.Modules.Tenants.Application.Abstractions;
 using ControlEasyReborn.Modules.Tenants.Application.Contracts;
+using ControlEasyReborn.SharedKernel.MultiTenancy;
 using DBTools.Abstractions;
 
 namespace ControlEasyReborn.Modules.Tenants.Infrastructure.Persistence;
@@ -20,12 +22,25 @@ public sealed class TenantAdminRepository : ITenantAdminRepository
     public async Task<TenantAdminResponse> CreateAdminAsync(Guid tenantId, string email, string displayName, string passwordHash, CancellationToken ct)
     {
         var userId = Guid.NewGuid();
+        var profileId = Guid.NewGuid();
         var now = DateTime.UtcNow;
 
         await _db.InsertAsync(
-            new[] { "Id", "TenantId", "Email", "PasswordHash", "DisplayName", "Active", "MustChangePassword", "Roles", "CreatedAtUtc", "UpdatedAtUtc" },
+            new[] { "Id", "TenantId", "Email", "PasswordHash", "DisplayName", "Active", "MustChangePassword", "Roles", "CreatedAtUtc", "UpdatedAtUtc", "tenant_id" },
             TableName,
-            new object?[] { userId, tenantId, email, passwordHash, displayName, true, true, "TenantAdmin", now, DBNull.Value },
+            new object?[] { userId, tenantId, email, passwordHash, displayName, true, true, "TenantAdmin", now, DBNull.Value, tenantId },
+            primaryKeyName: "Id",
+            autoIncrement: false,
+            ct: ct);
+
+        await _db.InsertAsync(
+            new[] { "Id", "TenantId", "UserId", "DisplayName", "ShiftId", "GatehouseId", "Permissions", "Active", "CreatedAtUtc", "tenant_id" },
+            "AttendantProfiles",
+            new object?[]
+            {
+                profileId, tenantId, userId, displayName,
+                DBNull.Value, DBNull.Value, TenantAdminDefaults.Permissions, true, now, tenantId
+            },
             primaryKeyName: "Id",
             autoIncrement: false,
             ct: ct);
@@ -59,14 +74,182 @@ public sealed class TenantAdminRepository : ITenantAdminRepository
         return result;
     }
 
+    public async Task<TenantAdminResponse> UpdateAdminAsync(Guid tenantId, Guid userId, string email, string displayName, CancellationToken ct)
+    {
+        var rows = await _db.SelectAsync(
+            fields: SelectFields,
+            table: TableName,
+            whereClause: "Id = @param0 AND TenantId = @param1 AND Roles LIKE '%TenantAdmin%'",
+            parameters: new object[] { userId.ToString(), tenantId.ToString() },
+            ct: ct);
+
+        if (rows is null || rows.Rows.Count == 0)
+            throw new InvalidOperationException($"Tenant admin {userId} was not found for tenant {tenantId}.");
+
+        var now = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+        const int fieldCount = 3;
+        await _db.UpdateAsync(
+            new[] { "Email", "DisplayName", "UpdatedAtUtc" },
+            TableName,
+            new[] { email, displayName, now },
+            $"Id = @param{fieldCount}",
+            new object[] { userId.ToString() },
+            ct: ct);
+
+        var createdAtUtc = Convert.ToDateTime(rows.Rows[0]["CreatedAtUtc"]);
+        var active = Convert.ToBoolean(rows.Rows[0]["Active"]);
+        return new TenantAdminResponse(userId, email, displayName, tenantId, active, createdAtUtc);
+    }
+
+    public async Task<PorteiroResponse> CreatePorteiroAsync(Guid tenantId, string email, string displayName, string passwordHash, CancellationToken ct)
+    {
+        var userId = Guid.NewGuid();
+        var profileId = Guid.NewGuid();
+        var now = DateTime.UtcNow;
+
+        await _db.InsertAsync(
+            new[] { "Id", "TenantId", "Email", "PasswordHash", "DisplayName", "Active", "MustChangePassword", "Roles", "CreatedAtUtc", "UpdatedAtUtc", "tenant_id" },
+            TableName,
+            new object?[] { userId, tenantId, email, passwordHash, displayName, true, true, PorteiroDefaults.Role, now, DBNull.Value, tenantId },
+            primaryKeyName: "Id",
+            autoIncrement: false,
+            ct: ct);
+
+        await _db.InsertAsync(
+            new[] { "Id", "TenantId", "UserId", "DisplayName", "ShiftId", "GatehouseId", "Permissions", "Active", "CreatedAtUtc", "tenant_id" },
+            "AttendantProfiles",
+            new object?[]
+            {
+                profileId, tenantId, userId, displayName,
+                DBNull.Value, DBNull.Value, PorteiroDefaults.Permissions, true, now, tenantId
+            },
+            primaryKeyName: "Id",
+            autoIncrement: false,
+            ct: ct);
+
+        return new PorteiroResponse(userId, profileId, email, displayName, tenantId, true, now);
+    }
+
+    public async Task<IReadOnlyList<PorteiroResponse>> ListPorteirosAsync(Guid tenantId, CancellationToken ct)
+    {
+        var userRows = await _db.SelectAsync(
+            fields: SelectFields,
+            table: TableName,
+            whereClause: "TenantId = @param0 AND Roles = @param1",
+            parameters: new object[] { tenantId, PorteiroDefaults.Role },
+            ct: ct);
+
+        if (userRows is null || userRows.Rows.Count == 0)
+            return [];
+
+        var profileRows = await _db.SelectAsync(
+            fields: "Id, UserId",
+            table: "AttendantProfiles",
+            whereClause: "TenantId = @param0",
+            parameters: new object[] { tenantId },
+            ct: ct);
+
+        var profileByUserId = new Dictionary<Guid, Guid>();
+        if (profileRows is not null)
+        {
+            foreach (DataRow r in profileRows.Rows)
+            {
+                var userId = Guid.Parse(r["UserId"].ToString() ?? string.Empty);
+                profileByUserId[userId] = Guid.Parse(r["Id"].ToString() ?? string.Empty);
+            }
+        }
+
+        var result = new List<PorteiroResponse>();
+        foreach (DataRow r in userRows.Rows)
+        {
+            var userId = Guid.Parse(r["Id"].ToString() ?? string.Empty);
+            if (!profileByUserId.TryGetValue(userId, out var profileId))
+                continue;
+
+            result.Add(new PorteiroResponse(
+                UserId: userId,
+                ProfileId: profileId,
+                Email: r["Email"]?.ToString() ?? string.Empty,
+                DisplayName: r["DisplayName"]?.ToString() ?? string.Empty,
+                TenantId: tenantId,
+                Active: Convert.ToBoolean(r["Active"]),
+                CreatedAtUtc: Convert.ToDateTime(r["CreatedAtUtc"])));
+        }
+
+        return result;
+    }
+
+    public async Task<bool> EmailExistsAsync(string email, Guid? exceptUserId, CancellationToken ct)
+    {
+        var rows = await _db.SelectAsync(
+            fields: "Id",
+            table: TableName,
+            whereClause: "Email = @param0",
+            parameters: new object[] { email },
+            ct: ct);
+
+        if (rows is null || rows.Rows.Count == 0)
+            return false;
+
+        if (exceptUserId is null)
+            return true;
+
+        var existingId = Guid.Parse(rows.Rows[0]["Id"].ToString() ?? string.Empty);
+        return existingId != exceptUserId.Value;
+    }
+
+    public async Task EnsureAttendantProfileAsync(
+        Guid userId,
+        Guid tenantId,
+        string displayName,
+        string roles,
+        CancellationToken ct)
+    {
+        if (!roles.Contains("TenantAdmin", StringComparison.Ordinal) &&
+            !roles.Contains("PlatformAdmin", StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        var existing = await _db.SelectAsync(
+            fields: "Id",
+            table: "AttendantProfiles",
+            whereClause: "UserId = @param0 AND TenantId = @param1 AND Active = 1",
+            parameters: new object[] { userId, tenantId },
+            ct: ct);
+
+        if (existing is not null && existing.Rows.Count > 0)
+            return;
+
+        var permissions = roles.Contains("PlatformAdmin", StringComparison.Ordinal)
+            ? "platform:*"
+            : TenantAdminDefaults.Permissions;
+        var profileTenantId = roles.Contains("PlatformAdmin", StringComparison.Ordinal)
+            ? PlatformTenant.Id
+            : tenantId;
+
+        await _db.InsertAsync(
+            new[] { "Id", "TenantId", "UserId", "DisplayName", "ShiftId", "GatehouseId", "Permissions", "Active", "CreatedAtUtc", "tenant_id" },
+            "AttendantProfiles",
+            new object?[]
+            {
+                Guid.NewGuid(), profileTenantId, userId, displayName,
+                DBNull.Value, DBNull.Value, permissions, true, DateTime.UtcNow, profileTenantId
+            },
+            primaryKeyName: "Id",
+            autoIncrement: false,
+            ct: ct);
+    }
+
     public async Task RevokeAdminAsync(Guid userId, CancellationToken ct)
     {
+        const int fieldCount = 2;
         await _db.UpdateAsync(
             new[] { "Roles", "UpdatedAtUtc" },
             TableName,
-            new[] { "", DateTime.UtcNow.ToString("o") },
-            whereClause: "Id = @param0",
-            whereParameters: new object[] { userId },
+            new[] { "", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") },
+            $"Id = @param{fieldCount}",
+            new object[] { userId.ToString() },
             ct: ct);
     }
 }

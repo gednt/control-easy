@@ -21,7 +21,15 @@ public sealed class CheckOutVisitHandler
             throw new NotFoundException("Visit " + id + " was not found.");
         }
 
-        visit.CheckOut();
+        try
+        {
+            visit.CheckOut();
+        }
+        catch (InvalidOperationException ex)
+        {
+            throw new ConflictException(ex.Message);
+        }
+
         await _visits.UpdateAsync(visit, ct);
         return CreateVisitHandler.ToResponse(visit);
     }

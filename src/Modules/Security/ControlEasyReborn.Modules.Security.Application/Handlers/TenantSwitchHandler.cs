@@ -1,6 +1,7 @@
 using ControlEasyReborn.Modules.Security.Application.Abstractions;
 using ControlEasyReborn.Modules.Security.Application.Contracts;
 using ControlEasyReborn.Modules.Security.Application.Errors;
+using ControlEasyReborn.SharedKernel.Demo;
 using ControlEasyReborn.SharedKernel.MultiTenancy;
 
 namespace ControlEasyReborn.Modules.Security.Application.Handlers;
@@ -52,6 +53,11 @@ public sealed class TenantSwitchHandler
             throw new NotFoundException("User not found.");
         }
 
+        if (!UserTenantAccess.IsCondominiumTenant(request.TenantId, user.Roles))
+        {
+            throw new UnauthorizedException("You do not have access to that condominium.");
+        }
+
         var token = _jwtService.GenerateAccessToken(
             user.Id, targetProfile.TenantId, targetProfile.Id,
             user.Roles, targetProfile.Permissions);
@@ -61,7 +67,8 @@ public sealed class TenantSwitchHandler
         return new TenantSwitchResponse(
             token, refreshToken,
             targetProfile.TenantId, targetProfile.Id,
-            user.Roles, targetProfile.Permissions);
+            user.Roles, targetProfile.Permissions,
+            DemoPersonas.IsDemoPersona(user.Email));
     }
 
     private async Task<Guid> GetUserIdFromContext(CancellationToken ct)

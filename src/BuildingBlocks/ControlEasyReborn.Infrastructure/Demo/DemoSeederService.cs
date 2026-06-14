@@ -66,6 +66,8 @@ public sealed class DemoSeederService : IHostedService
         await SeedUsersAsync(db, passwordHash, now, ct);
         await SeedSecurityInfrastructureAsync(db, now, ct);
         await SeedAttendantProfilesAsync(db, now, ct);
+        await SeedApartmentsAsync(db, DemoIds.AuroraTenantId, DemoFixtures.AuroraResidents, now, ct);
+        await SeedApartmentsAsync(db, DemoIds.ParqueVerdeTenantId, DemoFixtures.ParqueVerdeResidents, now, ct);
         await SeedResidentsAsync(db, DemoIds.AuroraTenantId, DemoFixtures.AuroraResidents, 0, now, ct);
         await SeedResidentsAsync(db, DemoIds.ParqueVerdeTenantId, DemoFixtures.ParqueVerdeResidents, DemoFixtures.AuroraResidents.Length, now, ct);
         await SeedVisitsAsync(db, now, ct);
@@ -128,6 +130,7 @@ public sealed class DemoSeederService : IHostedService
             await db.DeleteAsync("Vehicles", "tenant_id = @param0", new object[] { tenantId }, ct);
             await db.DeleteAsync("ServiceProviders", "tenant_id = @param0", new object[] { tenantId }, ct);
             await db.DeleteAsync("Residents", "tenant_id = @param0", new object[] { tenantId }, ct);
+            await db.DeleteAsync("Apartments", "tenant_id = @param0", new object[] { tenantId }, ct);
             await db.DeleteAsync("AttendantProfiles", "tenant_id = @param0", new object[] { tenantId }, ct);
             await db.DeleteAsync("Shifts", "tenant_id = @param0", new object[] { tenantId }, ct);
             await db.DeleteAsync("Gatehouses", "tenant_id = @param0", new object[] { tenantId }, ct);
@@ -247,8 +250,8 @@ public sealed class DemoSeederService : IHostedService
 
     private static async Task SeedAttendantProfilesAsync(IAsyncSqlClient db, DateTime now, CancellationToken ct)
     {
-        const string allPerms = "Visits.CheckIn,Visits.CheckOut,Visits.Read,Residents.Read,Residents.Write,Vehicles.Read,Vehicles.Write,ServiceProviders.Read,ServiceProviders.Write,Reports.Read";
-        const string readPerms = "Visits.Read,Residents.Read,Vehicles.Read,ServiceProviders.Read,Reports.Read";
+        const string allPerms = "Visits.CheckIn,Visits.CheckOut,Visits.Read,Apartments.Read,Apartments.Write,Residents.Read,Residents.Write,Vehicles.Read,Vehicles.Write,ServiceProviders.Read,ServiceProviders.Write,Reports.Read";
+        const string readPerms = "Visits.Read,Apartments.Read,Residents.Read,Vehicles.Read,ServiceProviders.Read,Reports.Read";
         const string platformPerms = "platform:*";
 
         await InsertProfileAsync(db, DemoIds.PlatformProfileId, DemoIds.PlatformTenantId, DemoIds.PlatformUserId, "Platform Admin", DemoIds.AuroraShiftId, DemoIds.AuroraGatehouseId, platformPerms, now, ct);
@@ -288,6 +291,35 @@ public sealed class DemoSeederService : IHostedService
             primaryKeyName: "Id",
             autoIncrement: false,
             ct: ct);
+    }
+
+    private static async Task SeedApartmentsAsync(
+        IAsyncSqlClient db,
+        Guid tenantId,
+        DemoResidentFixture[] residents,
+        DateTime now,
+        CancellationToken ct)
+    {
+        var seen = new HashSet<(string Block, string Unit)>();
+        foreach (var fixture in residents)
+        {
+            var key = (fixture.Block, fixture.Apt);
+            if (!seen.Add(key))
+                continue;
+
+            var id = DemoIds.ApartmentId(tenantId, fixture.Block, fixture.Apt);
+            var existing = await db.SelectAsync("Id", "Apartments", "Id = @param0", new object[] { id }, ct);
+            if (existing is not null && existing.Rows.Count > 0)
+                continue;
+
+            await db.InsertAsync(
+                new[] { "Id", "TenantId", "Block", "Unit", "Active", "CreatedAtUtc", "tenant_id" },
+                "Apartments",
+                new object[] { id, tenantId, fixture.Block, fixture.Apt, true, now, tenantId },
+                primaryKeyName: "Id",
+                autoIncrement: false,
+                ct: ct);
+        }
     }
 
     private static async Task SeedResidentsAsync(

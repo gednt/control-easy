@@ -14,7 +14,7 @@ services:
   api:
     environment:
       Demo__Enabled: "true"
-      Demo__SeedVersion: "1"
+      Demo__SeedVersion: "2"
       Demo__DisableOutboundEmail: "true"
       FeatureManagement__Residents__UseWeb: "true"
       FeatureManagement__Visits__UseWeb: "true"

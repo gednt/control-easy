@@ -1,7 +1,10 @@
 using ControlEasyReborn.Modules.Security.Application.Abstractions;
 using ControlEasyReborn.Modules.Security.Application.Contracts;
 using ControlEasyReborn.Modules.Security.Application.Errors;
+using ControlEasyReborn.SharedKernel.Demo;
+using ControlEasyReborn.SharedKernel.MultiTenancy;
 using FluentValidation;
+using ITenantAdminRepository = ControlEasyReborn.Modules.Tenants.Application.Abstractions.ITenantAdminRepository;
 
 namespace ControlEasyReborn.Modules.Security.Application.Handlers;
 
@@ -9,6 +12,7 @@ public sealed class LoginHandler
 {
     private readonly IUserRepository _users;
     private readonly IAttendantProfileRepository _profiles;
+    private readonly ITenantAdminRepository _adminProfiles;
     private readonly IRefreshTokenRepository _refreshTokens;
     private readonly IJwtTokenService _jwtService;
     private readonly IPasswordHasher _passwordHasher;
@@ -17,6 +21,7 @@ public sealed class LoginHandler
     public LoginHandler(
         IUserRepository users,
         IAttendantProfileRepository profiles,
+        ITenantAdminRepository adminProfiles,
         IRefreshTokenRepository refreshTokens,
         IJwtTokenService jwtService,
         IPasswordHasher passwordHasher,
@@ -24,6 +29,7 @@ public sealed class LoginHandler
     {
         _users = users;
         _profiles = profiles;
+        _adminProfiles = adminProfiles;
         _refreshTokens = refreshTokens;
         _jwtService = jwtService;
         _passwordHasher = passwordHasher;
@@ -51,8 +57,8 @@ public sealed class LoginHandler
             throw new UnauthorizedException("User account is inactive.");
         }
 
-        var profiles = await _profiles.ListByUserAsync(user.Id, ct);
-        var activeProfile = profiles.FirstOrDefault(p => p.Active);
+        var activeProfile = await AttendantProfileLoginSupport.ResolveActiveProfileAsync(
+            user, _profiles, _adminProfiles, ct);
         if (activeProfile is null)
         {
             throw new UnauthorizedException("No active attendant profile found for user.");
@@ -66,6 +72,8 @@ public sealed class LoginHandler
         var token = _jwtService.GenerateAccessToken(user.Id, tenantId, profileId, roles, permissions);
         var refreshToken = await _jwtService.GenerateRefreshTokenAsync(user.Id, ct);
 
-        return new LoginResponse(token, refreshToken, tenantId, profileId, roles, permissions, user.MustChangePassword);
+        return new LoginResponse(
+            token, refreshToken, tenantId, profileId, roles, permissions,
+            user.MustChangePassword, DemoPersonas.IsDemoPersona(user.Email));
     }
 }

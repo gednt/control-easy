@@ -7,6 +7,7 @@ import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { DemoInfoService, demoInfoInitializer } from './core/services/demo-info.service';
+import { BootstrapInfoService, bootstrapInfoInitializer } from './core/services/bootstrap-info.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -18,6 +19,12 @@ export const appConfig: ApplicationConfig = {
       provide: APP_INITIALIZER,
       useFactory: demoInfoInitializer,
       deps: [DemoInfoService],
+      multi: true,
+    },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: bootstrapInfoInitializer,
+      deps: [BootstrapInfoService],
       multi: true,
     },
   ],

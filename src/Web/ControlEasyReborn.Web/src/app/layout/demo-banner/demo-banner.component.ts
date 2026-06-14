@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
-import { DemoInfoService } from '../../core/services/demo-info.service';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'ce-demo-banner',
@@ -57,12 +57,12 @@ import { DemoInfoService } from '../../core/services/demo-info.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DemoBannerComponent {
-  private readonly demoInfo = inject(DemoInfoService);
+  private readonly auth = inject(AuthService);
   private readonly dismissed = signal(
     typeof sessionStorage !== 'undefined' && sessionStorage.getItem('ce.demoBanner.dismissed') === '1'
   );
 
-  readonly visible = () => this.demoInfo.enabled() && !this.dismissed();
+  readonly visible = () => this.auth.isDemoPersona() && !this.dismissed();
 
   dismiss(): void {
     this.dismissed.set(true);

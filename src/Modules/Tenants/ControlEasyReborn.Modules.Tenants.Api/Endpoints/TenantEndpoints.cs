@@ -18,6 +18,14 @@ public static class TenantEndpoints
             .RequireAuthorization(PlatformAdminRequirement.PolicyName)
             .WithTags("Tenants");
 
+        group.MapGet("/", async (
+            ListTenantsHandler handler,
+            CancellationToken ct) =>
+        {
+            var response = await handler.HandleAsync(ct);
+            return Results.Ok(response);
+        });
+
         group.MapPost("/", async (
             [FromBody] CreateTenantRequest request,
             CreateTenantHandler handler,
@@ -83,6 +91,36 @@ public static class TenantEndpoints
         {
             await handler.HandleAsync(userId, ct);
             return Results.NoContent();
+        });
+
+        group.MapPut("/{id:guid}/admins/{userId:guid}", async (
+            Guid id,
+            Guid userId,
+            [FromBody] UpdateTenantAdminRequest request,
+            UpdateTenantAdminHandler handler,
+            CancellationToken ct) =>
+        {
+            var response = await handler.HandleAsync(id, userId, request, ct);
+            return Results.Ok(response);
+        });
+
+        group.MapGet("/{id:guid}/porteiros", async (
+            Guid id,
+            ListPorteirosHandler handler,
+            CancellationToken ct) =>
+        {
+            var response = await handler.HandleAsync(id, ct);
+            return Results.Ok(response);
+        });
+
+        group.MapPost("/{id:guid}/porteiros", async (
+            Guid id,
+            [FromBody] CreatePorteiroRequest request,
+            CreatePorteiroHandler handler,
+            CancellationToken ct) =>
+        {
+            var response = await handler.HandleAsync(id, request, ct);
+            return Results.Created($"/api/v1/tenants/{id}/porteiros/{response.UserId}", response);
         });
 
         return app;

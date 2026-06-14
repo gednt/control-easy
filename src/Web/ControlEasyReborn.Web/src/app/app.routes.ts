@@ -1,11 +1,18 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { changePasswordGuard } from './core/guards/change-password.guard';
 import { demoModeGuard } from './core/guards/demo-mode.guard';
+import { platformAdminGuard } from './core/guards/platform-admin.guard';
 
 export const routes: Routes = [
   {
     path: 'login',
     loadComponent: () => import('./features/auth/login.page').then(m => m.LoginPage),
+  },
+  {
+    path: 'change-password',
+    canActivate: [changePasswordGuard],
+    loadComponent: () => import('./features/auth/change-password.page').then(m => m.ChangePasswordPage),
   },
   {
     path: '',
@@ -26,6 +33,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/residents/residents.page').then(m => m.ResidentsPage),
       },
       {
+        path: 'apartments',
+        loadComponent: () => import('./features/apartments/apartments.page').then(m => m.ApartmentsPage),
+      },
+      {
         path: 'visits',
         loadComponent: () => import('./features/visits/visits.page').then(m => m.VisitsPage),
       },
@@ -40,6 +51,11 @@ export const routes: Routes = [
       {
         path: 'administration',
         loadComponent: () => import('./features/administration/administration.page').then(m => m.AdministrationPage),
+      },
+      {
+        path: 'platform/condominiums',
+        canActivate: [platformAdminGuard],
+        loadComponent: () => import('./features/platform/condominiums.page').then(m => m.CondominiumsPage),
       },
     ],
   },

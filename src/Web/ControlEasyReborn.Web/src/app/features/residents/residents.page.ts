@@ -2,11 +2,19 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@a
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ResidentsApiService, ResidentResponse } from './residents-api.service';
+import { ApartmentPickerComponent } from '../../shared/apartment-picker/apartment-picker.component';
+import {
+  ApartmentsApiService,
+  formatApartmentLabel,
+} from '../apartments/apartments-api.service';
+import { cpfValidator } from '../../core/validators/cpf.validator';
+import { getApiErrorMessage } from '../../core/utils/api-error.util';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'ce-residents-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ApartmentPickerComponent],
   template: `
     <div class="page-header">
       <div class="page-title-block">
@@ -17,9 +25,11 @@ import { ResidentsApiService, ResidentResponse } from './residents-api.service';
         <button class="ce-button variant-secondary size-md" (click)="refresh()">
           &#8635; Refresh
         </button>
-        <button class="ce-button variant-primary size-md" (click)="openCreateModal()">
-          &#43; Add resident
-        </button>
+        @if (canWrite()) {
+          <button class="ce-button variant-primary size-md" (click)="openCreateModal()">
+            &#43; Add resident
+          </button>
+        }
       </div>
     </div>
 
@@ -35,9 +45,11 @@ import { ResidentsApiService, ResidentResponse } from './residents-api.service';
         <div class="ce-empty-state-description text-secondary">
           Add your first resident to get started.
         </div>
-        <button class="ce-button variant-primary size-md" (click)="openCreateModal()">
-          &#43; Add resident
-        </button>
+        @if (canWrite()) {
+          <button class="ce-button variant-primary size-md" (click)="openCreateModal()">
+            &#43; Add resident
+          </button>
+        }
       </div>
     } @else {
       <div class="ce-card" style="padding: 0;">
@@ -82,19 +94,21 @@ import { ResidentsApiService, ResidentResponse } from './residents-api.service';
                       </div>
                     </div>
                   </td>
-                  <td>{{ resident.apartmentId ? 'Apt ' + resident.apartmentId.slice(0, 8) : '\u2014' }}</td>
+                  <td>{{ getApartmentLabel(resident.apartmentId) }}</td>
                   <td>{{ resident.cpf }}</td>
                   <td>{{ resident.phone ?? '\u2014' }}</td>
                   <td>
                     <span class="ce-badge tone-success size-sm">{{ resident.active ? 'Active' : 'Inactive' }}</span>
                   </td>
                   <td>
-                    <div class="action-cell">
-                      <button class="icon-btn-sm" aria-label="Edit resident" title="Edit" (click)="openEditModal(resident)">&#9998;</button>
-                      @if (resident.active) {
-                        <button class="icon-btn-sm action-deactivate" aria-label="Deactivate resident" title="Deactivate" (click)="onDeactivate(resident)">&#8855;</button>
-                      }
-                    </div>
+                    @if (canWrite()) {
+                      <div class="action-cell">
+                        <button class="icon-btn-sm" aria-label="Edit resident" title="Edit" (click)="openEditModal(resident)">&#9998;</button>
+                        @if (resident.active) {
+                          <button class="icon-btn-sm action-deactivate" aria-label="Deactivate resident" title="Deactivate" (click)="onDeactivate(resident)">&#8855;</button>
+                        }
+                      </div>
+                    }
                   </td>
                 </tr>
               } @empty {
@@ -124,6 +138,9 @@ import { ResidentsApiService, ResidentResponse } from './residents-api.service';
             <button class="ce-modal-close" (click)="closeCreateModal()" aria-label="Close">&#10005;</button>
           </div>
           <div class="ce-modal-body">
+            @if (createError()) {
+              <div class="form-error-banner">{{ createError() }}</div>
+            }
             <form class="ce-form" [formGroup]="createForm" (ngSubmit)="onCreateResident()">
               <div class="ce-input-group">
                 <label class="ce-input-label" for="ar-name">Full name</label>
@@ -139,22 +156,25 @@ import { ResidentsApiService, ResidentResponse } from './residents-api.service';
                 <div class="ce-input-wrapper" [class.has-error]="createForm.get('cpf')?.invalid && createForm.get('cpf')?.touched">
                   <input id="ar-cpf" class="ce-input" placeholder="000.000.000-00" formControlName="cpf" />
                 </div>
-                @if (createForm.get('cpf')?.invalid && createForm.get('cpf')?.touched) {
+                @if (createForm.get('cpf')?.hasError('required') && createForm.get('cpf')?.touched) {
                   <div class="ce-input-error">CPF is required</div>
+                } @else if (createForm.get('cpf')?.hasError('invalidCpf') && createForm.get('cpf')?.touched) {
+                  <div class="ce-input-error">CPF check digits are invalid</div>
                 }
               </div>
-              <div class="form-row">
-                <div class="ce-input-group" style="flex: 1;">
-                  <label class="ce-input-label" for="ar-email">Email</label>
-                  <div class="ce-input-wrapper">
-                    <input id="ar-email" class="ce-input" placeholder="maria@example.com" formControlName="email" />
-                  </div>
-                </div>
-                <div class="ce-input-group" style="flex: 1;">
-                  <label class="ce-input-label" for="ar-phone">Phone</label>
-                  <div class="ce-input-wrapper">
-                    <input id="ar-phone" class="ce-input" placeholder="(11) 99999-0000" formControlName="phone" />
-                  </div>
+              <ce-apartment-picker
+                formControlName="apartmentId"
+                label="Apartment"
+                inputId="ar-apartment"
+                placeholder="Select block and unit..."
+                [hasError]="!!(createForm.get('apartmentId')?.invalid && createForm.get('apartmentId')?.touched)" />
+              @if (createForm.get('apartmentId')?.invalid && createForm.get('apartmentId')?.touched) {
+                <div class="ce-input-error">Apartment is required</div>
+              }
+              <div class="ce-input-group">
+                <label class="ce-input-label" for="ar-phone">Phone</label>
+                <div class="ce-input-wrapper">
+                  <input id="ar-phone" class="ce-input" placeholder="(11) 99999-0000" formControlName="phone" />
                 </div>
               </div>
             </form>
@@ -184,6 +204,9 @@ import { ResidentsApiService, ResidentResponse } from './residents-api.service';
             <button class="ce-modal-close" (click)="closeEditModal()" aria-label="Close">&#10005;</button>
           </div>
           <div class="ce-modal-body">
+            @if (editError()) {
+              <div class="form-error-banner">{{ editError() }}</div>
+            }
             <form class="ce-form" [formGroup]="editForm" (ngSubmit)="onEditResident()">
               <div class="ce-input-group">
                 <label class="ce-input-label" for="er-name">Full name</label>
@@ -199,22 +222,25 @@ import { ResidentsApiService, ResidentResponse } from './residents-api.service';
                 <div class="ce-input-wrapper" [class.has-error]="editForm.get('cpf')?.invalid && editForm.get('cpf')?.touched">
                   <input id="er-cpf" class="ce-input" placeholder="000.000.000-00" formControlName="cpf" />
                 </div>
-                @if (editForm.get('cpf')?.invalid && editForm.get('cpf')?.touched) {
+                @if (editForm.get('cpf')?.hasError('required') && editForm.get('cpf')?.touched) {
                   <div class="ce-input-error">CPF is required</div>
+                } @else if (editForm.get('cpf')?.hasError('invalidCpf') && editForm.get('cpf')?.touched) {
+                  <div class="ce-input-error">CPF check digits are invalid</div>
                 }
               </div>
-              <div class="form-row">
-                <div class="ce-input-group" style="flex: 1;">
-                  <label class="ce-input-label" for="er-email">Email</label>
-                  <div class="ce-input-wrapper">
-                    <input id="er-email" class="ce-input" placeholder="maria@example.com" formControlName="email" />
-                  </div>
-                </div>
-                <div class="ce-input-group" style="flex: 1;">
-                  <label class="ce-input-label" for="er-phone">Phone</label>
-                  <div class="ce-input-wrapper">
-                    <input id="er-phone" class="ce-input" placeholder="(11) 99999-0000" formControlName="phone" />
-                  </div>
+              <ce-apartment-picker
+                formControlName="apartmentId"
+                label="Apartment"
+                inputId="er-apartment"
+                placeholder="Select block and unit..."
+                [hasError]="!!(editForm.get('apartmentId')?.invalid && editForm.get('apartmentId')?.touched)" />
+              @if (editForm.get('apartmentId')?.invalid && editForm.get('apartmentId')?.touched) {
+                <div class="ce-input-error">Apartment is required</div>
+              }
+              <div class="ce-input-group">
+                <label class="ce-input-label" for="er-phone">Phone</label>
+                <div class="ce-input-wrapper">
+                  <input id="er-phone" class="ce-input" placeholder="(11) 99999-0000" formControlName="phone" />
                 </div>
               </div>
             </form>
@@ -577,6 +603,14 @@ import { ResidentsApiService, ResidentResponse } from './residents-api.service';
       font-weight: var(--font-weight-medium);
     }
     .form-row { display: flex; gap: var(--spacing-3); }
+    .form-error-banner {
+      margin-bottom: var(--spacing-4);
+      padding: var(--spacing-3);
+      border-radius: var(--radius-lg);
+      background: var(--color-danger-light);
+      color: var(--color-danger);
+      font-size: var(--font-size-sm);
+    }
 
     .font-semibold { font-weight: var(--font-weight-semibold); }
     .text-xs { font-size: var(--font-size-xs); }
@@ -590,9 +624,14 @@ import { ResidentsApiService, ResidentResponse } from './residents-api.service';
 })
 export class ResidentsPage {
   private readonly api = inject(ResidentsApiService);
+  private readonly apartmentsApi = inject(ApartmentsApiService);
   private readonly fb = inject(FormBuilder);
+  private readonly auth = inject(AuthService);
+
+  readonly canWrite = computed(() => this.auth.hasPermission('Residents.Write'));
 
   residents = signal<ResidentResponse[]>([]);
+  apartmentLabels = signal<Record<string, string>>({});
   loading = signal(true);
   creating = signal(false);
   saving = signal(false);
@@ -600,6 +639,8 @@ export class ResidentsPage {
   createModalOpen = signal(false);
   editModalOpen = signal(false);
   confirmDeactivateOpen = signal(false);
+  createError = signal<string | null>(null);
+  editError = signal<string | null>(null);
   searchTerm = signal('');
   residentToDeactivate = signal<ResidentResponse | null>(null);
   editingResident = signal<ResidentResponse | null>(null);
@@ -607,22 +648,40 @@ export class ResidentsPage {
 
   createForm: FormGroup = this.fb.group({
     name: ['', [Validators.required]],
-    cpf: ['', [Validators.required]],
-    email: [null],
+    cpf: ['', [Validators.required, cpfValidator()]],
+    apartmentId: [null, [Validators.required]],
     phone: [null],
   });
 
   editForm: FormGroup = this.fb.group({
     name: ['', [Validators.required]],
-    cpf: ['', [Validators.required]],
-    email: [null],
+    cpf: ['', [Validators.required, cpfValidator()]],
+    apartmentId: [null, [Validators.required]],
     phone: [null],
   });
 
   private searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
+    this.loadApartmentLabels();
     this.loadResidents();
+  }
+
+  loadApartmentLabels(): void {
+    this.apartmentsApi.list(undefined, 0, 500).subscribe({
+      next: (apartments) => {
+        const labels: Record<string, string> = {};
+        for (const apartment of apartments) {
+          labels[apartment.id] = formatApartmentLabel(apartment);
+        }
+        this.apartmentLabels.set(labels);
+      },
+    });
+  }
+
+  getApartmentLabel(apartmentId: string | null): string {
+    if (!apartmentId) return '\u2014';
+    return this.apartmentLabels()[apartmentId] ?? apartmentId.slice(0, 8);
   }
 
   loadResidents(): void {
@@ -663,6 +722,7 @@ export class ResidentsPage {
 
   openCreateModal(): void {
     this.createForm.reset();
+    this.createError.set(null);
     this.createModalOpen.set(true);
   }
 
@@ -673,20 +733,22 @@ export class ResidentsPage {
   onCreateResident(): void {
     if (this.createForm.invalid) return;
     this.creating.set(true);
+    this.createError.set(null);
     const value = this.createForm.value;
     this.api.create({
       name: value.name,
       cpf: value.cpf,
-      email: value.email ?? null,
       phone: value.phone ?? null,
+      apartmentId: value.apartmentId,
     }).subscribe({
       next: () => {
         this.creating.set(false);
         this.closeCreateModal();
         this.loadResidents();
       },
-      error: () => {
+      error: (err) => {
         this.creating.set(false);
+        this.createError.set(getApiErrorMessage(err, 'Failed to create resident'));
       },
     });
   }
@@ -696,9 +758,10 @@ export class ResidentsPage {
     this.editForm.patchValue({
       name: resident.name,
       cpf: resident.cpf,
-      email: resident.email,
+      apartmentId: resident.apartmentId,
       phone: resident.phone,
     });
+    this.editError.set(null);
     this.editModalOpen.set(true);
   }
 
@@ -712,20 +775,22 @@ export class ResidentsPage {
     const resident = this.editingResident();
     if (!resident) return;
     this.saving.set(true);
+    this.editError.set(null);
     const value = this.editForm.value;
     this.api.update(resident.id, {
       name: value.name,
       cpf: value.cpf,
-      email: value.email ?? null,
       phone: value.phone ?? null,
+      apartmentId: value.apartmentId,
     }).subscribe({
       next: () => {
         this.saving.set(false);
         this.closeEditModal();
         this.loadResidents();
       },
-      error: () => {
+      error: (err) => {
         this.saving.set(false);
+        this.editError.set(getApiErrorMessage(err, 'Failed to update resident'));
       },
     });
   }

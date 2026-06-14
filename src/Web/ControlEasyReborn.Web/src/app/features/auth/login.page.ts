@@ -6,6 +6,7 @@ import { Subject, debounceTime, distinctUntilChanged, switchMap, takeUntil } fro
 import { AuthService } from '../../core/services/auth.service';
 import type { TenantLookupResponse } from '../../core/services/auth.service';
 import { DemoInfoService } from '../../core/services/demo-info.service';
+import { BootstrapInfoService } from '../../core/services/bootstrap-info.service';
 
 const DEMO_ACCOUNTS = [
   { label: 'Platform Admin', email: 'platform@controleasy.app' },
@@ -116,6 +117,20 @@ const DEMO_ACCOUNTS = [
             <div class="tenant-hint" style="margin-top: var(--spacing-3);">
               <span class="text-secondary text-xs">{{ tenantHint() }}</span>
             </div>
+          }
+
+          @if (bootstrapInfo.pending()) {
+            <details class="bootstrap-shortcuts" open>
+              <summary>First boot — Platform Admin</summary>
+              <p class="bootstrap-shortcuts-hint">
+                Bootstrap credentials are prefilled. You must change your password after signing in.
+              </p>
+              <button type="button"
+                      class="ce-button variant-ghost size-sm bootstrap-shortcut-btn"
+                      (click)="fillBootstrapCredentials()">
+                Use Platform Admin
+              </button>
+            </details>
           }
 
           @if (demoInfo.enabled()) {
@@ -423,12 +438,31 @@ const DEMO_ACCOUNTS = [
       gap: var(--spacing-2);
     }
     .demo-shortcut-btn { flex: 1 1 calc(50% - var(--spacing-2)); min-width: 8rem; }
+
+    .bootstrap-shortcuts {
+      margin-top: var(--spacing-5);
+      padding-top: var(--spacing-4);
+      border-top: 1px solid var(--color-border);
+    }
+    .bootstrap-shortcuts summary {
+      cursor: pointer;
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
+      color: var(--color-primary);
+    }
+    .bootstrap-shortcuts-hint {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-secondary);
+      margin: var(--spacing-2) 0 var(--spacing-3);
+    }
+    .bootstrap-shortcut-btn { width: 100%; }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginPage implements OnDestroy {
   private readonly authService = inject(AuthService);
   readonly demoInfo = inject(DemoInfoService);
+  readonly bootstrapInfo = inject(BootstrapInfoService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   private readonly destroy$ = new Subject<void>();
@@ -453,6 +487,8 @@ export class LoginPage implements OnDestroy {
     const remembered = this.authService.getRememberedEmail();
     if (remembered) {
       this.loginForm.patchValue({ email: remembered, remember: true });
+    } else if (this.bootstrapInfo.pending()) {
+      this.applyBootstrapCredentials();
     }
 
     this.emailChange$.pipe(
@@ -512,11 +548,13 @@ export class LoginPage implements OnDestroy {
               this.tenantPickerVisible.set(true);
               return;
             }
-            this.router.navigate(['/']);
+            this.authService.loadSession();
+            this.router.navigate([this.authService.postLoginRoute()]);
           },
           error: () => {
             this.submitting.set(false);
-            this.router.navigate(['/']);
+            this.authService.loadSession();
+            this.router.navigate([this.authService.postLoginRoute()]);
           },
         });
       },
@@ -533,7 +571,8 @@ export class LoginPage implements OnDestroy {
     this.authService.switchTenant(tenant.tenantId).subscribe({
       next: () => {
         this.submitting.set(false);
-        this.router.navigate(['/']);
+        this.authService.loadSession();
+        this.router.navigate([this.authService.postLoginRoute()]);
       },
       error: (err) => {
         this.submitting.set(false);
@@ -546,6 +585,20 @@ export class LoginPage implements OnDestroy {
     this.tenantPickerVisible.set(false);
     this.tenants.set([]);
     this.tenantHint.set(null);
+  }
+
+  fillBootstrapCredentials(): void {
+    this.applyBootstrapCredentials();
+    this.loginForm.markAsDirty();
+    this.loginForm.updateValueAndValidity();
+    this.loginError.set(null);
+  }
+
+  private applyBootstrapCredentials(): void {
+    const email = this.bootstrapInfo.email();
+    const password = this.bootstrapInfo.password();
+    if (!email || !password) return;
+    this.loginForm.patchValue({ email, password });
   }
 
   fillDemoAccount(email: string): void {

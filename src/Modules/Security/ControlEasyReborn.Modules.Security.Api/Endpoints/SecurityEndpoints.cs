@@ -36,6 +36,15 @@ public static class SecurityEndpoints
             return Results.Ok(response);
         }).AllowAnonymous();
 
+        group.MapPost("/auth/change-password", async (
+            [FromBody] ChangePasswordRequest request,
+            ChangePasswordHandler handler,
+            CancellationToken ct) =>
+        {
+            await handler.HandleAsync(request, ct);
+            return Results.NoContent();
+        }).RequireAuthorization();
+
         group.MapGet("/tenants", async (
             string email,
             TenantLookupHandler handler,
@@ -174,6 +183,14 @@ public static class SecurityEndpoints
             CancellationToken ct) =>
         {
             var response = await handler.HandleAsync(request, ct);
+            return Results.Ok(response);
+        }).RequireAuthorization();
+
+        group.MapGet("/session", async (
+            GetSessionHandler handler,
+            CancellationToken ct) =>
+        {
+            var response = await handler.HandleAsync(ct);
             return Results.Ok(response);
         }).RequireAuthorization();
 

@@ -1,8 +1,8 @@
 import { Component, ChangeDetectionStrategy, ElementRef, HostListener, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ThemeService } from '../../design-system/theme/theme.service';
-import { DemoInfoService } from '../../core/services/demo-info.service';
 import { AuthService } from '../../core/services/auth.service';
+import { TenantSessionService } from '../../core/services/tenant-session.service';
 
 @Component({
   selector: 'ce-topbar',
@@ -18,8 +18,26 @@ import { AuthService } from '../../core/services/auth.service';
           <li><a routerLink="/">Home</a></li>
         </ol>
       </nav>
+      @if (!auth.isPlatformAdmin() && tenantSession.tenantDisplayName()) {
+        <div class="topbar-tenant">
+          @if (tenantSession.canSwitchTenant()) {
+            <label class="topbar-tenant-label" for="tenant-switcher">Condominium</label>
+            <select id="tenant-switcher"
+                    class="topbar-tenant-select"
+                    [disabled]="switchingTenant()"
+                    [value]="tenantSession.tenantId() ?? ''"
+                    (change)="onTenantChange($event)">
+              @for (tenant of tenantSession.switchableTenants(); track tenant.tenantId) {
+                <option [value]="tenant.tenantId">{{ tenant.displayName }}</option>
+              }
+            </select>
+          } @else {
+            <span class="topbar-tenant-name">{{ tenantSession.tenantDisplayName() }}</span>
+          }
+        </div>
+      }
       <div class="topbar-actions">
-        @if (demoInfo.enabled()) {
+        @if (auth.isDemoPersona()) {
           <a class="topbar-help-link" routerLink="/help/demo">Help → Demo guide</a>
         }
         <button class="icon-btn" type="button" aria-label="Toggle theme" (click)="themeService.toggle()">
@@ -99,6 +117,36 @@ import { AuthService } from '../../core/services/auth.service';
     }
     .ce-breadcrumbs a { color: var(--color-text-secondary); text-decoration: none; }
     .ce-breadcrumbs a:hover { color: var(--color-primary); }
+    .topbar-tenant {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-2);
+      min-width: 0;
+    }
+    .topbar-tenant-label {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-secondary);
+      white-space: nowrap;
+    }
+    .topbar-tenant-name {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
+      color: var(--color-text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 16rem;
+    }
+    .topbar-tenant-select {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface);
+      color: var(--color-text-primary);
+      font-family: inherit;
+      font-size: var(--font-size-sm);
+      padding: var(--spacing-1) var(--spacing-2);
+      max-width: 16rem;
+    }
     .topbar-actions {
       display: flex;
       align-items: center;
@@ -206,13 +254,19 @@ import { AuthService } from '../../core/services/auth.service';
 })
 export class TopbarComponent {
   readonly themeService = inject(ThemeService);
-  readonly demoInfo = inject(DemoInfoService);
-  private readonly authService = inject(AuthService);
+  readonly auth = inject(AuthService);
+  readonly tenantSession = inject(TenantSessionService);
+  private readonly router = inject(Router);
   private readonly host = inject(ElementRef<HTMLElement>);
 
   readonly profileMenuOpen = signal(false);
-  readonly displayName = computed(() => this.authService.userDisplayName() ?? this.fallbackDisplayName());
-  readonly roleLabel = computed(() => this.authService.roles()[0] ?? 'Signed in');
+  readonly switchingTenant = signal(false);
+  readonly displayName = computed(() =>
+    this.tenantSession.userDisplayName()
+    ?? this.auth.userDisplayName()
+    ?? this.fallbackDisplayName(),
+  );
+  readonly roleLabel = computed(() => this.formatRole(this.auth.roles()[0]));
   readonly initials = computed(() => this.displayName().trim().slice(0, 1).toUpperCase() || 'A');
 
   @HostListener('document:click', ['$event.target'])
@@ -236,11 +290,37 @@ export class TopbarComponent {
 
   logout(): void {
     this.profileMenuOpen.set(false);
-    this.authService.logout();
+    this.auth.logout();
+  }
+
+  onTenantChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const tenantId = select.value;
+    if (!tenantId || tenantId === this.tenantSession.tenantId()) return;
+
+    this.switchingTenant.set(true);
+    this.auth.switchTenant(tenantId).subscribe({
+      next: () => {
+        this.switchingTenant.set(false);
+        this.router.navigate(['/']);
+      },
+      error: () => {
+        this.switchingTenant.set(false);
+        select.value = this.tenantSession.tenantId() ?? '';
+      },
+    });
+  }
+
+  private formatRole(role: string | undefined): string {
+    if (!role) return 'Signed in';
+    if (role === 'AttendantProfile') return 'Porteiro';
+    if (role === 'TenantAdmin') return 'Administrador';
+    if (role === 'PlatformAdmin') return 'Platform Admin';
+    return role;
   }
 
   private fallbackDisplayName(): string {
-    const roles = this.authService.roles();
+    const roles = this.auth.roles();
     if (roles.includes('PlatformAdmin')) return 'Platform Admin';
     if (roles.includes('TenantAdmin')) return 'Admin';
     if (roles.includes('AttendantProfile')) return 'Porteiro';

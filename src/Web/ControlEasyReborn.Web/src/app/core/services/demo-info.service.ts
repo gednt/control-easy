@@ -18,6 +18,7 @@ export class DemoInfoService {
   private readonly http = inject(HttpClient);
 
   readonly enabled = signal(false);
+  /** Demo deployment is active (seed data available). UI demo affordances use AuthService.isDemoPersona instead. */
   readonly seedVersion = signal(0);
   readonly tenants = signal<DemoTenantInfo[]>([]);
   readonly loaded = signal(false);

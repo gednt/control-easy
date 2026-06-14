@@ -1,7 +1,10 @@
 using ControlEasyReborn.Api.Hosting;
 using ControlEasyReborn.Infrastructure.Data;
+using ControlEasyReborn.Infrastructure.Bootstrap;
 using ControlEasyReborn.Infrastructure.Demo;
 using ControlEasyReborn.Infrastructure.MultiTenancy;
+using ControlEasyReborn.Modules.Apartments.Api.Endpoints;
+using ControlEasyReborn.Modules.Apartments.Infrastructure.DI;
 using ControlEasyReborn.Modules.Administration.Api.Endpoints;
 using ControlEasyReborn.Modules.Administration.Api.DI;
 using ControlEasyReborn.Modules.Administration.Infrastructure.DI;
@@ -69,6 +72,12 @@ try
     {
         options.AddPolicy(PlatformAdminRequirement.PolicyName, policy =>
             policy.Requirements.Add(new PlatformAdminRequirement()));
+
+        foreach (var permission in ControlEasyReborn.Modules.Security.Application.Permissions.All)
+        {
+            options.AddPolicy("Permission_" + permission, policy =>
+                policy.Requirements.Add(new RequirePermissionRequirement(permission)));
+        }
     });
     builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, PlatformAdminAuthorizationHandler>();
     builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, RequirePermissionAuthorizationHandler>();
@@ -109,6 +118,7 @@ try
     builder.Services.AddFeatureManagement();
 
     builder.Services.AddTenantsModule();
+    builder.Services.AddApartmentsModule();
     builder.Services.AddResidentsModule();
     builder.Services.AddSecurityModule();
     builder.Services.AddAdministrationModule();
@@ -118,6 +128,7 @@ try
     builder.Services.AddReportsModule();
 
     builder.Services.AddControlEasyDemo(builder.Configuration);
+    builder.Services.AddControlEasyBootstrap(builder.Configuration);
     if (DemoHostingExtensions.ShouldRegisterPlatformAdminBootstrap(builder.Configuration))
     {
         builder.Services.AddHostedService<PlatformAdminBootstrapService>();
@@ -153,9 +164,11 @@ try
 
     app.MapHealthChecks("/health");
     app.MapDemoEndpoints();
+    app.MapBootstrapEndpoints();
     app.MapFeatureEndpoints();
     app.MapTenantEndpoints();
     app.MapTenantBackupEndpoints();
+    app.MapApartmentEndpoints();
     app.MapResidentEndpoints();
     app.MapSecurityApi();
     app.MapServiceProvidersApi();
@@ -188,6 +201,9 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
             ControlEasyReborn.Modules.Tenants.Application.Errors.NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
             ControlEasyReborn.Modules.Tenants.Application.Errors.ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
             ControlEasyReborn.Modules.Tenants.Application.Errors.ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
+            ControlEasyReborn.Modules.Apartments.Application.Errors.NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
+            ControlEasyReborn.Modules.Apartments.Application.Errors.ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
+            ControlEasyReborn.Modules.Apartments.Application.Errors.ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
             ControlEasyReborn.Modules.Residents.Application.Errors.NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
             ControlEasyReborn.Modules.Residents.Application.Errors.ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
             ControlEasyReborn.Modules.Residents.Application.Errors.ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
@@ -224,6 +240,10 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
         if (exception is ControlEasyReborn.Modules.Tenants.Application.Errors.ValidationException tenValEx)
         {
             problemDetails.Extensions["errors"] = tenValEx.Errors;
+        }
+        else if (exception is ControlEasyReborn.Modules.Apartments.Application.Errors.ValidationException aptValEx)
+        {
+            problemDetails.Extensions["errors"] = aptValEx.Errors;
         }
         else if (exception is ControlEasyReborn.Modules.Residents.Application.Errors.ValidationException resValEx)
         {

@@ -21,7 +21,15 @@ public sealed class CheckInVisitHandler
             throw new NotFoundException("Visit " + id + " was not found.");
         }
 
-        visit.CheckIn(attendantProfileId, gatehouseId);
+        try
+        {
+            visit.CheckIn(attendantProfileId, gatehouseId);
+        }
+        catch (InvalidOperationException ex)
+        {
+            throw new ConflictException(ex.Message);
+        }
+
         await _visits.UpdateAsync(visit, ct);
         return CreateVisitHandler.ToResponse(visit);
     }

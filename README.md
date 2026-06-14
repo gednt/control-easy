@@ -42,15 +42,15 @@ The modernization is governed by `.specs/modernization-roadmap/` — see `requir
 **Phase 0 — Inventory & Cleanup** (planning).
 The first greenfield commit lands in **Phase 1** of `tasks.md`. The legacy code stays in the reference repository until each module is migrated via the Strangler pattern.
 
-## Local development (target)
+## Local development
+
+First boot (empty database, PlatformAdmin bootstrap, first sign-in):
 
 ```bash
-docker compose -f docker/docker-compose.yml up -d
-# api      → http://localhost:8080/api
-# web      → http://localhost:8080
-# adminer  → http://localhost:8080/db
-# seq      → http://localhost:5341
+docker compose -f docker/docker-compose.yml up -d --build
 ```
+
+See [docs/getting-started.md](docs/getting-started.md) for prerequisites, configuration, credential retrieval, verification, and troubleshooting.
 
 ## Demo mode
 

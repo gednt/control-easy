@@ -56,9 +56,9 @@ public sealed class ResidentRepository : IResidentRepository
     {
         var db = _factory.Create(_ctx);
         await db.InsertAsync(
-            new[] { "Id", "TenantId", "Name", "Cpf", "Email", "Phone", "ApartmentId", "Active", "CreatedAtUtc", "UpdatedAtUtc" },
+            new[] { "Id", "TenantId", "Name", "Cpf", "Email", "Phone", "ApartmentId", "Active", "CreatedAtUtc", "UpdatedAtUtc", "tenant_id" },
             TableName,
-            new object?[] { resident.Id, resident.TenantId, resident.Name, resident.Cpf, resident.Email, resident.Phone, (object?)resident.ApartmentId ?? DBNull.Value, resident.Active, resident.CreatedAtUtc, (object?)resident.UpdatedAtUtc ?? DBNull.Value },
+            new object?[] { resident.Id, resident.TenantId, resident.Name, resident.Cpf, resident.Email, resident.Phone, (object?)resident.ApartmentId ?? DBNull.Value, resident.Active, resident.CreatedAtUtc, (object?)resident.UpdatedAtUtc ?? DBNull.Value, resident.TenantId },
             primaryKeyName: "Id",
             autoIncrement: false,
             ct: ct);
@@ -71,8 +71,8 @@ public sealed class ResidentRepository : IResidentRepository
             new[] { "Name", "Cpf", "Email", "Phone", "ApartmentId", "Active", "UpdatedAtUtc" },
             TableName,
             new[] { resident.Name, resident.Cpf, resident.Email ?? string.Empty, resident.Phone ?? string.Empty, resident.ApartmentId.HasValue ? resident.ApartmentId.Value.ToString() : string.Empty, resident.Active ? "1" : "0", resident.UpdatedAtUtc.HasValue ? resident.UpdatedAtUtc.Value.ToString("o") : string.Empty },
-            "Id = @param0",
-            new object[] { resident.Id },
+            $"Id = '{resident.Id}'",
+            Array.Empty<object>(),
             ct: ct);
     }
 

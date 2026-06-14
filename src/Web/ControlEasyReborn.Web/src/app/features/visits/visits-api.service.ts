@@ -42,4 +42,12 @@ export class VisitsApiService {
   create(request: CreateVisitRequest): Observable<VisitResponse> {
     return this.http.post<VisitResponse>(this.baseUrl, request);
   }
+
+  checkIn(id: string): Observable<VisitResponse> {
+    return this.http.post<VisitResponse>(`${this.baseUrl}/${id}/checkin`, {});
+  }
+
+  checkOut(id: string): Observable<VisitResponse> {
+    return this.http.post<VisitResponse>(`${this.baseUrl}/${id}/checkout`, {});
+  }
 }

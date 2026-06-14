@@ -41,7 +41,7 @@ public abstract class TenantAwareWebApplicationFactory : WebApplicationFactory<P
 
         _tenantBClient = CreateClient();
         var token = JwtTestHelper.GenerateTenantToken(
-            Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbb01"),
+            Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbb01"),
             "admin@tenantb.test",
             TenantBId,
             roles: new[] { "Admin" },

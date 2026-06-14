@@ -43,9 +43,22 @@ curl -s http://localhost:8080/api/v1/demo/info
 3. Confirm cohabitation: apt **8** has Dona Florinda, Quico, and Prof. Girafales; **Sparta-1** has Kratos and Atreus.
 4. Browse **Visits**, **Vehicles**, and **Service providers** for recent sample activity.
 5. Sign out and sign in as **`multi@controleasy.app`** — select between the two `[Demo]` condominiums.
-6. Sign in as **`platform@controleasy.app`** for tenant administration screens.
+6. Sign in as **`platform@controleasy.app`** and open **Platform → Condominiums** to register or manage condominiums.
 
 In-app help: when demo mode is active, use **Help → Demo guide** (`/help/demo`) for this table and reset instructions.
+
+## Platform administration (demo)
+
+Sign in as **`platform@controleasy.app`** / `demo123`, then open **Platform → Condominiums** (`/platform/condominiums`).
+
+From this screen you can:
+
+- View all condominiums on the platform (including the two demo tenants and the default tenant)
+- Register a new condominium (slug + display name)
+- Optionally create the first tenant administrator during registration
+- Suspend or resume a condominium
+
+For the normal (non-demo) stack, the same screen is available after PlatformAdmin first-boot login. See [Getting Started — Register a condominium](getting-started.md#register-a-condominium-web-ui).
 
 ## Reset procedures
 
@@ -90,6 +103,8 @@ docker compose -f docker/docker-compose.yml up -d
 - `GET /api/v1/demo/info` returns `{"enabled":false}`.
 - Demo users are **not** seeded.
 - `PlatformAdminBootstrapService` creates a random PlatformAdmin (check API logs).
+
+See also: [Getting Started (first boot)](getting-started.md) for the full normal-stack walkthrough.
 
 ## Security warning
 

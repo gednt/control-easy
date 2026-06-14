@@ -1,3 +1,4 @@
+using ControlEasyReborn.Modules.Apartments.Application.Abstractions;
 using ControlEasyReborn.Modules.Vehicles.Application.Abstractions;
 using ControlEasyReborn.Modules.Vehicles.Application.Contracts;
 using ControlEasyReborn.Modules.Vehicles.Application.Errors;
@@ -9,11 +10,16 @@ namespace ControlEasyReborn.Modules.Vehicles.Application.Handlers;
 public sealed class CreateVehicleHandler
 {
     private readonly IVehicleRepository _vehicles;
+    private readonly IApartmentRepository _apartments;
     private readonly IValidator<CreateVehicleRequest> _validator;
 
-    public CreateVehicleHandler(IVehicleRepository vehicles, IValidator<CreateVehicleRequest> validator)
+    public CreateVehicleHandler(
+        IVehicleRepository vehicles,
+        IApartmentRepository apartments,
+        IValidator<CreateVehicleRequest> validator)
     {
         _vehicles = vehicles;
+        _apartments = apartments;
         _validator = validator;
     }
 
@@ -25,6 +31,11 @@ public sealed class CreateVehicleHandler
             throw new Errors.ValidationException(result.Errors
                 .GroupBy(e => e.PropertyName)
                 .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray()));
+        }
+
+        if (request.ApartmentId.HasValue && !await _apartments.ExistsAsync(request.ApartmentId.Value, ct))
+        {
+            throw new NotFoundException("Apartment " + request.ApartmentId + " was not found.");
         }
 
         var vehicle = new Vehicle(

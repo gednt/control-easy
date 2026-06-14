@@ -22,9 +22,14 @@
     <ProjectReference Include="..\..\src\Modules\Tenants\ControlEasyReborn.Modules.Tenants.Application\ControlEasyReborn.Modules.Tenants.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Tenants\ControlEasyReborn.Modules.Tenants.Domain\ControlEasyReborn.Modules.Tenants.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Tenants\ControlEasyReborn.Modules.Tenants.Infrastructure\ControlEasyReborn.Modules.Tenants.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Apartments\ControlEasyReborn.Modules.Apartments.Application\ControlEasyReborn.Modules.Apartments.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Apartments\ControlEasyReborn.Modules.Apartments.Domain\ControlEasyReborn.Modules.Apartments.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Apartments\ControlEasyReborn.Modules.Apartments.Infrastructure\ControlEasyReborn.Modules.Apartments.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\Residents\ControlEasyReborn.Modules.Residents.Application\ControlEasyReborn.Modules.Residents.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Residents\ControlEasyReborn.Modules.Residents.Domain\ControlEasyReborn.Modules.Residents.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Residents\ControlEasyReborn.Modules.Residents.Infrastructure\ControlEasyReborn.Modules.Residents.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Visits\ControlEasyReborn.Modules.Visits.Application\ControlEasyReborn.Modules.Visits.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Visits\ControlEasyReborn.Modules.Visits.Domain\ControlEasyReborn.Modules.Visits.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Security\ControlEasyReborn.Modules.Security.Application\ControlEasyReborn.Modules.Security.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Security\ControlEasyReborn.Modules.Security.Domain\ControlEasyReborn.Modules.Security.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Security\ControlEasyReborn.Modules.Security.Api\ControlEasyReborn.Modules.Security.Api.csproj" />

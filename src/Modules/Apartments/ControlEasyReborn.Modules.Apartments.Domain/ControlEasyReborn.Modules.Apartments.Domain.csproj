@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ControlEasyReborn.Modules.Apartments.Domain</RootNamespace>
+    <AssemblyName>ControlEasyReborn.Modules.Apartments.Domain</AssemblyName>
+  </PropertyGroup>
+</Project>

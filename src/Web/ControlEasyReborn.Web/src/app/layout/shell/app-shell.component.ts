@@ -1,13 +1,14 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { TopbarComponent } from '../topbar/topbar.component';
 import { DemoBannerComponent } from '../demo-banner/demo-banner.component';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'ce-app-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, SidebarComponent, TopbarComponent, DemoBannerComponent],
+  imports: [RouterOutlet, SidebarComponent, TopbarComponent, DemoBannerComponent],
   template: `
     <div class="app-shell">
       <ce-sidebar />
@@ -48,4 +49,10 @@ import { DemoBannerComponent } from '../demo-banner/demo-banner.component';
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppShellComponent {}
+export class AppShellComponent implements OnInit {
+  private readonly authService = inject(AuthService);
+
+  ngOnInit(): void {
+    this.authService.loadSession();
+  }
+}

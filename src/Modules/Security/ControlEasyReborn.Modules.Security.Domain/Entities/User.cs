@@ -47,4 +47,11 @@ public sealed class User
         PasswordHash = passwordHash;
         UpdatedAtUtc = DateTime.UtcNow;
     }
+
+    public void ChangePassword(string passwordHash)
+    {
+        PasswordHash = passwordHash;
+        MustChangePassword = false;
+        UpdatedAtUtc = DateTime.UtcNow;
+    }
 }

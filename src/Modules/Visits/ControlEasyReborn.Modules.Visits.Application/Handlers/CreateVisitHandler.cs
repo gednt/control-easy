@@ -1,3 +1,4 @@
+using ControlEasyReborn.Modules.Apartments.Application.Abstractions;
 using ControlEasyReborn.Modules.Visits.Application.Abstractions;
 using ControlEasyReborn.Modules.Visits.Application.Contracts;
 using ControlEasyReborn.Modules.Visits.Application.Errors;
@@ -9,11 +10,16 @@ namespace ControlEasyReborn.Modules.Visits.Application.Handlers;
 public sealed class CreateVisitHandler
 {
     private readonly IVisitRepository _visits;
+    private readonly IApartmentRepository _apartments;
     private readonly IValidator<CreateVisitRequest> _validator;
 
-    public CreateVisitHandler(IVisitRepository visits, IValidator<CreateVisitRequest> validator)
+    public CreateVisitHandler(
+        IVisitRepository visits,
+        IApartmentRepository apartments,
+        IValidator<CreateVisitRequest> validator)
     {
         _visits = visits;
+        _apartments = apartments;
         _validator = validator;
     }
 
@@ -25,6 +31,11 @@ public sealed class CreateVisitHandler
             throw new Errors.ValidationException(result.Errors
                 .GroupBy(e => e.PropertyName)
                 .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray()));
+        }
+
+        if (request.ApartmentId.HasValue && !await _apartments.ExistsAsync(request.ApartmentId.Value, ct))
+        {
+            throw new NotFoundException("Apartment " + request.ApartmentId + " was not found.");
         }
 
         var visit = new Visit(

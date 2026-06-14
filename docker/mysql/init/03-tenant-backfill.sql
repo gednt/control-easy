@@ -5,6 +5,7 @@
 -- tables without executing any DDL during container startup.
 
 -- ALTER TABLE Users ADD COLUMN tenant_id CHAR(36) NOT NULL;
+-- ALTER TABLE Apartments ADD COLUMN tenant_id CHAR(36) NOT NULL;
 -- ALTER TABLE Residents ADD COLUMN tenant_id CHAR(36) NOT NULL;
 -- ALTER TABLE AttendantProfiles ADD COLUMN tenant_id CHAR(36) NOT NULL;
 -- ALTER TABLE Shifts ADD COLUMN tenant_id CHAR(36) NOT NULL;

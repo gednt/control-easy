@@ -69,9 +69,9 @@ public sealed class VisitRepository : IVisitRepository
     {
         var db = _factory.Create(_ctx);
         await db.InsertAsync(
-            new[] { "Id", "TenantId", "VisitorName", "VisitorDocument", "VisitorPhone", "ApartmentId", "Purpose", "Status", "AttendantProfileId", "GatehouseId", "CheckedInAtUtc", "CheckedOutAtUtc", "CreatedAtUtc", "UpdatedAtUtc" },
+            new[] { "Id", "TenantId", "VisitorName", "VisitorDocument", "VisitorPhone", "ApartmentId", "Purpose", "Status", "AttendantProfileId", "GatehouseId", "CheckedInAtUtc", "CheckedOutAtUtc", "CreatedAtUtc", "UpdatedAtUtc", "tenant_id" },
             TableName,
-            new object?[] { visit.Id, visit.TenantId, visit.VisitorName, visit.VisitorDocument, (object?)visit.VisitorPhone ?? DBNull.Value, (object?)visit.ApartmentId ?? DBNull.Value, (object?)visit.Purpose ?? DBNull.Value, (int)visit.Status, (object?)visit.AttendantProfileId ?? DBNull.Value, (object?)visit.GatehouseId ?? DBNull.Value, (object?)visit.CheckedInAtUtc ?? DBNull.Value, (object?)visit.CheckedOutAtUtc ?? DBNull.Value, visit.CreatedAtUtc, (object?)visit.UpdatedAtUtc ?? DBNull.Value },
+            new object?[] { visit.Id, visit.TenantId, visit.VisitorName, visit.VisitorDocument, (object?)visit.VisitorPhone ?? DBNull.Value, (object?)visit.ApartmentId ?? DBNull.Value, (object?)visit.Purpose ?? DBNull.Value, (int)visit.Status, (object?)visit.AttendantProfileId ?? DBNull.Value, (object?)visit.GatehouseId ?? DBNull.Value, (object?)visit.CheckedInAtUtc ?? DBNull.Value, (object?)visit.CheckedOutAtUtc ?? DBNull.Value, visit.CreatedAtUtc, (object?)visit.UpdatedAtUtc ?? DBNull.Value, visit.TenantId },
             primaryKeyName: "Id",
             autoIncrement: false,
             ct: ct);
@@ -83,11 +83,27 @@ public sealed class VisitRepository : IVisitRepository
         await db.UpdateAsync(
             new[] { "VisitorName", "VisitorDocument", "VisitorPhone", "ApartmentId", "Purpose", "Status", "AttendantProfileId", "GatehouseId", "CheckedInAtUtc", "CheckedOutAtUtc", "UpdatedAtUtc" },
             TableName,
-            new[] { visit.VisitorName, visit.VisitorDocument, visit.VisitorPhone ?? string.Empty, visit.ApartmentId.HasValue ? visit.ApartmentId.Value.ToString() : string.Empty, visit.Purpose ?? string.Empty, ((int)visit.Status).ToString(), visit.AttendantProfileId.HasValue ? visit.AttendantProfileId.Value.ToString() : string.Empty, visit.GatehouseId.HasValue ? visit.GatehouseId.Value.ToString() : string.Empty, visit.CheckedInAtUtc.HasValue ? visit.CheckedInAtUtc.Value.ToString("o") : string.Empty, visit.CheckedOutAtUtc.HasValue ? visit.CheckedOutAtUtc.Value.ToString("o") : string.Empty, visit.UpdatedAtUtc.HasValue ? visit.UpdatedAtUtc.Value.ToString("o") : string.Empty },
-            "Id = @param0",
-            new object[] { visit.Id },
+            new[]
+            {
+                visit.VisitorName,
+                visit.VisitorDocument,
+                visit.VisitorPhone,
+                visit.ApartmentId?.ToString(),
+                visit.Purpose,
+                ((int)visit.Status).ToString(),
+                visit.AttendantProfileId?.ToString(),
+                visit.GatehouseId?.ToString(),
+                FormatDateTime(visit.CheckedInAtUtc),
+                FormatDateTime(visit.CheckedOutAtUtc),
+                FormatDateTime(visit.UpdatedAtUtc),
+            },
+            $"Id = '{visit.Id}'",
+            Array.Empty<object>(),
             ct: ct);
     }
+
+    private static string? FormatDateTime(DateTime? value) =>
+        value.HasValue ? value.Value.ToString("yyyy-MM-dd HH:mm:ss.ffffff") : null;
 
     private static Visit? MapFirstOrDefault(DataTable rows)
     {
