@@ -54,10 +54,10 @@ import { RouterLink } from '@angular/router';
   `,
   styles: [`
     .demo-help { max-width: 48rem; }
-    .intro { color: var(--color-text-secondary); margin-bottom: var(--spacing-6); }
-    section { margin-bottom: var(--spacing-6); }
-    h1 { margin-bottom: var(--spacing-2); }
-    h2 { font-size: var(--font-size-lg); margin-bottom: var(--spacing-3); }
+    .intro { color: var(--color-text-secondary); margin-bottom: var(--space-6); }
+    section { margin-bottom: var(--space-6); }
+    h1 { margin-bottom: var(--space-2); }
+    h2 { font-size: var(--font-size-lg); margin-bottom: var(--space-3); }
     .credential-table {
       width: 100%;
       border-collapse: collapse;
@@ -65,7 +65,7 @@ import { RouterLink } from '@angular/router';
     }
     .credential-table th, .credential-table td {
       border: 1px solid var(--color-border);
-      padding: var(--spacing-2) var(--spacing-3);
+      padding: var(--space-2) var(--space-3);
       text-align: left;
     }
     .credential-table th { background: var(--color-surface); }
@@ -75,8 +75,8 @@ import { RouterLink } from '@angular/router';
       border-radius: var(--radius-sm);
       font-size: 0.9em;
     }
-    ol { padding-left: var(--spacing-5); color: var(--color-text-secondary); }
-    ol li { margin-bottom: var(--spacing-2); }
+    ol { padding-left: var(--space-5); color: var(--color-text-secondary); }
+    ol li { margin-bottom: var(--space-2); }
     a { color: var(--color-primary); }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,

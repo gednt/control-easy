@@ -7,6 +7,7 @@ import { AuthService } from '../../core/services/auth.service';
 import type { TenantLookupResponse } from '../../core/services/auth.service';
 import { DemoInfoService } from '../../core/services/demo-info.service';
 import { BootstrapInfoService } from '../../core/services/bootstrap-info.service';
+import { CeButtonComponent, CeSpinnerComponent } from '../../design-system';
 
 const DEMO_ACCOUNTS = [
   { label: 'Platform Admin', email: 'platform@controleasy.app' },
@@ -19,7 +20,7 @@ const DEMO_ACCOUNTS = [
 @Component({
   selector: 'ce-login-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, CeButtonComponent, CeSpinnerComponent],
   template: `
     <main class="login-page" tabindex="-1">
       <div class="login-card">
@@ -50,9 +51,9 @@ const DEMO_ACCOUNTS = [
                 </button>
               }
             </div>
-            <button class="ce-button variant-ghost size-sm" type="button" (click)="backToLogin()" style="margin-top: var(--spacing-3);">
+            <ce-button variant="ghost" size="sm" type="button" (buttonClick)="backToLogin()" style="margin-top: var(--space-3);">
               &#8592; Use a different account
-            </button>
+            </ce-button>
           </div>
         } @else {
           <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
@@ -100,21 +101,16 @@ const DEMO_ACCOUNTS = [
               <span>Remember my email</span>
             </label>
 
-            <button class="ce-button variant-primary size-lg"
-                    type="submit"
-                    [class.disabled]="loginForm.invalid || submitting()"
+            <ce-button variant="primary" size="lg" type="submit"
                     [disabled]="loginForm.invalid || submitting()"
-                    [attr.aria-busy]="submitting()"
-                    style="margin-top: var(--spacing-2);">
-              @if (submitting()) {
-                <span class="ce-spinner tone-current size-sm" style="color: white;"></span>
-              }
+                    [loading]="submitting()"
+                    style="margin-top: var(--space-2);">
               Sign in
-            </button>
+            </ce-button>
           </form>
 
           @if (tenantHint()) {
-            <div class="tenant-hint" style="margin-top: var(--spacing-3);">
+            <div class="tenant-hint" style="margin-top: var(--space-3);">
               <span class="text-secondary text-xs">{{ tenantHint() }}</span>
             </div>
           }
@@ -125,11 +121,10 @@ const DEMO_ACCOUNTS = [
               <p class="bootstrap-shortcuts-hint">
                 Bootstrap credentials are prefilled. You must change your password after signing in.
               </p>
-              <button type="button"
-                      class="ce-button variant-ghost size-sm bootstrap-shortcut-btn"
-                      (click)="fillBootstrapCredentials()">
+              <ce-button type="button" variant="ghost" size="sm" class="bootstrap-shortcut-btn"
+                      (buttonClick)="fillBootstrapCredentials()">
                 Use Platform Admin
-              </button>
+              </ce-button>
             </details>
           }
 
@@ -139,10 +134,10 @@ const DEMO_ACCOUNTS = [
               <p class="demo-shortcuts-hint">Password: <code>demo123</code> — click to fill, then Sign in.</p>
               <div class="demo-shortcuts-grid">
                 @for (account of demoAccounts; track account.email) {
-                  <button type="button" class="ce-button variant-ghost size-sm demo-shortcut-btn"
-                          (click)="fillDemoAccount(account.email)">
+                  <ce-button type="button" variant="ghost" size="sm" class="demo-shortcut-btn"
+                          (buttonClick)="fillDemoAccount(account.email)">
                     {{ account.label }}
-                  </button>
+                  </ce-button>
                 }
               </div>
             </details>
@@ -158,7 +153,7 @@ const DEMO_ACCOUNTS = [
       justify-content: center;
       min-height: 100vh;
       background: var(--color-background);
-      padding: var(--spacing-4);
+      padding: var(--space-4);
       position: relative;
     }
     .login-page::before {
@@ -178,21 +173,21 @@ const DEMO_ACCOUNTS = [
       max-width: 28rem;
       background: var(--color-surface-elevated);
       border-radius: var(--radius-xl);
-      padding: var(--spacing-8);
+      padding: var(--space-8);
       box-shadow: var(--shadow-xl);
       border: 1px solid var(--color-border);
     }
     .login-brand {
       display: flex;
       align-items: center;
-      gap: var(--spacing-3);
-      margin-bottom: var(--spacing-6);
+      gap: var(--space-3);
+      margin-bottom: var(--space-6);
     }
     .login-brand-mark {
       width: 3rem;
       height: 3rem;
       background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
-      color: white;
+      color: var(--color-text-on-primary);
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -208,21 +203,21 @@ const DEMO_ACCOUNTS = [
     }
     .login-title {
       font-size: var(--font-size-2xl);
-      margin-bottom: var(--spacing-1);
+      margin-bottom: var(--space-1);
     }
     .login-subtitle {
       color: var(--color-text-secondary);
       font-size: var(--font-size-sm);
-      margin-bottom: var(--spacing-6);
+      margin-bottom: var(--space-6);
     }
 
     .login-form {
       display: flex;
       flex-direction: column;
-      gap: var(--spacing-4);
+      gap: var(--space-4);
     }
 
-    .ce-input-group { display: flex; flex-direction: column; gap: var(--spacing-1); }
+    .ce-input-group { display: flex; flex-direction: column; gap: var(--space-1); }
     .ce-input-label {
       font-size: var(--font-size-sm);
       font-weight: var(--font-weight-medium);
@@ -249,7 +244,7 @@ const DEMO_ACCOUNTS = [
       flex: 1;
       border: 0;
       background: transparent;
-      padding: var(--spacing-3);
+      padding: var(--space-3);
       font-family: inherit;
       font-size: var(--font-size-sm);
       color: var(--color-text-primary);
@@ -265,7 +260,7 @@ const DEMO_ACCOUNTS = [
     .ce-input-suffix {
       display: flex;
       align-items: center;
-      padding: 0 var(--spacing-3);
+      padding: 0 var(--space-3);
       color: var(--color-text-muted);
       background: transparent;
       border: 0;
@@ -276,7 +271,7 @@ const DEMO_ACCOUNTS = [
     .ce-checkbox {
       display: inline-flex;
       align-items: center;
-      gap: var(--spacing-2);
+      gap: var(--space-2);
       cursor: pointer;
       font-size: var(--font-size-sm);
       color: var(--color-text-secondary);
@@ -309,41 +304,8 @@ const DEMO_ACCOUNTS = [
       transform: rotate(45deg) translateY(-1px);
     }
 
-    .ce-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: var(--spacing-2);
-      font-weight: var(--font-weight-medium);
-      border: 1px solid transparent;
-      border-radius: var(--radius-lg);
-      cursor: pointer;
-      user-select: none;
-      white-space: nowrap;
-      transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), opacity var(--duration-fast) var(--ease-out);
-      text-decoration: none;
-      font-family: inherit;
-    }
-    .ce-button:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
-    .ce-button.size-sm { height: 2rem; padding: 0 var(--spacing-3); font-size: var(--font-size-sm); }
-    .ce-button.size-lg { height: 3rem; padding: 0 var(--spacing-6); font-size: var(--font-size-base); }
-    .ce-button.variant-primary {
-      background: var(--color-primary);
-      color: white;
-      box-shadow: var(--shadow-sm);
-    }
-    .ce-button.variant-primary:hover:not(:disabled) {
-      background: var(--color-primary-hover);
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-primary-glow);
-    }
-    .ce-button.variant-ghost { background: transparent; color: var(--color-text-primary); }
-    .ce-button.variant-ghost:hover:not(:disabled) { background: var(--color-neutral-light); }
-    .ce-button:disabled, .ce-button[aria-busy="true"] { opacity: 0.6; cursor: not-allowed; pointer-events: none; }
-    .ce-button.disabled { opacity: 0.6; cursor: not-allowed; pointer-events: none; }
-
     .login-error {
-      padding: var(--spacing-3) var(--spacing-4);
+      padding: var(--space-3) var(--space-4);
       background: var(--color-danger-light);
       border: 1px solid color-mix(in oklch, var(--color-danger) 30%, transparent);
       border-radius: var(--radius-md);
@@ -351,22 +313,22 @@ const DEMO_ACCOUNTS = [
       font-size: var(--font-size-sm);
       display: flex;
       align-items: flex-start;
-      gap: var(--spacing-2);
+      gap: var(--space-2);
       font-weight: var(--font-weight-medium);
-      margin-bottom: var(--spacing-4);
+      margin-bottom: var(--space-4);
     }
 
     .tenant-picker-section {
-      margin-top: var(--spacing-4);
+      margin-top: var(--space-4);
     }
     .tenant-picker-label {
       font-size: var(--font-size-sm);
       color: var(--color-text-secondary);
-      margin-bottom: var(--spacing-3);
+      margin-bottom: var(--space-3);
     }
     .tenant-picker-grid {
       display: grid;
-      gap: var(--spacing-3);
+      gap: var(--space-3);
     }
     @media (min-width: 640px) {
       .tenant-picker-grid { grid-template-columns: 1fr 1fr; }
@@ -376,7 +338,7 @@ const DEMO_ACCOUNTS = [
       border: 1px solid var(--color-border);
       border-left: 4px solid var(--color-primary);
       border-radius: var(--radius-lg);
-      padding: var(--spacing-4);
+      padding: var(--space-4);
       cursor: pointer;
       text-align: left;
       font-family: inherit;
@@ -390,7 +352,7 @@ const DEMO_ACCOUNTS = [
     .tenant-card-name {
       font-weight: var(--font-weight-semibold);
       color: var(--color-text-primary);
-      margin-bottom: var(--spacing-1);
+      margin-bottom: var(--space-1);
     }
     .tenant-card-slug {
       font-size: var(--font-size-xs);
@@ -404,21 +366,9 @@ const DEMO_ACCOUNTS = [
     .text-secondary { color: var(--color-text-secondary); }
     .text-xs { font-size: var(--font-size-xs); }
 
-    .ce-spinner {
-      display: inline-block;
-      border-radius: var(--radius-full);
-      border: 2px solid currentColor;
-      border-top-color: transparent;
-      animation: spin-slow 1.4s linear infinite;
-    }
-    .ce-spinner.size-sm { width: 1rem; height: 1rem; border-width: 2px; }
-    .ce-spinner.tone-current { color: currentColor; }
-
-    @keyframes spin-slow { to { transform: rotate(360deg); } }
-
     .demo-shortcuts {
-      margin-top: var(--spacing-5);
-      padding-top: var(--spacing-4);
+      margin-top: var(--space-5);
+      padding-top: var(--space-4);
       border-top: 1px solid var(--color-border);
     }
     .demo-shortcuts summary {
@@ -430,18 +380,18 @@ const DEMO_ACCOUNTS = [
     .demo-shortcuts-hint {
       font-size: var(--font-size-xs);
       color: var(--color-text-secondary);
-      margin: var(--spacing-2) 0 var(--spacing-3);
+      margin: var(--space-2) 0 var(--space-3);
     }
     .demo-shortcuts-grid {
       display: flex;
       flex-wrap: wrap;
-      gap: var(--spacing-2);
+      gap: var(--space-2);
     }
-    .demo-shortcut-btn { flex: 1 1 calc(50% - var(--spacing-2)); min-width: 8rem; }
+    .demo-shortcut-btn { flex: 1 1 calc(50% - var(--space-2)); min-width: 8rem; }
 
     .bootstrap-shortcuts {
-      margin-top: var(--spacing-5);
-      padding-top: var(--spacing-4);
+      margin-top: var(--space-5);
+      padding-top: var(--space-4);
       border-top: 1px solid var(--color-border);
     }
     .bootstrap-shortcuts summary {
@@ -453,7 +403,7 @@ const DEMO_ACCOUNTS = [
     .bootstrap-shortcuts-hint {
       font-size: var(--font-size-xs);
       color: var(--color-text-secondary);
-      margin: var(--spacing-2) 0 var(--spacing-3);
+      margin: var(--space-2) 0 var(--space-3);
     }
     .bootstrap-shortcut-btn { width: 100%; }
   `],

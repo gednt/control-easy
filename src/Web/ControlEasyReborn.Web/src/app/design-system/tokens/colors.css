@@ -1,0 +1,86 @@
+:root {
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #ffffff;
+  --color-border: #e2e8f0;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+  --color-text-inverse: #ffffff;
+
+  --color-primary-raw: #4f46e5;
+  --color-primary: var(--color-primary-raw);
+  --color-primary-hover: #4338ca;
+  --color-primary-light: #eef2ff;
+
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  --color-danger-light: #fee2e2;
+
+  --color-warning: #f59e0b;
+  --color-warning-hover: #d97706;
+  --color-warning-light: #fef3c7;
+
+  --color-success: #22c55e;
+  --color-success-hover: #16a34a;
+  --color-success-light: #dcfce7;
+
+  --color-info: #3b82f6;
+  --color-info-hover: #2563eb;
+  --color-info-light: #dbeafe;
+
+  --color-neutral: #64748b;
+  --color-neutral-light: #f1f5f9;
+
+  --color-sidebar-bg: #0f172a;
+  --color-sidebar-text: #cbd5e1;
+  --color-sidebar-text-muted: #64748b;
+  --color-sidebar-hover-bg: #1e293b;
+  --color-sidebar-active-bg: #4f46e5;
+  --color-sidebar-active-text: #ffffff;
+  --color-sidebar-border: #1e293b;
+  --color-text-on-primary: #ffffff;
+  --color-accent-pink: #ec4899;
+  --color-accent-pink-light: #f472b6;
+}
+
+[data-theme="dark"] {
+  --color-background: #0b1020;
+  --color-surface: #111827;
+  --color-surface-elevated: #1f2937;
+  --color-border: #1f2937;
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
+  --color-text-inverse: #0f172a;
+
+  --color-primary-raw: #818cf8;
+  --color-primary: var(--color-primary-raw);
+  --color-primary-hover: #a5b4fc;
+  --color-primary-light: #1e1b4b;
+
+  --color-danger: #f87171;
+  --color-danger-hover: #fca5a5;
+  --color-danger-light: #7f1d1d;
+
+  --color-warning: #fbbf24;
+  --color-warning-hover: #fcd34d;
+  --color-warning-light: #78350f;
+
+  --color-success: #4ade80;
+  --color-success-hover: #86efac;
+  --color-success-light: #14532d;
+
+  --color-info: #60a5fa;
+  --color-info-hover: #93c5fd;
+  --color-info-light: #1e3a8a;
+
+  --color-neutral: #94a3b8;
+  --color-neutral-light: #1f2937;
+
+  --color-text-on-primary: #ffffff;
+  --color-accent-pink: #f472b6;
+  --color-accent-pink-light: #f9a8d4;
+  --color-sidebar-hover-bg: #334155;
+  --color-sidebar-border: #334155;
+}

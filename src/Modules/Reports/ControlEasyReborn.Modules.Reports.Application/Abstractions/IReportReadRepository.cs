@@ -11,4 +11,6 @@ public interface IReportReadRepository
 
     Task<IReadOnlyList<ResidentsPerApartmentResponse>> GetResidentsPerApartmentAsync(
         CancellationToken ct);
+
+    Task<DashboardStatsResponse> GetDashboardStatsAsync(CancellationToken ct);
 }

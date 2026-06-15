@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, Validati
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { BootstrapInfoService } from '../../core/services/bootstrap-info.service';
+import { CeButtonComponent } from '../../design-system/components/button/button.component';
 
 function passwordsMatch(group: AbstractControl): ValidationErrors | null {
   const newPassword = group.get('newPassword')?.value;
@@ -14,7 +15,7 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
 @Component({
   selector: 'ce-change-password-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, CeButtonComponent],
   template: `
     <main class="login-page" tabindex="-1">
       <div class="login-card">
@@ -67,15 +68,17 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
             }
           </div>
 
-          <button class="ce-button variant-primary size-lg"
-                  type="submit"
-                  [disabled]="form.invalid || submitting()">
+          <ce-button variant="primary"
+                     size="lg"
+                     type="submit"
+                     [disabled]="form.invalid || submitting()"
+                     [loading]="submitting()">
             @if (submitting()) {
               Updating...
             } @else {
               Update password
             }
-          </button>
+          </ce-button>
         </form>
       </div>
     </main>
@@ -87,28 +90,28 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
       justify-content: center;
       min-height: 100vh;
       background: var(--color-background);
-      padding: var(--spacing-4);
+      padding: var(--space-4);
     }
     .login-card {
       width: 100%;
       max-width: 28rem;
       background: var(--color-surface-elevated);
       border-radius: var(--radius-xl);
-      padding: var(--spacing-8);
+      padding: var(--space-8);
       box-shadow: var(--shadow-xl);
       border: 1px solid var(--color-border);
     }
     .login-brand {
       display: flex;
       align-items: center;
-      gap: var(--spacing-3);
-      margin-bottom: var(--spacing-6);
+      gap: var(--space-3);
+      margin-bottom: var(--space-6);
     }
     .login-brand-mark {
       width: 3rem;
       height: 3rem;
       background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
-      color: white;
+      color: var(--color-text-on-primary);
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -122,22 +125,22 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
     }
     .login-title {
       font-size: var(--font-size-2xl);
-      margin-bottom: var(--spacing-1);
+      margin-bottom: var(--space-1);
     }
     .login-subtitle {
       color: var(--color-text-secondary);
       font-size: var(--font-size-sm);
-      margin-bottom: var(--spacing-6);
+      margin-bottom: var(--space-6);
     }
     .login-form {
       display: flex;
       flex-direction: column;
-      gap: var(--spacing-4);
+      gap: var(--space-4);
     }
     .ce-input-group {
       display: flex;
       flex-direction: column;
-      gap: var(--spacing-1);
+      gap: var(--space-1);
     }
     .ce-input-label {
       font-size: var(--font-size-sm);
@@ -146,7 +149,7 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
     .ce-input {
       border: 1px solid var(--color-border);
       border-radius: var(--radius-lg);
-      padding: var(--spacing-3);
+      padding: var(--space-3);
       background: var(--color-surface);
       font-family: inherit;
       min-height: 2.5rem;
@@ -156,31 +159,15 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
       color: var(--color-danger);
     }
     .login-error {
-      padding: var(--spacing-3);
+      padding: var(--space-3);
       background: var(--color-danger-light);
       border: 1px solid color-mix(in oklch, var(--color-danger) 30%, transparent);
       border-radius: var(--radius-md);
       color: var(--color-danger);
       font-size: var(--font-size-sm);
-      margin-bottom: var(--spacing-4);
+      margin-bottom: var(--space-4);
     }
-    .ce-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      height: 3rem;
-      border: 0;
-      border-radius: var(--radius-lg);
-      background: var(--color-primary);
-      color: white;
-      font-weight: var(--font-weight-medium);
-      cursor: pointer;
-      font-family: inherit;
-    }
-    .ce-button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
+
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

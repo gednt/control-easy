@@ -69,11 +69,30 @@ public sealed class TenantFilterInterceptorTests
         var context = NewSelectContext("SELECT * FROM Residents WHERE tenant_id = @param0");
         interceptor.BeforeExecute(context);
 
-        // The SQL must not have another tenant filter appended because
-        // the query already references `tenant_id`. The interceptor must
-        // not double-filter.
         var count = CountOccurrences(context.Sql, "tenant_id");
         Assert.Equal(1, count);
+    }
+
+    [Fact]
+    public void Interceptor_skips_injection_on_aliased_tenant_id_in_join_query()
+    {
+        var tenantId = Guid.Parse("66666666-6666-6666-6666-666666666666");
+        var interceptor = new TenantFilterInterceptor(tenantId);
+
+        var sql = "SELECT DISTINCT a.Id FROM Apartments a INNER JOIN Residents r ON a.Id = r.ApartmentId WHERE a.tenant_id = @param0 AND r.tenant_id = @param1 AND r.Active = 1";
+        var context = new QueryInterceptionContext
+        {
+            Sql = sql,
+            OperationType = QueryOperationType.Select,
+            TableName = "Apartments"
+        };
+        context.Parameters.Add(tenantId);
+        context.Parameters.Add(tenantId);
+
+        interceptor.BeforeExecute(context);
+
+        Assert.Equal(sql, context.Sql);
+        Assert.Equal(2, context.Parameters.Count);
     }
 
     [Fact]

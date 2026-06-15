@@ -18,6 +18,7 @@ public static class ReportsModuleServiceCollectionExtensions
         services.AddScoped<IReportReadRepository, Persistence.ReportReadRepository>();
         services.AddScoped<GetVisitCountsByDayHandler>();
         services.AddScoped<GetResidentsPerApartmentHandler>();
+        services.AddScoped<GetDashboardStatsHandler>();
 
         return services;
     }

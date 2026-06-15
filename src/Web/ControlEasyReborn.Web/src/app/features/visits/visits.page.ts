@@ -127,25 +127,25 @@ type StatusFilter = 'all' | 'Pending' | 'CheckedIn';
     }
   `,
   styles: [`
-    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-4); }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4); }
     .page-title { font-size: var(--font-size-2xl); margin: 0; }
     .page-subtitle { color: var(--color-text-secondary); font-size: var(--font-size-sm); }
-    .filter-tabs { display: flex; gap: var(--spacing-2); margin-bottom: var(--spacing-4); }
+    .filter-tabs { display: flex; gap: var(--space-2); margin-bottom: var(--space-4); }
     .filter-tab {
       border: 1px solid var(--color-border); background: var(--color-surface); border-radius: var(--radius-lg);
-      padding: var(--spacing-2) var(--spacing-4); cursor: pointer; font-family: inherit; font-size: var(--font-size-sm);
+      padding: var(--space-2) var(--space-4); cursor: pointer; font-family: inherit; font-size: var(--font-size-sm);
     }
-    .filter-tab.active { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+    .filter-tab.active { background: var(--color-primary); color: var(--color-text-on-primary); border-color: var(--color-primary); }
     .page-error {
-      margin-bottom: var(--spacing-4); padding: var(--spacing-3); border-radius: var(--radius-lg);
+      margin-bottom: var(--space-4); padding: var(--space-3); border-radius: var(--radius-lg);
       background: var(--color-danger-light); color: var(--color-danger); font-size: var(--font-size-sm);
     }
     .ce-card { background: var(--color-surface-elevated); border: 1px solid var(--color-border); border-radius: var(--radius-xl); overflow: hidden; }
     .ce-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
-    .ce-table th, .ce-table td { padding: var(--spacing-3) var(--spacing-4); border-bottom: 1px solid var(--color-border); text-align: left; vertical-align: middle; }
+    .ce-table th, .ce-table td { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); text-align: left; vertical-align: middle; }
     .ce-table thead { background: var(--color-neutral-light); }
     .ce-badge {
-      padding: var(--spacing-1) var(--spacing-2); border-radius: var(--radius-full);
+      padding: var(--space-1) var(--space-2); border-radius: var(--radius-full);
       font-size: var(--font-size-xs); font-weight: var(--font-weight-medium); border: 1px solid transparent;
     }
     .badge-pending { background: var(--color-neutral-light); color: var(--color-text-secondary); }
@@ -153,22 +153,22 @@ type StatusFilter = 'all' | 'Pending' | 'CheckedIn';
     .badge-done { background: var(--color-neutral-light); color: var(--color-text-muted); }
     .badge-cancelled { background: var(--color-danger-light); color: var(--color-danger); }
     .ce-button {
-      border: 0; border-radius: var(--radius-lg); padding: 0 var(--spacing-3); cursor: pointer;
-      font-family: inherit; display: inline-flex; align-items: center; gap: var(--spacing-2);
+      border: 0; border-radius: var(--radius-lg); padding: 0 var(--space-3); cursor: pointer;
+      font-family: inherit; display: inline-flex; align-items: center; gap: var(--space-2);
     }
     .ce-button.size-sm { height: 2rem; font-size: var(--font-size-sm); }
-    .ce-button.size-md { height: 2.5rem; padding: 0 var(--spacing-4); }
-    .variant-primary { background: var(--color-primary); color: white; }
+    .ce-button.size-md { height: 2.5rem; padding: 0 var(--space-4); }
+    .variant-primary { background: var(--color-primary); color: var(--color-text-on-primary); }
     .variant-secondary { background: var(--color-surface); color: var(--color-text-primary); border: 1px solid var(--color-border); }
     .variant-ghost { background: transparent; }
     .ce-button:disabled { opacity: 0.6; cursor: not-allowed; }
     .ce-modal-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
-    .ce-modal { background: var(--color-surface-elevated); padding: var(--spacing-6); border-radius: var(--radius-xl); width: min(28rem, 90vw); display: flex; flex-direction: column; gap: var(--spacing-3); }
-    .ce-input { width: 100%; padding: var(--spacing-2) var(--spacing-3); border: 1px solid var(--color-border); border-radius: var(--radius-lg); margin-top: var(--spacing-1); font-family: inherit; }
+    .ce-modal { background: var(--color-surface-elevated); padding: var(--space-6); border-radius: var(--radius-xl); width: min(28rem, 90vw); display: flex; flex-direction: column; gap: var(--space-3); }
+    .ce-input { width: 100%; padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-lg); margin-top: var(--space-1); font-family: inherit; }
     label { display: block; font-size: var(--font-size-sm); }
-    .actions { display: flex; justify-content: flex-end; gap: var(--spacing-2); margin-top: var(--spacing-2); }
+    .actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-2); }
     .form-error-banner {
-      padding: var(--spacing-3); border-radius: var(--radius-lg);
+      padding: var(--space-3); border-radius: var(--radius-lg);
       background: var(--color-danger-light); color: var(--color-danger); font-size: var(--font-size-sm);
     }
     .spinner {

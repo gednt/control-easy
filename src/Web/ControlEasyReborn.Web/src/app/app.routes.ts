@@ -57,6 +57,10 @@ export const routes: Routes = [
         canActivate: [platformAdminGuard],
         loadComponent: () => import('./features/platform/condominiums.page').then(m => m.CondominiumsPage),
       },
+      {
+        path: 'design-system/showcase',
+        loadComponent: () => import('./design-system/showcase/showcase.page').then(m => m.ShowcasePageComponent),
+      },
     ],
   },
   {

@@ -63,22 +63,22 @@ import { ServiceProvidersApiService, ServiceProviderResponse } from './service-p
     }
   `,
   styles: [`
-    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-6); }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6); }
     .page-title { font-size: var(--font-size-2xl); margin: 0; }
     .page-subtitle { color: var(--color-text-secondary); font-size: var(--font-size-sm); }
     .ce-card { background: var(--color-surface-elevated); border: 1px solid var(--color-border); border-radius: var(--radius-xl); overflow: hidden; }
     .ce-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
-    .ce-table th, .ce-table td { padding: var(--spacing-3) var(--spacing-4); border-bottom: 1px solid var(--color-border); text-align: left; }
+    .ce-table th, .ce-table td { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); text-align: left; }
     .ce-table thead { background: var(--color-neutral-light); }
-    .ce-badge { padding: var(--spacing-1) var(--spacing-2); border-radius: var(--radius-full); background: var(--color-neutral-light); font-size: var(--font-size-xs); }
-    .ce-button { border: 0; border-radius: var(--radius-lg); padding: 0 var(--spacing-4); height: 2.5rem; cursor: pointer; font-family: inherit; }
-    .variant-primary { background: var(--color-primary); color: white; }
+    .ce-badge { padding: var(--space-1) var(--space-2); border-radius: var(--radius-full); background: var(--color-neutral-light); font-size: var(--font-size-xs); }
+    .ce-button { border: 0; border-radius: var(--radius-lg); padding: 0 var(--space-4); height: 2.5rem; cursor: pointer; font-family: inherit; }
+    .variant-primary { background: var(--color-primary); color: var(--color-text-on-primary); }
     .variant-ghost { background: transparent; }
     .ce-modal-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
-    .ce-modal { background: var(--color-surface-elevated); padding: var(--spacing-6); border-radius: var(--radius-xl); width: min(28rem, 90vw); display: flex; flex-direction: column; gap: var(--spacing-3); }
-    .ce-input { width: 100%; padding: var(--spacing-2) var(--spacing-3); border: 1px solid var(--color-border); border-radius: var(--radius-lg); margin-top: var(--spacing-1); }
+    .ce-modal { background: var(--color-surface-elevated); padding: var(--space-6); border-radius: var(--radius-xl); width: min(28rem, 90vw); display: flex; flex-direction: column; gap: var(--space-3); }
+    .ce-input { width: 100%; padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-lg); margin-top: var(--space-1); }
     label { display: block; font-size: var(--font-size-sm); }
-    .actions { display: flex; justify-content: flex-end; gap: var(--spacing-2); margin-top: var(--spacing-2); }
+    .actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-2); }
     .text-secondary { color: var(--color-text-secondary); }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,

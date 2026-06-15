@@ -16,6 +16,12 @@
       "root": "",
       "sourceRoot": "src",
       "prefix": "ce",
+      "i18n": {
+        "sourceLocale": "pt-BR",
+        "locales": {
+          "en-US": "src/locale/messages.en-US.xlf"
+        }
+      },
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:application",
@@ -24,7 +30,8 @@
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
-              "zone.js"
+              "zone.js",
+              "@angular/localize/init"
             ],
             "tsConfig": "tsconfig.app.json",
             "assets": [

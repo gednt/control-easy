@@ -205,14 +205,14 @@ import { AuthService } from '../../core/services/auth.service';
     }
   `,
   styles: [`
-    .page-header { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-4); flex-wrap: wrap; margin-bottom: var(--spacing-6); }
+    .page-header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; margin-bottom: var(--space-6); }
     .page-title-block { min-width: 0; }
-    .page-title { font-size: var(--font-size-2xl); margin-bottom: var(--spacing-1); }
+    .page-title { font-size: var(--font-size-2xl); margin-bottom: var(--space-1); }
     .page-subtitle { color: var(--color-text-secondary); font-size: var(--font-size-sm); }
-    .page-header-actions { display: flex; gap: var(--spacing-2); flex-wrap: wrap; }
+    .page-header-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
     .page-error {
-      margin-bottom: var(--spacing-4);
-      padding: var(--spacing-3) var(--spacing-4);
+      margin-bottom: var(--space-4);
+      padding: var(--space-3) var(--space-4);
       border-radius: var(--radius-lg);
       background: var(--color-danger-light);
       color: var(--color-danger);
@@ -220,37 +220,37 @@ import { AuthService } from '../../core/services/auth.service';
     }
     .loading-state {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: var(--spacing-12); gap: var(--spacing-4); color: var(--color-text-secondary);
+      padding: var(--space-12); gap: var(--space-4); color: var(--color-text-secondary);
     }
     .ce-button {
-      display: inline-flex; align-items: center; justify-content: center; gap: var(--spacing-2);
+      display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
       font-weight: var(--font-weight-medium); border: 1px solid transparent; border-radius: var(--radius-lg);
       cursor: pointer; font-family: inherit;
     }
-    .ce-button.size-sm { height: 2rem; padding: 0 var(--spacing-3); font-size: var(--font-size-sm); }
-    .ce-button.size-md { height: 2.5rem; padding: 0 var(--spacing-4); font-size: var(--font-size-sm); }
-    .ce-button.variant-primary { background: var(--color-primary); color: white; }
+    .ce-button.size-sm { height: 2rem; padding: 0 var(--space-3); font-size: var(--font-size-sm); }
+    .ce-button.size-md { height: 2.5rem; padding: 0 var(--space-4); font-size: var(--font-size-sm); }
+    .ce-button.variant-primary { background: var(--color-primary); color: var(--color-text-on-primary); }
     .ce-button.variant-secondary { background: var(--color-surface); color: var(--color-text-primary); border-color: var(--color-border); }
     .ce-button.variant-ghost { background: transparent; color: var(--color-text-primary); }
-    .ce-button.variant-danger { background: var(--color-danger); color: white; }
+    .ce-button.variant-danger { background: var(--color-danger); color: var(--color-text-on-primary); }
     .ce-button:disabled { opacity: 0.6; cursor: not-allowed; }
     .ce-card { background: var(--color-surface-elevated); border: 1px solid var(--color-border); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); overflow: hidden; }
     .ce-table-wrapper { overflow-x: auto; }
     .ce-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
     .ce-table thead { background: var(--color-neutral-light); }
-    .ce-table th, .ce-table td { padding: var(--spacing-3) var(--spacing-4); border-bottom: 1px solid var(--color-border); text-align: left; }
+    .ce-table th, .ce-table td { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); text-align: left; }
     .ce-table th { font-weight: var(--font-weight-semibold); color: var(--color-text-secondary); font-size: var(--font-size-xs); text-transform: uppercase; }
-    .ce-badge { display: inline-flex; align-items: center; font-weight: var(--font-weight-medium); border-radius: var(--radius-full); border: 1px solid transparent; font-size: 0.7rem; padding: var(--spacing-1) var(--spacing-2); }
+    .ce-badge { display: inline-flex; align-items: center; font-weight: var(--font-weight-medium); border-radius: var(--radius-full); border: 1px solid transparent; font-size: 0.7rem; padding: var(--space-1) var(--space-2); }
     .ce-badge.tone-success { background: var(--color-success-light); color: var(--color-success); }
     .ce-badge.tone-neutral { background: var(--color-neutral-light); color: var(--color-text-secondary); }
-    .action-cell { display: flex; gap: var(--spacing-1); }
+    .action-cell { display: flex; gap: var(--space-1); }
     .icon-btn-sm {
       width: 2rem; height: 2rem; display: inline-flex; align-items: center; justify-content: center;
       background: transparent; border: 0; border-radius: var(--radius-md); cursor: pointer; color: var(--color-text-muted);
     }
     .icon-btn-sm:hover { background: var(--color-neutral-light); color: var(--color-text-primary); }
     .action-deactivate:hover { background: var(--color-danger-light); color: var(--color-danger); }
-    .ce-empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; padding: var(--spacing-12); gap: var(--spacing-3); }
+    .ce-empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; padding: var(--space-12); gap: var(--space-3); }
     .ce-empty-state-icon { font-size: 1.5rem; width: 4rem; height: 4rem; display: inline-flex; align-items: center; justify-content: center; background: var(--color-neutral-light); border-radius: var(--radius-full); }
     .ce-empty-state-title { font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); }
     .ce-spinner { display: inline-block; border-radius: var(--radius-full); border: 2px solid currentColor; border-top-color: transparent; animation: spin 1.4s linear infinite; }
@@ -258,24 +258,24 @@ import { AuthService } from '../../core/services/auth.service';
     .ce-spinner.size-lg { width: 2rem; height: 2rem; border-width: 3px; }
     .ce-spinner.tone-primary { color: var(--color-primary); }
     .ce-spinner.tone-current { color: currentColor; }
-    .ce-modal-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 0.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: var(--spacing-4); }
+    .ce-modal-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 0.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: var(--space-4); }
     .ce-modal { background: var(--color-surface-elevated); border-radius: var(--radius-xl); box-shadow: var(--shadow-xl); width: 100%; max-width: 32rem; }
     .ce-modal.size-sm { max-width: 24rem; }
-    .ce-modal-header { display: flex; align-items: center; justify-content: space-between; padding: var(--spacing-5) var(--spacing-6); border-bottom: 1px solid var(--color-border); }
+    .ce-modal-header { display: flex; align-items: center; justify-content: space-between; padding: var(--space-5) var(--space-6); border-bottom: 1px solid var(--color-border); }
     .ce-modal-title { font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); }
     .ce-modal-close { background: transparent; border: 0; cursor: pointer; font-size: 1.25rem; color: var(--color-text-muted); }
-    .ce-modal-body { padding: var(--spacing-6); }
-    .ce-modal-footer { display: flex; justify-content: flex-end; gap: var(--spacing-2); padding: var(--spacing-4) var(--spacing-6); border-top: 1px solid var(--color-border); }
-    .ce-form { display: flex; flex-direction: column; gap: var(--spacing-4); }
-    .ce-input-group { display: flex; flex-direction: column; gap: var(--spacing-1); }
+    .ce-modal-body { padding: var(--space-6); }
+    .ce-modal-footer { display: flex; justify-content: flex-end; gap: var(--space-2); padding: var(--space-4) var(--space-6); border-top: 1px solid var(--color-border); }
+    .ce-form { display: flex; flex-direction: column; gap: var(--space-4); }
+    .ce-input-group { display: flex; flex-direction: column; gap: var(--space-1); }
     .ce-input-label { font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); }
     .ce-input-wrapper { display: flex; align-items: center; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; }
     .ce-input-wrapper.has-error { border-color: var(--color-danger); }
-    .ce-input { flex: 1; border: 0; background: transparent; padding: var(--spacing-3); font-family: inherit; font-size: var(--font-size-sm); outline: none; min-height: 2.5rem; width: 100%; }
+    .ce-input { flex: 1; border: 0; background: transparent; padding: var(--space-3); font-family: inherit; font-size: var(--font-size-sm); outline: none; min-height: 2.5rem; width: 100%; }
     .ce-input-error { font-size: var(--font-size-xs); color: var(--color-danger); }
-    .form-row { display: flex; gap: var(--spacing-3); }
+    .form-row { display: flex; gap: var(--space-3); }
     .form-error-banner {
-      margin-bottom: var(--spacing-4); padding: var(--spacing-3); border-radius: var(--radius-lg);
+      margin-bottom: var(--space-4); padding: var(--space-3); border-radius: var(--radius-lg);
       background: var(--color-danger-light); color: var(--color-danger); font-size: var(--font-size-sm);
     }
     .text-secondary { color: var(--color-text-secondary); }

@@ -21,8 +21,8 @@ import { AuthService } from '../../core/services/auth.service';
     .demo-banner {
       display: flex;
       align-items: center;
-      gap: var(--spacing-3);
-      padding: var(--spacing-2) var(--spacing-6);
+      gap: var(--space-3);
+      padding: var(--space-2) var(--space-6);
       background: color-mix(in oklch, var(--color-warning) 12%, var(--color-surface));
       border-bottom: 1px solid color-mix(in oklch, var(--color-warning) 35%, transparent);
       font-size: var(--font-size-sm);
@@ -35,7 +35,7 @@ import { AuthService } from '../../core/services/auth.service';
       cursor: pointer;
       color: var(--color-text-secondary);
       font-size: 1rem;
-      padding: var(--spacing-1);
+      padding: var(--space-1);
       border-radius: var(--radius-sm);
     }
     .demo-banner-dismiss:hover { background: var(--color-neutral-light); }

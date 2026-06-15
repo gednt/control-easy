@@ -40,11 +40,11 @@ import { AuthService } from '../../core/services/auth.service';
     }
     .page-content {
       flex: 1;
-      padding: var(--spacing-6);
+      padding: var(--space-6);
       overflow-x: auto;
     }
     @media (max-width: 639px) {
-      .page-content { padding: var(--spacing-4); }
+      .page-content { padding: var(--space-4); }
     }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,

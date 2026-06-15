@@ -8,6 +8,7 @@ public static class ReportEndpointsExtensions
     public static IEndpointRouteBuilder MapReportsApi(this IEndpointRouteBuilder app)
     {
         app.MapReportEndpoints();
+        app.MapDashboardEndpoints();
         return app;
     }
 }

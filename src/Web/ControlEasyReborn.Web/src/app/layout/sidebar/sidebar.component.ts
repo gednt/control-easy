@@ -95,8 +95,8 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
     .sidebar-brand {
       display: flex;
       align-items: center;
-      gap: var(--spacing-3);
-      padding: var(--spacing-5) var(--spacing-4);
+      gap: var(--space-3);
+      padding: var(--space-5) var(--space-4);
       border-bottom: 1px solid var(--color-sidebar-border);
       min-height: var(--topbar-height);
     }
@@ -104,7 +104,7 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
       width: 2rem;
       height: 2rem;
       background: var(--color-primary);
-      color: white;
+      color: var(--color-text-on-primary);
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -115,7 +115,7 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
     }
     .sidebar-brand-text {
       font-weight: var(--font-weight-semibold);
-      color: white;
+      color: var(--color-text-on-primary);
       white-space: nowrap;
     }
     @media (max-width: 1023px) {
@@ -126,10 +126,10 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
     }
     .sidebar-nav {
       flex: 1;
-      padding: var(--spacing-3);
+      padding: var(--space-3);
       overflow-y: auto;
     }
-    .sidebar-nav-section { margin-top: var(--spacing-4); }
+    .sidebar-nav-section { margin-top: var(--space-4); }
     .sidebar-nav-section:first-child { margin-top: 0; }
     .sidebar-nav-title {
       font-size: 0.65rem;
@@ -137,24 +137,24 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
       color: var(--color-sidebar-text-muted);
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      padding: var(--spacing-2) var(--spacing-3);
+      padding: var(--space-2) var(--space-3);
     }
     .sidebar-nav-item {
       display: flex;
       align-items: center;
-      gap: var(--spacing-3);
-      padding: var(--spacing-2) var(--spacing-3);
+      gap: var(--space-3);
+      padding: var(--space-2) var(--space-3);
       color: var(--color-sidebar-text);
       border-radius: var(--radius-md);
       font-size: var(--font-size-sm);
       font-weight: var(--font-weight-medium);
       text-decoration: none;
-      margin-bottom: var(--spacing-1);
+      margin-bottom: var(--space-1);
       transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
     }
     .sidebar-nav-item:hover {
       background: var(--color-sidebar-hover-bg);
-      color: white;
+      color: var(--color-text-on-primary);
     }
     .sidebar-nav-item.active {
       background: var(--color-sidebar-active-bg);
@@ -170,18 +170,18 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
       font-size: 1rem;
     }
     .sidebar-footer {
-      padding: var(--spacing-3);
+      padding: var(--space-3);
       border-top: 1px solid var(--color-sidebar-border);
       display: flex;
       align-items: center;
-      gap: var(--spacing-3);
+      gap: var(--space-3);
     }
     .sidebar-footer-avatar {
       width: 2.5rem;
       height: 2.5rem;
       border-radius: var(--radius-full);
-      background: linear-gradient(135deg, var(--color-primary), #ec4899);
-      color: white;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent-pink));
+      color: var(--color-text-on-primary);
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -190,7 +190,7 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
       flex-shrink: 0;
     }
     .sidebar-footer-name {
-      color: white;
+      color: var(--color-text-on-primary);
       font-size: 0.85rem;
       font-weight: var(--font-weight-medium);
     }
@@ -201,7 +201,7 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
     .sidebar-footer-tenant {
       color: var(--color-sidebar-text-muted);
       font-size: 0.65rem;
-      margin-top: var(--spacing-1);
+      margin-top: var(--space-1);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;

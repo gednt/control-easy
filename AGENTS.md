@@ -62,6 +62,27 @@ dotnet build src/ControlEasyReborn.sln
 dotnet test  tests/ControlEasyReborn.Tests.sln
 ```
 
+### Docker image caching
+Before the first build of a session, pull base images once so subsequent builds use the local cache and never hit the registry:
+
+```bash
+docker pull mcr.microsoft.com/dotnet/sdk:10.0
+docker pull mcr.microsoft.com/dotnet/aspnet:10.0
+docker pull node:20-alpine
+docker pull nginx:alpine
+docker pull mysql:8.0
+docker pull adminer:4
+docker pull traefik:v3.1
+```
+
+After the initial pull, always build with `--pull never` (via environment variable) to avoid redundant registry calls and MCR rate-limiting:
+
+```bash
+COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker compose -f docker/docker-compose.yml build api web
+```
+
+If the base images are missing (fresh environment), run the pull step first, then build.
+
 ### Post-task verification (Docker)
 After completing **every implementation task**, rebuild the affected Docker images and restart Compose before marking the task done. Run from the repo root:
 

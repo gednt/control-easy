@@ -37,6 +37,12 @@ ControlEasy/
 
 The modernization is governed by `.specs/modernization-roadmap/` — see `requirements.md` for the user stories, `design.md` for the architecture, and `tasks.md` for the 4-phase execution plan with verification gates.
 
+## Design System
+
+The visual design system is documented in [`docs/design-system/README.md`](docs/design-system/README.md). It covers tokens, theming, component inventory, and how to add new components.
+
+**Showcase:** `/design-system/showcase` (live component gallery, both themes)
+
 ## Status
 
 **Phase 0 — Inventory & Cleanup** (planning).

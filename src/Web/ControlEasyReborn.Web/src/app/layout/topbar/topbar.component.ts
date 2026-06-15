@@ -59,6 +59,9 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
                 <div class="profile-menu-name">{{ displayName() }}</div>
                 <div class="profile-menu-role">{{ roleLabel() }}</div>
               </div>
+              <a class="profile-menu-item" routerLink="/design-system/showcase" role="menuitem" (click)="profileMenuOpen.set(false)">
+                Design System
+              </a>
               <button class="profile-menu-item danger"
                       type="button"
                       role="menuitem"
@@ -78,15 +81,15 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
       z-index: 40;
       display: flex;
       align-items: center;
-      gap: var(--spacing-4);
+      gap: var(--space-4);
       height: var(--topbar-height);
-      padding: 0 var(--spacing-6);
+      padding: 0 var(--space-6);
       background: var(--color-surface);
       border-bottom: 1px solid var(--color-border);
       backdrop-filter: blur(8px);
     }
     @media (max-width: 639px) {
-      .topbar { padding: 0 var(--spacing-3); }
+      .topbar { padding: 0 var(--space-3); }
     }
     .topbar-menu-btn {
       display: none;
@@ -108,7 +111,7 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
     .ce-breadcrumbs ol {
       display: flex;
       align-items: center;
-      gap: var(--spacing-1);
+      gap: var(--space-1);
       list-style: none;
       margin: 0;
       padding: 0;
@@ -120,7 +123,7 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
     .topbar-tenant {
       display: flex;
       align-items: center;
-      gap: var(--spacing-2);
+      gap: var(--space-2);
       min-width: 0;
     }
     .topbar-tenant-label {
@@ -144,20 +147,20 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
       color: var(--color-text-primary);
       font-family: inherit;
       font-size: var(--font-size-sm);
-      padding: var(--spacing-1) var(--spacing-2);
+      padding: var(--space-1) var(--space-2);
       max-width: 16rem;
     }
     .topbar-actions {
       display: flex;
       align-items: center;
-      gap: var(--spacing-2);
+      gap: var(--space-2);
       margin-left: auto;
     }
     .topbar-help-link {
       font-size: var(--font-size-sm);
       color: var(--color-text-secondary);
       text-decoration: none;
-      padding: var(--spacing-1) var(--spacing-2);
+      padding: var(--space-1) var(--space-2);
       border-radius: var(--radius-md);
     }
     .topbar-help-link:hover { color: var(--color-primary); background: var(--color-neutral-light); }
@@ -184,8 +187,8 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
       width: 2rem;
       height: 2rem;
       border-radius: var(--radius-full);
-      background: linear-gradient(135deg, var(--color-primary), #ec4899);
-      color: white;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent-pink));
+      color: var(--color-text-on-primary);
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -202,7 +205,7 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
     }
     .profile-menu {
       position: absolute;
-      top: calc(100% + var(--spacing-2));
+      top: calc(100% + var(--space-2));
       right: 0;
       width: 14rem;
       z-index: 60;
@@ -210,12 +213,12 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
       border: 1px solid var(--color-border);
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-xl);
-      padding: var(--spacing-2);
+      padding: var(--space-2);
     }
     .profile-menu-header {
-      padding: var(--spacing-2) var(--spacing-3) var(--spacing-3);
+      padding: var(--space-2) var(--space-3) var(--space-3);
       border-bottom: 1px solid var(--color-border);
-      margin-bottom: var(--spacing-1);
+      margin-bottom: var(--space-1);
     }
     .profile-menu-name {
       color: var(--color-text-primary);
@@ -225,7 +228,7 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
     .profile-menu-role {
       color: var(--color-text-secondary);
       font-size: var(--font-size-xs);
-      margin-top: var(--spacing-1);
+      margin-top: var(--space-1);
     }
     .profile-menu-item {
       width: 100%;
@@ -238,7 +241,7 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
       border-radius: var(--radius-md);
       font-family: inherit;
       font-size: var(--font-size-sm);
-      padding: var(--spacing-2) var(--spacing-3);
+      padding: var(--space-2) var(--space-3);
       text-align: left;
       transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
     }

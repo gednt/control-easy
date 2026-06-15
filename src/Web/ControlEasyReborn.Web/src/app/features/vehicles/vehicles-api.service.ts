@@ -26,6 +26,16 @@ export interface CreateVehicleRequest {
   vehicleType?: string | null;
 }
 
+export interface UpdateVehicleRequest {
+  plate: string;
+  brand?: string | null;
+  model?: string | null;
+  color?: string | null;
+  apartmentId?: string | null;
+  ownerName?: string | null;
+  vehicleType?: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class VehiclesApiService {
   private readonly http = inject(HttpClient);
@@ -41,7 +51,15 @@ export class VehiclesApiService {
     return this.http.get<VehicleResponse[]>(this.baseUrl, { params });
   }
 
+  get(id: string): Observable<VehicleResponse> {
+    return this.http.get<VehicleResponse>(`${this.baseUrl}/${id}`);
+  }
+
   create(request: CreateVehicleRequest): Observable<VehicleResponse> {
     return this.http.post<VehicleResponse>(this.baseUrl, request);
+  }
+
+  update(id: string, request: UpdateVehicleRequest): Observable<VehicleResponse> {
+    return this.http.put<VehicleResponse>(`${this.baseUrl}/${id}`, request);
   }
 }

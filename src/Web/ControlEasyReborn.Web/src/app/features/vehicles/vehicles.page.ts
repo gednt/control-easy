@@ -1,6 +1,6 @@
-import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { VehiclesApiService, VehicleResponse } from './vehicles-api.service';
 import { ApartmentPickerComponent } from '../../shared/apartment-picker/apartment-picker.component';
 import {
@@ -8,6 +8,14 @@ import {
   formatApartmentLabel,
 } from '../apartments/apartments-api.service';
 import { getApiErrorMessage } from '../../core/utils/api-error.util';
+import { AuthService } from '../../core/services/auth.service';
+
+const VEHICLE_TYPES = [
+  { value: '0', label: 'Car' },
+  { value: '1', label: 'Motorcycle' },
+  { value: '2', label: 'Truck' },
+  { value: '3', label: 'Other' },
+] as const;
 
 @Component({
   selector: 'ce-vehicles-page',
@@ -15,11 +23,16 @@ import { getApiErrorMessage } from '../../core/utils/api-error.util';
   imports: [CommonModule, ReactiveFormsModule, ApartmentPickerComponent],
   template: `
     <div class="page-header">
-      <div>
+      <div class="page-title-block">
         <h1 class="page-title">Vehicles</h1>
         <p class="page-subtitle">{{ vehicles().length }} registered vehicles</p>
       </div>
-      <button class="ce-button variant-primary size-md" (click)="openCreate()">+ Add vehicle</button>
+      <div class="page-header-actions">
+        <button class="ce-button variant-secondary size-md" (click)="refresh()">&#8635; Refresh</button>
+        @if (canWrite()) {
+          <button class="ce-button variant-primary size-md" (click)="openCreateModal()">&#43; Add vehicle</button>
+        }
+      </div>
     </div>
 
     @if (pageError()) {
@@ -27,97 +40,502 @@ import { getApiErrorMessage } from '../../core/utils/api-error.util';
     }
 
     @if (loading()) {
-      <p class="text-secondary">Loading vehicles...</p>
+      <div class="loading-state">
+        <div class="ce-spinner tone-primary size-lg"></div>
+        <p>Loading vehicles...</p>
+      </div>
+    } @else if (vehicles().length === 0) {
+      <div class="ce-empty-state">
+        <div class="ce-empty-state-icon">&#128663;</div>
+        <div class="ce-empty-state-title">No vehicles yet</div>
+        <div class="ce-empty-state-description text-secondary">
+          Add your first vehicle to get started.
+        </div>
+        @if (canWrite()) {
+          <button class="ce-button variant-primary size-md" (click)="openCreateModal()">&#43; Add vehicle</button>
+        }
+      </div>
     } @else {
-      <div class="ce-card">
-        <table class="ce-table">
-          <thead>
-            <tr>
-              <th>Plate</th>
-              <th>Owner</th>
-              <th>Apartment</th>
-              <th>Brand / Model</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (vehicle of vehicles(); track vehicle.id) {
+      <div class="ce-card" style="padding: 0;">
+        <div class="ce-table-wrapper">
+          <table class="ce-table" aria-label="Vehicles table">
+            <thead>
               <tr>
-                <td>{{ vehicle.plate }}</td>
-                <td>{{ vehicle.ownerName ?? '—' }}</td>
-                <td>{{ getApartmentLabel(vehicle.apartmentId) }}</td>
-                <td>{{ vehicle.brand ?? '—' }} {{ vehicle.model ?? '' }}</td>
-                <td><span class="ce-badge">{{ vehicle.active ? 'Active' : 'Inactive' }}</span></td>
+                <th scope="col">Plate</th>
+                <th scope="col">Owner</th>
+                <th scope="col">Apartment</th>
+                <th scope="col">Brand / Model</th>
+                <th scope="col">Type</th>
+                <th scope="col">Status</th>
+                <th scope="col" style="width: 1%;"></th>
               </tr>
-            } @empty {
-              <tr><td colspan="5" class="text-secondary">No vehicles yet.</td></tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @for (vehicle of vehicles(); track vehicle.id) {
+                <tr>
+                  <td>{{ vehicle.plate }}</td>
+                  <td>{{ vehicle.ownerName ?? '\u2014' }}</td>
+                  <td>{{ getApartmentLabel(vehicle.apartmentId) }}</td>
+                  <td>{{ vehicle.brand ?? '\u2014' }} {{ vehicle.model ?? '' }}</td>
+                  <td>{{ getVehicleTypeLabel(vehicle.vehicleType) }}</td>
+                  <td>
+                    <span class="ce-badge tone-success size-sm">{{ vehicle.active ? 'Active' : 'Inactive' }}</span>
+                  </td>
+                  <td>
+                    @if (canWrite()) {
+                      <div class="action-cell">
+                        <button class="icon-btn-sm" aria-label="Edit vehicle" title="Edit" (click)="openEditModal(vehicle)">&#9998;</button>
+                      </div>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="7">
+                    <div class="ce-empty-state" style="padding: var(--space-8) var(--space-4);">
+                      <div class="ce-empty-state-icon">&#128663;</div>
+                      <div class="ce-empty-state-title">No vehicles found</div>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </div>
     }
 
-    @if (createOpen()) {
-      <div class="ce-modal-backdrop" (click)="closeCreate()">
-        <div class="ce-modal" (click)="$event.stopPropagation()">
-          <h3>Add vehicle</h3>
-          @if (createError()) {
-            <div class="form-error-banner">{{ createError() }}</div>
-          }
-          <form [formGroup]="form" (ngSubmit)="onCreate()">
-            <label>Plate<input class="ce-input" formControlName="plate" /></label>
-            <label>Owner<input class="ce-input" formControlName="ownerName" /></label>
-            <ce-apartment-picker
-              formControlName="apartmentId"
-              label="Apartment"
-              inputId="vh-apartment"
-              placeholder="Select apartment..." />
-            <label>Brand<input class="ce-input" formControlName="brand" /></label>
-            <label>Model<input class="ce-input" formControlName="model" /></label>
-            <div class="actions">
-              <button type="button" class="ce-button variant-ghost" (click)="closeCreate()">Cancel</button>
-              <button type="submit" class="ce-button variant-primary" [disabled]="form.invalid || creating()">
-                @if (creating()) { <span class="spinner"></span> }
-                Create
-              </button>
-            </div>
-          </form>
+    @if (createModalOpen()) {
+      <div class="ce-modal-backdrop" (click)="closeCreateModal()">
+        <div class="ce-modal size-md" role="dialog" aria-modal="true" aria-labelledby="add-vehicle-title" (click)="$event.stopPropagation()">
+          <div class="ce-modal-header">
+            <h3 class="ce-modal-title" id="add-vehicle-title">Add vehicle</h3>
+            <button class="ce-modal-close" (click)="closeCreateModal()" aria-label="Close">&#10005;</button>
+          </div>
+          <div class="ce-modal-body">
+            @if (createError()) {
+              <div class="form-error-banner">{{ createError() }}</div>
+            }
+            <form class="ce-form" [formGroup]="createForm" (ngSubmit)="onCreate()">
+              <div class="ce-input-group">
+                <label class="ce-input-label" for="cv-plate">Plate</label>
+                <div class="ce-input-wrapper" [class.has-error]="createForm.get('plate')?.invalid && createForm.get('plate')?.touched">
+                  <input id="cv-plate" class="ce-input" placeholder="e.g. ABC-1234" formControlName="plate" />
+                </div>
+                @if (createForm.get('plate')?.invalid && createForm.get('plate')?.touched) {
+                  <div class="ce-input-error">Plate is required</div>
+                }
+              </div>
+              <div class="ce-input-group">
+                <label class="ce-input-label" for="cv-owner">Owner name</label>
+                <div class="ce-input-wrapper">
+                  <input id="cv-owner" class="ce-input" placeholder="e.g. Maria Silva" formControlName="ownerName" />
+                </div>
+              </div>
+              <ce-apartment-picker
+                formControlName="apartmentId"
+                label="Apartment"
+                inputId="cv-apartment"
+                placeholder="Select block and unit..." />
+              <div class="ce-input-group">
+                <label class="ce-input-label" for="cv-brand">Brand</label>
+                <div class="ce-input-wrapper">
+                  <input id="cv-brand" class="ce-input" placeholder="e.g. Toyota" formControlName="brand" />
+                </div>
+              </div>
+              <div class="ce-input-group">
+                <label class="ce-input-label" for="cv-model">Model</label>
+                <div class="ce-input-wrapper">
+                  <input id="cv-model" class="ce-input" placeholder="e.g. Corolla" formControlName="model" />
+                </div>
+              </div>
+              <div class="ce-input-group">
+                <label class="ce-input-label" for="cv-color">Color</label>
+                <div class="ce-input-wrapper">
+                  <input id="cv-color" class="ce-input" placeholder="e.g. Silver" formControlName="color" />
+                </div>
+              </div>
+              <div class="ce-input-group">
+                <label class="ce-input-label" for="cv-type">Vehicle type</label>
+                <div class="ce-input-wrapper">
+                  <select id="cv-type" class="ce-input" formControlName="vehicleType">
+                    <option [ngValue]="null">Select type...</option>
+                    @for (vt of vehicleTypes; track vt.value) {
+                      <option [ngValue]="vt.value">{{ vt.label }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="ce-modal-footer">
+            <button class="ce-button variant-ghost size-sm" (click)="closeCreateModal()">Cancel</button>
+            <button class="ce-button variant-primary size-sm"
+                    (click)="onCreate()"
+                    [class.disabled]="createForm.invalid || creating()"
+                    [attr.aria-busy]="creating()"
+                    [disabled]="createForm.invalid || creating()">
+              @if (creating()) {
+                <span class="ce-spinner tone-current size-sm"></span>
+              }
+              Create
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (editModalOpen()) {
+      <div class="ce-modal-backdrop" (click)="closeEditModal()">
+        <div class="ce-modal size-md" role="dialog" aria-modal="true" aria-labelledby="edit-vehicle-title" (click)="$event.stopPropagation()">
+          <div class="ce-modal-header">
+            <h3 class="ce-modal-title" id="edit-vehicle-title">Edit vehicle</h3>
+            <button class="ce-modal-close" (click)="closeEditModal()" aria-label="Close">&#10005;</button>
+          </div>
+          <div class="ce-modal-body">
+            @if (editError()) {
+              <div class="form-error-banner">{{ editError() }}</div>
+            }
+            <form class="ce-form" [formGroup]="editForm" (ngSubmit)="onEditVehicle()">
+              <div class="ce-input-group">
+                <label class="ce-input-label" for="ev-plate">Plate</label>
+                <div class="ce-input-wrapper" [class.has-error]="editForm.get('plate')?.invalid && editForm.get('plate')?.touched">
+                  <input id="ev-plate" class="ce-input" placeholder="e.g. ABC-1234" formControlName="plate" />
+                </div>
+                @if (editForm.get('plate')?.invalid && editForm.get('plate')?.touched) {
+                  <div class="ce-input-error">Plate is required</div>
+                }
+              </div>
+              <div class="ce-input-group">
+                <label class="ce-input-label" for="ev-owner">Owner name</label>
+                <div class="ce-input-wrapper">
+                  <input id="ev-owner" class="ce-input" placeholder="e.g. Maria Silva" formControlName="ownerName" />
+                </div>
+              </div>
+              <ce-apartment-picker
+                formControlName="apartmentId"
+                label="Apartment"
+                inputId="ev-apartment"
+                placeholder="Select block and unit..." />
+              <div class="ce-input-group">
+                <label class="ce-input-label" for="ev-brand">Brand</label>
+                <div class="ce-input-wrapper">
+                  <input id="ev-brand" class="ce-input" placeholder="e.g. Toyota" formControlName="brand" />
+                </div>
+              </div>
+              <div class="ce-input-group">
+                <label class="ce-input-label" for="ev-model">Model</label>
+                <div class="ce-input-wrapper">
+                  <input id="ev-model" class="ce-input" placeholder="e.g. Corolla" formControlName="model" />
+                </div>
+              </div>
+              <div class="ce-input-group">
+                <label class="ce-input-label" for="ev-color">Color</label>
+                <div class="ce-input-wrapper">
+                  <input id="ev-color" class="ce-input" placeholder="e.g. Silver" formControlName="color" />
+                </div>
+              </div>
+              <div class="ce-input-group">
+                <label class="ce-input-label" for="ev-type">Vehicle type</label>
+                <div class="ce-input-wrapper">
+                  <select id="ev-type" class="ce-input" formControlName="vehicleType">
+                    <option [ngValue]="null">Select type...</option>
+                    @for (vt of vehicleTypes; track vt.value) {
+                      <option [ngValue]="vt.value">{{ vt.label }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="ce-modal-footer">
+            <button class="ce-button variant-ghost size-sm" (click)="closeEditModal()">Cancel</button>
+            <button class="ce-button variant-primary size-sm"
+                    (click)="onEditVehicle()"
+                    [class.disabled]="editForm.invalid || saving()"
+                    [attr.aria-busy]="saving()"
+                    [disabled]="editForm.invalid || saving()">
+              @if (saving()) {
+                <span class="ce-spinner tone-current size-sm"></span>
+              }
+              Save changes
+            </button>
+          </div>
         </div>
       </div>
     }
   `,
   styles: [`
-    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-6); }
-    .page-title { font-size: var(--font-size-2xl); margin: 0; }
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+      flex-wrap: wrap;
+      margin-bottom: var(--space-6);
+    }
+    .page-title-block { min-width: 0; }
+    .page-title { font-size: var(--font-size-2xl); margin-bottom: var(--space-1); }
     .page-subtitle { color: var(--color-text-secondary); font-size: var(--font-size-sm); }
+    .page-header-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
     .page-error {
-      margin-bottom: var(--spacing-4); padding: var(--spacing-3); border-radius: var(--radius-lg);
+      margin-bottom: var(--space-4); padding: var(--space-3); border-radius: var(--radius-lg);
       background: var(--color-danger-light); color: var(--color-danger); font-size: var(--font-size-sm);
     }
-    .ce-card { background: var(--color-surface-elevated); border: 1px solid var(--color-border); border-radius: var(--radius-xl); overflow: hidden; }
-    .ce-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
-    .ce-table th, .ce-table td { padding: var(--spacing-3) var(--spacing-4); border-bottom: 1px solid var(--color-border); text-align: left; }
-    .ce-table thead { background: var(--color-neutral-light); }
-    .ce-badge { padding: var(--spacing-1) var(--spacing-2); border-radius: var(--radius-full); background: var(--color-neutral-light); font-size: var(--font-size-xs); }
-    .ce-button { border: 0; border-radius: var(--radius-lg); padding: 0 var(--spacing-4); height: 2.5rem; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: var(--spacing-2); }
-    .variant-primary { background: var(--color-primary); color: white; }
-    .variant-ghost { background: transparent; }
-    .ce-button:disabled { opacity: 0.6; cursor: not-allowed; }
-    .ce-modal-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
-    .ce-modal { background: var(--color-surface-elevated); padding: var(--spacing-6); border-radius: var(--radius-xl); width: min(28rem, 90vw); display: flex; flex-direction: column; gap: var(--spacing-3); }
-    .ce-input { width: 100%; padding: var(--spacing-2) var(--spacing-3); border: 1px solid var(--color-border); border-radius: var(--radius-lg); margin-top: var(--spacing-1); font-family: inherit; }
-    label { display: block; font-size: var(--font-size-sm); }
-    .actions { display: flex; justify-content: flex-end; gap: var(--spacing-2); margin-top: var(--spacing-2); }
+
+    .loading-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-12);
+      gap: var(--space-4);
+      color: var(--color-text-secondary);
+    }
+
+    .ce-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      font-weight: var(--font-weight-medium);
+      border: 1px solid transparent;
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), opacity var(--duration-fast) var(--ease-out);
+      text-decoration: none;
+      font-family: inherit;
+    }
+    .ce-button:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+    .ce-button.size-sm { height: 2rem; padding: 0 var(--space-3); font-size: var(--font-size-sm); }
+    .ce-button.size-md { height: 2.5rem; padding: 0 var(--space-4); font-size: var(--font-size-sm); }
+    .ce-button.variant-primary { background: var(--color-primary); color: var(--color-text-on-primary); box-shadow: var(--shadow-sm); }
+    .ce-button.variant-primary:hover:not(:disabled) { background: var(--color-primary-hover); transform: translateY(-1px); box-shadow: var(--shadow-primary-glow); }
+    .ce-button.variant-secondary { background: var(--color-surface); color: var(--color-text-primary); border-color: var(--color-border); }
+    .ce-button.variant-secondary:hover:not(:disabled) { background: var(--color-surface-elevated); }
+    .ce-button.variant-ghost { background: transparent; color: var(--color-text-primary); }
+    .ce-button.variant-ghost:hover:not(:disabled) { background: var(--color-neutral-light); }
+    .ce-button.variant-danger { background: var(--color-danger); color: var(--color-text-on-primary); }
+    .ce-button.variant-danger:hover:not(:disabled) { background: var(--color-danger-hover); }
+    .ce-button:disabled, .ce-button[aria-busy="true"] { opacity: 0.6; cursor: not-allowed; pointer-events: none; }
+    .ce-button.disabled { opacity: 0.6; cursor: not-allowed; pointer-events: none; }
+
+    .ce-card {
+      background: var(--color-surface-elevated);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    .ce-table-wrapper { overflow-x: auto; }
+    .ce-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--font-size-sm);
+    }
+    .ce-table thead { background: var(--color-neutral-light); position: sticky; top: 0; }
+    .ce-table th {
+      text-align: left;
+      padding: var(--space-3) var(--space-4);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .ce-table td {
+      padding: var(--space-3) var(--space-4);
+      border-bottom: 1px solid var(--color-border);
+      color: var(--color-text-primary);
+    }
+    .ce-table tbody tr:last-child td { border-bottom: 0; }
+    .ce-table tbody tr:hover { background: color-mix(in oklch, var(--color-primary) 3%, transparent); }
+
+    .action-cell {
+      display: flex;
+      gap: var(--space-1);
+    }
+
+    .icon-btn-sm {
+      width: 2rem;
+      height: 2rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: 0;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      color: var(--color-text-muted);
+      font-size: 1rem;
+    }
+    .icon-btn-sm:hover { background: var(--color-neutral-light); color: var(--color-text-primary); }
+
+    .ce-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      font-weight: var(--font-weight-medium);
+      border-radius: var(--radius-full);
+      border: 1px solid transparent;
+      font-size: var(--font-size-xs);
+      line-height: 1;
+    }
+    .ce-badge.size-sm { padding: var(--space-1) var(--space-2); font-size: 0.7rem; }
+    .ce-badge.tone-success { background: var(--color-success-light); color: var(--color-success); border-color: color-mix(in oklch, var(--color-success) 30%, transparent); }
+    .ce-badge.tone-neutral { background: var(--color-neutral-light); color: var(--color-text-secondary); border-color: var(--color-border); }
+
+    .ce-empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: var(--space-12) var(--space-6);
+      gap: var(--space-3);
+      color: var(--color-text-secondary);
+    }
+    .ce-empty-state-icon {
+      width: 4rem;
+      height: 4rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--color-neutral-light);
+      color: var(--color-text-muted);
+      border-radius: var(--radius-full);
+      margin-bottom: var(--space-2);
+      font-size: 1.5rem;
+    }
+    .ce-empty-state-title { font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--color-text-primary); }
+    .ce-empty-state-description { max-width: 24rem; }
+
+    .ce-spinner {
+      display: inline-block;
+      border-radius: var(--radius-full);
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      animation: spin-slow 1.4s linear infinite;
+    }
+    .ce-spinner.size-sm { width: 1rem; height: 1rem; border-width: 2px; }
+    .ce-spinner.size-lg { width: 2rem; height: 2rem; border-width: 3px; }
+    .ce-spinner.tone-primary { color: var(--color-primary); }
+    .ce-spinner.tone-current { color: currentColor; }
+
+    .ce-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgb(0 0 0 / 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: var(--space-4);
+      animation: fade-in var(--duration-base) var(--ease-out);
+    }
+    .ce-modal {
+      background: var(--color-surface-elevated);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      width: 100%;
+      max-width: 32rem;
+      max-height: calc(100vh - var(--space-8));
+      overflow: auto;
+      animation: zoom-in var(--duration-base) var(--ease-out);
+    }
+    .ce-modal.size-sm { max-width: 24rem; }
+    .ce-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-5) var(--space-6);
+      border-bottom: 1px solid var(--color-border);
+    }
+    .ce-modal-title { font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); }
+    .ce-modal-close {
+      background: transparent;
+      border: 0;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      padding: var(--space-1);
+      border-radius: var(--radius-md);
+      display: inline-flex;
+      font-size: 1.25rem;
+    }
+    .ce-modal-close:hover { background: var(--color-neutral-light); color: var(--color-text-primary); }
+    .ce-modal-body { padding: var(--space-6); }
+    .ce-modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--space-2);
+      padding: var(--space-4) var(--space-6);
+      border-top: 1px solid var(--color-border);
+    }
+
+    .ce-form {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+    .ce-input-group { display: flex; flex-direction: column; gap: var(--space-1); }
+    .ce-input-label {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
+      color: var(--color-text-primary);
+    }
+    .ce-input-wrapper {
+      display: flex;
+      align-items: center;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      transition: border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+      overflow: hidden;
+    }
+    .ce-input-wrapper:focus-within {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-primary) 15%, transparent);
+    }
+    .ce-input-wrapper.has-error {
+      border-color: var(--color-danger);
+      box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-danger) 15%, transparent);
+    }
+    .ce-input {
+      flex: 1;
+      border: 0;
+      background: transparent;
+      padding: var(--space-3);
+      font-family: inherit;
+      font-size: var(--font-size-sm);
+      color: var(--color-text-primary);
+      outline: none;
+      min-height: 2.5rem;
+    }
+    .ce-input::placeholder { color: var(--color-text-muted); }
+    select.ce-input { appearance: none; cursor: pointer; }
+    .ce-input-error {
+      font-size: var(--font-size-xs);
+      color: var(--color-danger);
+      font-weight: var(--font-weight-medium);
+    }
     .form-error-banner {
-      padding: var(--spacing-3); border-radius: var(--radius-lg);
-      background: var(--color-danger-light); color: var(--color-danger); font-size: var(--font-size-sm);
+      margin-bottom: var(--space-4);
+      padding: var(--space-3);
+      border-radius: var(--radius-lg);
+      background: var(--color-danger-light);
+      color: var(--color-danger);
+      font-size: var(--font-size-sm);
     }
-    .spinner {
-      width: 1rem; height: 1rem; border: 2px solid currentColor; border-top-color: transparent;
-      border-radius: 50%; animation: spin 1s linear infinite;
-    }
+
     .text-secondary { color: var(--color-text-secondary); }
-    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @keyframes spin-slow { to { transform: rotate(360deg); } }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes zoom-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -125,21 +543,41 @@ export class VehiclesPage {
   private readonly api = inject(VehiclesApiService);
   private readonly apartmentsApi = inject(ApartmentsApiService);
   private readonly fb = inject(FormBuilder);
+  private readonly auth = inject(AuthService);
+
+  readonly canWrite = computed(() => this.auth.hasPermission('Vehicles.Write'));
+  readonly vehicleTypes = VEHICLE_TYPES;
 
   vehicles = signal<VehicleResponse[]>([]);
   apartmentLabels = signal<Record<string, string>>({});
   loading = signal(true);
   creating = signal(false);
-  createOpen = signal(false);
+  saving = signal(false);
+  createModalOpen = signal(false);
+  editModalOpen = signal(false);
   pageError = signal<string | null>(null);
   createError = signal<string | null>(null);
+  editError = signal<string | null>(null);
+  editingVehicle = signal<VehicleResponse | null>(null);
 
-  form = this.fb.group({
+  createForm: FormGroup = this.fb.group({
     plate: ['', Validators.required],
     ownerName: [''],
     apartmentId: [null],
     brand: [''],
     model: [''],
+    color: [''],
+    vehicleType: [null],
+  });
+
+  editForm: FormGroup = this.fb.group({
+    plate: ['', Validators.required],
+    ownerName: [''],
+    apartmentId: [null],
+    brand: [''],
+    model: [''],
+    color: [''],
+    vehicleType: [null],
   });
 
   constructor() {
@@ -160,8 +598,13 @@ export class VehiclesPage {
   }
 
   getApartmentLabel(apartmentId: string | null): string {
-    if (!apartmentId) return '—';
+    if (!apartmentId) return '\u2014';
     return this.apartmentLabels()[apartmentId] ?? apartmentId.slice(0, 8);
+  }
+
+  getVehicleTypeLabel(vehicleType: string): string {
+    const found = VEHICLE_TYPES.find(vt => vt.value === String(vehicleType));
+    return found ? found.label : vehicleType;
   }
 
   load(): void {
@@ -176,30 +619,82 @@ export class VehiclesPage {
     });
   }
 
-  openCreate(): void {
-    this.form.reset();
-    this.createError.set(null);
-    this.createOpen.set(true);
+  refresh(): void {
+    this.load();
   }
 
-  closeCreate(): void { this.createOpen.set(false); }
+  openCreateModal(): void {
+    this.createForm.reset();
+    this.createError.set(null);
+    this.createModalOpen.set(true);
+  }
+
+  closeCreateModal(): void {
+    this.createModalOpen.set(false);
+  }
 
   onCreate(): void {
-    if (this.form.invalid) return;
+    if (this.createForm.invalid) return;
     this.creating.set(true);
     this.createError.set(null);
-    const v = this.form.value;
+    const v = this.createForm.value;
     this.api.create({
       plate: v.plate!,
       ownerName: v.ownerName || null,
       apartmentId: v.apartmentId || null,
       brand: v.brand || null,
       model: v.model || null,
+      color: v.color || null,
+      vehicleType: v.vehicleType ?? null,
     }).subscribe({
-      next: () => { this.creating.set(false); this.closeCreate(); this.load(); },
+      next: () => { this.creating.set(false); this.closeCreateModal(); this.load(); },
       error: (err) => {
         this.creating.set(false);
         this.createError.set(getApiErrorMessage(err, 'Failed to create vehicle'));
+      },
+    });
+  }
+
+  openEditModal(vehicle: VehicleResponse): void {
+    this.editingVehicle.set(vehicle);
+    this.editForm.patchValue({
+      plate: vehicle.plate,
+      ownerName: vehicle.ownerName,
+      apartmentId: vehicle.apartmentId,
+      brand: vehicle.brand,
+      model: vehicle.model,
+      color: vehicle.color,
+      vehicleType: String(vehicle.vehicleType),
+    });
+    this.editError.set(null);
+    this.editModalOpen.set(true);
+  }
+
+  closeEditModal(): void {
+    this.editModalOpen.set(false);
+    this.editingVehicle.set(null);
+  }
+
+  onEditVehicle(): void {
+    if (this.editForm.invalid) return;
+    const vehicle = this.editingVehicle();
+    if (!vehicle) return;
+    this.saving.set(true);
+    this.editError.set(null);
+    const v = this.editForm.value;
+    this.api.update(vehicle.id, {
+      plate: v.plate!,
+      ownerName: v.ownerName || null,
+      apartmentId: v.apartmentId || null,
+      brand: v.brand || null,
+      model: v.model || null,
+      color: v.color || null,
+      vehicleType: v.vehicleType ?? null,
+    }).subscribe({
+      next: () => { this.saving.set(false); this.closeEditModal(); this.load(); },
+      error: (err) => {
+        this.saving.set(false);
+        this.editError.set(getApiErrorMessage(err, 'Failed to update vehicle'));
       },
     });
   }

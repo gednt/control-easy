@@ -55,7 +55,7 @@ import {
     </div>
   `,
   styles: [`
-    .ce-input-group { display: flex; flex-direction: column; gap: var(--spacing-1); }
+    .ce-input-group { display: flex; flex-direction: column; gap: var(--space-1); }
     .ce-input-label {
       font-size: var(--font-size-sm);
       font-weight: var(--font-weight-medium);
@@ -83,7 +83,7 @@ import {
       flex: 1;
       border: 0;
       background: transparent;
-      padding: var(--spacing-3);
+      padding: var(--space-3);
       font-family: inherit;
       font-size: var(--font-size-sm);
       color: var(--color-text-primary);
@@ -94,7 +94,7 @@ import {
     }
     .ce-select:disabled { opacity: 0.6; cursor: not-allowed; }
     .picker-loading {
-      padding: var(--spacing-3);
+      padding: var(--space-3);
       font-size: var(--font-size-sm);
       color: var(--color-text-secondary);
     }

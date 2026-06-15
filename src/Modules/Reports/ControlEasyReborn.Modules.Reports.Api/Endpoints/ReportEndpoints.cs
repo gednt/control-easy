@@ -33,4 +33,21 @@ public static class ReportEndpoints
 
         return app;
     }
+
+    public static IEndpointRouteBuilder MapDashboardEndpoints(this IEndpointRouteBuilder app)
+    {
+        var group = app.MapGroup("/api/v1/dashboard")
+            .RequireAuthorization()
+            .WithTags("Dashboard");
+
+        group.MapGet("/stats", async (
+            GetDashboardStatsHandler handler,
+            CancellationToken ct) =>
+        {
+            var response = await handler.HandleAsync(ct);
+            return Results.Ok(response);
+        });
+
+        return app;
+    }
 }

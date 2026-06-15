@@ -169,6 +169,7 @@ For each implementation, generate a folder with the implementation name in the f
             ```
             Task IDs reference the numbered tasks above. Tasks in the same wave have no dependencies on each other and can run in parallel. A wave only starts after all tasks in the previous wave are complete. Add as many waves as the task complexity demands.
         - After the conclusion of any task is completed, mark it as done.
+        - **Always update the `tasks.md` file** in the corresponding `.specs/` folder to reflect completion status (change `- [ ]` to `- [x]`) after implementing each task. This is mandatory — never skip this step.
         - Update AGENTS.md regularly to match the project architecture, code standards, build instructions and things as such.
 
 ## Frontend-Specific Rules
