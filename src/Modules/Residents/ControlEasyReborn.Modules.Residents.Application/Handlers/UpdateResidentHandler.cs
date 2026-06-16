@@ -33,6 +33,10 @@ public sealed class UpdateResidentHandler
         }
 
         resident.UpdateDetails(request.Name, request.Cpf, request.Email, request.Phone, request.ApartmentId);
+        if (!request.Active)
+        {
+            resident.Deactivate();
+        }
         await _residents.UpdateAsync(resident, ct);
         return CreateResidentHandler.ToResponse(resident);
     }

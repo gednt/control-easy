@@ -1,76 +1,126 @@
-import { Component, ChangeDetectionStrategy, ElementRef, HostListener, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { ThemeService } from '../../design-system/theme/theme.service';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  computed,
+  inject,
+  signal,
+  DestroyRef,
+} from '@angular/core';
+import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
+import { filter } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {
+  CeIconComponent,
+  CeAvatarComponent,
+  CeBreadcrumbsComponent,
+  CeDropdownComponent,
+  CeTooltipDirective,
+  ThemeService,
+} from '../../design-system';
 import { AuthService } from '../../core/services/auth.service';
 import { TenantSessionService } from '../../core/services/tenant-session.service';
+import { DrawerService } from '../../core/services/drawer.service';
+
+const BRAND_GRADIENT = 'linear-gradient(135deg, var(--color-primary), var(--color-accent-pink))';
 
 @Component({
   selector: 'ce-topbar',
   standalone: true,
-  imports: [RouterLink],
+  imports: [
+    RouterLink,
+    CeIconComponent,
+    CeAvatarComponent,
+    CeBreadcrumbsComponent,
+    CeDropdownComponent,
+    CeTooltipDirective,
+  ],
   template: `
     <header class="topbar" role="banner">
-      <button class="topbar-menu-btn icon-btn" type="button" aria-label="Open menu" (click)="toggleMobileMenu()">
-        &#9776;
+      <button
+        class="topbar-menu-btn icon-btn"
+        type="button"
+        aria-label="Open menu"
+        data-mobile-menu
+        (click)="drawerService.toggle()">
+        <ce-icon name="menu" [size]="20" />
       </button>
-      <nav class="ce-breadcrumbs" aria-label="Breadcrumb">
-        <ol>
-          <li><a routerLink="/">Home</a></li>
-        </ol>
-      </nav>
-      @if (!auth.isPlatformAdmin() && tenantSession.tenantDisplayName()) {
-        <div class="topbar-tenant">
-          @if (tenantSession.canSwitchTenant()) {
-            <label class="topbar-tenant-label" for="tenant-switcher">Condominium</label>
-            <select id="tenant-switcher"
-                    class="topbar-tenant-select"
-                    [disabled]="switchingTenant()"
-                    [value]="tenantSession.tenantId() ?? ''"
-                    (change)="onTenantChange($event)">
-              @for (tenant of tenantSession.switchableTenants(); track tenant.tenantId) {
-                <option [value]="tenant.tenantId">{{ tenant.displayName }}</option>
-              }
-            </select>
-          } @else {
-            <span class="topbar-tenant-name">{{ tenantSession.tenantDisplayName() }}</span>
-          }
-        </div>
-      }
+
+      <ce-breadcrumbs [crumbs]="breadcrumbs()" />
+
+      <div class="topbar-search">
+        <span class="topbar-search-icon" aria-hidden="true">
+          <ce-icon name="search" [size]="18" />
+        </span>
+        <input
+          type="search"
+          placeholder="Search residents, visits, vehicles…"
+          aria-label="Global search"
+          [value]="searchQuery()"
+          (input)="onSearchInput($event)"
+        />
+      </div>
+
       <div class="topbar-actions">
         @if (auth.isDemoPersona()) {
           <a class="topbar-help-link" routerLink="/help/demo">Help → Demo guide</a>
         }
-        <button class="icon-btn" type="button" aria-label="Toggle theme" (click)="themeService.toggle()">
-          {{ themeService.resolvedTheme() === 'dark' ? '&#9789;' : '&#9788;' }}
+
+        <button class="icon-btn" type="button" aria-label="Notifications" ceTooltip="Notifications">
+          <ce-icon name="bell" [size]="20" />
         </button>
-        <div class="topbar-profile">
-          <button class="topbar-avatar"
-                  type="button"
-                  aria-label="Open profile menu"
-                  aria-haspopup="menu"
-                  [attr.aria-expanded]="profileMenuOpen()"
-                  (click)="toggleProfileMenu()">
-            {{ initials() }}
+
+        <button class="icon-btn" type="button" aria-label="Toggle theme" ceTooltip="Toggle theme" (click)="themeService.toggle()">
+          @if (themeService.resolvedTheme() === 'dark') {
+            <ce-icon name="moon" [size]="20" />
+          } @else {
+            <ce-icon name="sun" [size]="20" />
+          }
+        </button>
+
+        <ce-dropdown class="topbar-profile-dropdown">
+          <button
+            ceDropdownTrigger
+            class="topbar-profile-trigger"
+            type="button"
+            aria-label="Open profile menu"
+            aria-haspopup="menu">
+            <ce-avatar [name]="displayName()" size="sm" [background]="brandGradient" />
           </button>
 
-          @if (profileMenuOpen()) {
-            <div class="profile-menu" role="menu" aria-label="Profile menu">
-              <div class="profile-menu-header">
-                <div class="profile-menu-name">{{ displayName() }}</div>
-                <div class="profile-menu-role">{{ roleLabel() }}</div>
-              </div>
-              <a class="profile-menu-item" routerLink="/design-system/showcase" role="menuitem" (click)="profileMenuOpen.set(false)">
-                Design System
-              </a>
-              <button class="profile-menu-item danger"
-                      type="button"
-                      role="menuitem"
-                      (click)="logout()">
-                Sign out
-              </button>
-            </div>
+          <div class="profile-menu-header">
+            <div class="profile-menu-name">{{ displayName() }}</div>
+            <div class="profile-menu-role">{{ roleLabel() }}</div>
+            @if (!auth.isPlatformAdmin() && tenantSession.tenantDisplayName()) {
+              <div class="profile-menu-tenant">{{ tenantSession.tenantDisplayName() }}</div>
+            }
+          </div>
+
+          @if (!auth.isPlatformAdmin() && tenantSession.canSwitchTenant()) {
+            <label class="profile-menu-tenant-switch" for="profile-tenant-switcher">
+              <span>Condominium</span>
+              <select
+                id="profile-tenant-switcher"
+                [disabled]="switchingTenant()"
+                [value]="tenantSession.tenantId() ?? ''"
+                (change)="onTenantChange($event)"
+                (click)="$event.stopPropagation()">
+                @for (tenant of tenantSession.switchableTenants(); track tenant.tenantId) {
+                  <option [value]="tenant.tenantId">{{ tenant.displayName }}</option>
+                }
+              </select>
+            </label>
           }
-        </div>
+
+          <a class="profile-menu-item" routerLink="/design-system/showcase" role="menuitem">
+            <ce-icon name="settings" [size]="16" />
+            Design System
+          </a>
+
+          <button class="profile-menu-item danger" type="button" role="menuitem" (click)="logout()">
+            <ce-icon name="log-out" [size]="16" />
+            Sign out
+          </button>
+        </ce-dropdown>
       </div>
     </header>
   `,
@@ -89,7 +139,8 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
       backdrop-filter: blur(8px);
     }
     @media (max-width: 639px) {
-      .topbar { padding: 0 var(--space-3); }
+      .topbar { padding: 0 var(--space-3); gap: var(--space-2); }
+      .topbar-search { display: none; }
     }
     .topbar-menu-btn {
       display: none;
@@ -102,53 +153,40 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
       border-radius: var(--radius-md);
       cursor: pointer;
       color: var(--color-text-primary);
-      font-size: 1.25rem;
     }
     @media (max-width: 639px) {
       .topbar-menu-btn { display: inline-flex; }
     }
     .topbar-menu-btn:hover { background: var(--color-neutral-light); }
-    .ce-breadcrumbs ol {
-      display: flex;
-      align-items: center;
-      gap: var(--space-1);
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      font-size: var(--font-size-sm);
-      color: var(--color-text-secondary);
+    .topbar-search {
+      flex: 1;
+      max-width: 28rem;
+      position: relative;
     }
-    .ce-breadcrumbs a { color: var(--color-text-secondary); text-decoration: none; }
-    .ce-breadcrumbs a:hover { color: var(--color-primary); }
-    .topbar-tenant {
-      display: flex;
-      align-items: center;
-      gap: var(--space-2);
-      min-width: 0;
-    }
-    .topbar-tenant-label {
-      font-size: var(--font-size-xs);
-      color: var(--color-text-secondary);
-      white-space: nowrap;
-    }
-    .topbar-tenant-name {
-      font-size: var(--font-size-sm);
-      font-weight: var(--font-weight-medium);
-      color: var(--color-text-primary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 16rem;
-    }
-    .topbar-tenant-select {
+    .topbar-search input {
+      width: 100%;
+      height: 2.5rem;
+      padding: 0 var(--space-3) 0 2.5rem;
       border: 1px solid var(--color-border);
-      border-radius: var(--radius-md);
-      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      background: var(--color-background);
+      font-size: var(--font-size-sm);
       color: var(--color-text-primary);
       font-family: inherit;
-      font-size: var(--font-size-sm);
-      padding: var(--space-1) var(--space-2);
-      max-width: 16rem;
+    }
+    .topbar-search input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-primary) 15%, transparent);
+    }
+    .topbar-search-icon {
+      position: absolute;
+      left: var(--space-3);
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--color-text-muted);
+      pointer-events: none;
+      display: inline-flex;
     }
     .topbar-actions {
       display: flex;
@@ -176,43 +214,27 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
       cursor: pointer;
       color: var(--color-text-primary);
       transition: background var(--duration-fast);
-      font-size: 1.25rem;
     }
     .icon-btn:hover { background: var(--color-neutral-light); }
-    .topbar-profile {
-      position: relative;
-      display: inline-flex;
-    }
-    .topbar-avatar {
-      width: 2rem;
-      height: 2rem;
-      border-radius: var(--radius-full);
-      background: linear-gradient(135deg, var(--color-primary), var(--color-accent-pink));
-      color: var(--color-text-on-primary);
+    .topbar-profile-trigger {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      font-weight: var(--font-weight-semibold);
-      font-size: 0.75rem;
+      gap: var(--space-2);
       border: 0;
+      background: transparent;
+      padding: var(--space-1);
+      border-radius: var(--radius-md);
       cursor: pointer;
-      font-family: inherit;
-      transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+      color: var(--color-text-primary);
     }
-    .topbar-avatar:hover {
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-primary-glow);
+    .topbar-profile-trigger:hover { background: var(--color-neutral-light); }
+    .topbar-profile-dropdown {
+      display: inline-flex;
     }
-    .profile-menu {
-      position: absolute;
-      top: calc(100% + var(--space-2));
+    :host ::ng-deep .topbar-profile-dropdown .ce-dropdown-panel {
+      left: auto;
       right: 0;
       width: 14rem;
-      z-index: 60;
-      background: var(--color-surface-elevated);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-xl);
       padding: var(--space-2);
     }
     .profile-menu-header {
@@ -225,15 +247,35 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
       font-size: var(--font-size-sm);
       font-weight: var(--font-weight-semibold);
     }
-    .profile-menu-role {
+    .profile-menu-role,
+    .profile-menu-tenant {
       color: var(--color-text-secondary);
       font-size: var(--font-size-xs);
       margin-top: var(--space-1);
     }
-    .profile-menu-item {
-      width: 100%;
+    .profile-menu-tenant-switch {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      padding: var(--space-2) var(--space-3);
+      margin-bottom: var(--space-1);
+      font-size: var(--font-size-xs);
+      color: var(--color-text-secondary);
+    }
+    .profile-menu-tenant-switch select {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface);
+      color: var(--color-text-primary);
+      font-family: inherit;
+      font-size: var(--font-size-sm);
+      padding: var(--space-1) var(--space-2);
+    }
+    :host ::ng-deep .profile-menu-item {
       display: flex;
       align-items: center;
+      gap: var(--space-2);
+      width: 100%;
       border: 0;
       background: transparent;
       color: var(--color-text-primary);
@@ -243,13 +285,14 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
       font-size: var(--font-size-sm);
       padding: var(--space-2) var(--space-3);
       text-align: left;
+      text-decoration: none;
       transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
     }
-    .profile-menu-item:hover,
-    .profile-menu-item:focus-visible {
+    :host ::ng-deep .profile-menu-item:hover,
+    :host ::ng-deep .profile-menu-item:focus-visible {
       background: var(--color-neutral-light);
     }
-    .profile-menu-item.danger {
+    :host ::ng-deep .profile-menu-item.danger {
       color: var(--color-danger);
     }
   `],
@@ -259,40 +302,45 @@ export class TopbarComponent {
   readonly themeService = inject(ThemeService);
   readonly auth = inject(AuthService);
   readonly tenantSession = inject(TenantSessionService);
+  readonly drawerService = inject(DrawerService);
   private readonly router = inject(Router);
-  private readonly host = inject(ElementRef<HTMLElement>);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
 
-  readonly profileMenuOpen = signal(false);
+  readonly brandGradient = BRAND_GRADIENT;
+  readonly searchQuery = signal('');
   readonly switchingTenant = signal(false);
+  readonly breadcrumbs = signal<Array<{ label: string; route?: string }>>([{ label: 'Home', route: '/' }]);
+
   readonly displayName = computed(() =>
     this.tenantSession.userDisplayName()
     ?? this.auth.userDisplayName()
     ?? this.fallbackDisplayName(),
   );
   readonly roleLabel = computed(() => this.formatRole(this.auth.roles()[0]));
-  readonly initials = computed(() => this.displayName().trim().slice(0, 1).toUpperCase() || 'A');
 
-  @HostListener('document:click', ['$event.target'])
-  onDocumentClick(target: EventTarget | null): void {
-    if (target instanceof Node && !this.host.nativeElement.contains(target)) {
-      this.profileMenuOpen.set(false);
-    }
+  private searchDebounce: ReturnType<typeof setTimeout> | undefined;
+
+  constructor() {
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(() => {
+      this.breadcrumbs.set(this.buildBreadcrumbs());
+    });
+
+    this.breadcrumbs.set(this.buildBreadcrumbs());
   }
 
-  @HostListener('document:keydown.escape')
-  onEscape(): void {
-    this.profileMenuOpen.set(false);
-  }
-
-  toggleMobileMenu(): void {
-  }
-
-  toggleProfileMenu(): void {
-    this.profileMenuOpen.update((open) => !open);
+  onSearchInput(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    clearTimeout(this.searchDebounce);
+    this.searchDebounce = setTimeout(() => {
+      this.searchQuery.set(value);
+    }, 250);
   }
 
   logout(): void {
-    this.profileMenuOpen.set(false);
     this.auth.logout();
   }
 
@@ -312,6 +360,26 @@ export class TopbarComponent {
         select.value = this.tenantSession.tenantId() ?? '';
       },
     });
+  }
+
+  private buildBreadcrumbs(): Array<{ label: string; route?: string }> {
+    const crumbs: Array<{ label: string; route?: string }> = [{ label: 'Home', route: '/' }];
+    let route = this.activatedRoute.root;
+    let url = '';
+
+    while (route.firstChild) {
+      route = route.firstChild;
+      const segment = route.snapshot.url.map(part => part.path).join('/');
+      if (segment) {
+        url += `/${segment}`;
+      }
+      const label = route.snapshot.data['breadcrumb'] as string | undefined;
+      if (label) {
+        crumbs.push({ label, route: url || '/' });
+      }
+    }
+
+    return crumbs;
   }
 
   private formatRole(role: string | undefined): string {

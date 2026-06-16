@@ -1,17 +1,27 @@
-import { Component, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, OnInit, effect, DestroyRef, HostListener, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { TopbarComponent } from '../topbar/topbar.component';
 import { DemoBannerComponent } from '../demo-banner/demo-banner.component';
 import { AuthService } from '../../core/services/auth.service';
+import { DrawerService } from '../../core/services/drawer.service';
 
 @Component({
   selector: 'ce-app-shell',
   standalone: true,
   imports: [RouterOutlet, SidebarComponent, TopbarComponent, DemoBannerComponent],
   template: `
-    <div class="app-shell">
+    <div class="app-shell" [class.drawer-open]="drawerService.isOpen()">
       <ce-sidebar />
+      @if (drawerService.isOpen()) {
+        <button
+          type="button"
+          class="drawer-backdrop"
+          aria-label="Close menu"
+          (click)="drawerService.close()"
+        ></button>
+      }
       <div class="main-area">
         <ce-demo-banner />
         <ce-topbar />
@@ -46,11 +56,47 @@ import { AuthService } from '../../core/services/auth.service';
     @media (max-width: 639px) {
       .page-content { padding: var(--space-4); }
     }
+    .drawer-backdrop {
+      display: none;
+    }
+    @media (max-width: 639px) {
+      .drawer-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        border: 0;
+        padding: 0;
+        background: rgb(0 0 0 / 0.5);
+        cursor: pointer;
+      }
+    }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppShellComponent implements OnInit {
   private readonly authService = inject(AuthService);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly destroyRef = inject(DestroyRef);
+  readonly drawerService = inject(DrawerService);
+
+  constructor() {
+    effect(() => {
+      if (!isPlatformBrowser(this.platformId)) return;
+      document.body.classList.toggle('drawer-open', this.drawerService.isOpen());
+    });
+
+    this.destroyRef.onDestroy(() => {
+      if (isPlatformBrowser(this.platformId)) {
+        document.body.classList.remove('drawer-open');
+      }
+    });
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.drawerService.close();
+  }
 
   ngOnInit(): void {
     this.authService.loadSession();

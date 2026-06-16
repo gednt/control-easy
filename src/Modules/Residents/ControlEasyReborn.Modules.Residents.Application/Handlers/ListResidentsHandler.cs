@@ -12,9 +12,9 @@ public sealed class ListResidentsHandler
         _residents = residents;
     }
 
-    public async Task<IReadOnlyList<ResidentResponse>> HandleAsync(string? search, int skip, int take, CancellationToken ct)
+    public async Task<IReadOnlyList<ResidentResponse>> HandleAsync(string? search, int skip, int take, CancellationToken ct, Guid? apartmentId = null)
     {
-        var residents = await _residents.ListAsync(search, skip, take, ct);
+        var residents = await _residents.ListAsync(search, skip, take, ct, apartmentId);
         return residents.Select(CreateResidentHandler.ToResponse).ToList();
     }
 }

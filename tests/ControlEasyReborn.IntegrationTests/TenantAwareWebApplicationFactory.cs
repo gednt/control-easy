@@ -16,6 +16,16 @@ public abstract class TenantAwareWebApplicationFactory : WebApplicationFactory<P
     private HttpClient? _tenantBClient;
     private HttpClient? _platformAdminClient;
 
+    private static readonly string[] TenantAdminPermissions =
+    [
+        "Visits.CheckIn", "Visits.CheckOut", "Visits.Read",
+        "Apartments.Read", "Apartments.Write",
+        "Residents.Read", "Residents.Write",
+        "Vehicles.Read", "Vehicles.Write",
+        "ServiceProviders.Read", "ServiceProviders.Write",
+        "Reports.Read",
+    ];
+
     public HttpClient AsTenantA()
     {
         if (_tenantAClient is not null)
@@ -27,7 +37,7 @@ public abstract class TenantAwareWebApplicationFactory : WebApplicationFactory<P
             "admin@tenanta.test",
             TenantAId,
             roles: new[] { "Admin" },
-            permissions: new[] { "*" });
+            permissions: TenantAdminPermissions);
 
         _tenantAClient.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
@@ -45,7 +55,7 @@ public abstract class TenantAwareWebApplicationFactory : WebApplicationFactory<P
             "admin@tenantb.test",
             TenantBId,
             roles: new[] { "Admin" },
-            permissions: new[] { "*" });
+            permissions: TenantAdminPermissions);
 
         _tenantBClient.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);

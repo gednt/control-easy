@@ -7,7 +7,7 @@ import { AuthService } from '../../core/services/auth.service';
 import type { TenantLookupResponse } from '../../core/services/auth.service';
 import { DemoInfoService } from '../../core/services/demo-info.service';
 import { BootstrapInfoService } from '../../core/services/bootstrap-info.service';
-import { CeButtonComponent, CeSpinnerComponent } from '../../design-system';
+import { CeButtonComponent, CeSpinnerComponent, CeInputComponent, CeCheckboxComponent, CeIconComponent, ThemeService } from '../../design-system';
 
 const DEMO_ACCOUNTS = [
   { label: 'Platform Admin', email: 'platform@controleasy.app' },
@@ -20,8 +20,20 @@ const DEMO_ACCOUNTS = [
 @Component({
   selector: 'ce-login-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, CeButtonComponent, CeSpinnerComponent],
+  imports: [CommonModule, ReactiveFormsModule, CeButtonComponent, CeSpinnerComponent, CeInputComponent, CeCheckboxComponent, CeIconComponent],
   template: `
+    <button
+      class="login-theme-toggle icon-btn"
+      type="button"
+      aria-label="Toggle theme"
+      (click)="themeService.toggle()">
+      @if (themeService.resolvedTheme() === 'dark') {
+        <ce-icon name="moon" [size]="20" />
+      } @else {
+        <ce-icon name="sun" [size]="20" />
+      }
+    </button>
+
     <main class="login-page" tabindex="-1">
       <div class="login-card">
         <div class="login-brand">
@@ -33,7 +45,7 @@ const DEMO_ACCOUNTS = [
 
         @if (loginError()) {
           <div class="login-error" role="alert" aria-live="assertive">
-            <span>&#9888;</span>
+            <ce-icon name="alert-circle" [size]="18" />
             <span>{{ loginError() }}</span>
           </div>
         }
@@ -51,55 +63,50 @@ const DEMO_ACCOUNTS = [
                 </button>
               }
             </div>
-            <ce-button variant="ghost" size="sm" type="button" (buttonClick)="backToLogin()" style="margin-top: var(--space-3);">
-              &#8592; Use a different account
+            <ce-button variant="ghost" size="sm" type="button" (click)="backToLogin()" style="margin-top: var(--space-3);">
+              <span class="back-icon"><ce-icon name="chevron-right" [size]="16" /></span>
+              Use a different account
             </ce-button>
           </div>
         } @else {
           <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-            <div class="ce-input-group">
-              <label class="ce-input-label" for="login-email">Email</label>
-              <div class="ce-input-wrapper" [class.has-error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
-                <input id="login-email"
-                       class="ce-input"
-                       type="email"
-                       formControlName="email"
-                       autocomplete="email"
-                       placeholder="you@controleasy.app"
-                       (blur)="onEmailBlur()" />
-              </div>
-              @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
-                <div class="ce-input-error">Please enter a valid email address.</div>
-              }
-            </div>
+            <ce-input
+              label="Email"
+              inputId="login-email"
+              type="email"
+              autocomplete="email"
+              placeholder="you@controleasy.app"
+              formControlName="email"
+              [error]="emailError()"
+            >
+              <span input-prefix><ce-icon name="user" [size]="16" /></span>
+            </ce-input>
 
-            <div class="ce-input-group">
-              <label class="ce-input-label" for="login-password">Password</label>
-              <div class="ce-input-wrapper" [class.has-error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
-                <input id="login-password"
-                       class="ce-input"
-                       [type]="showPassword() ? 'text' : 'password'"
-                       formControlName="password"
-                       autocomplete="current-password"
-                       placeholder="••••••••" />
-                <button type="button"
-                        class="ce-input-suffix"
-                        (click)="showPassword.set(!showPassword())"
-                        [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
-                        tabindex="-1">
-                  {{ showPassword() ? '&#9673;' : '&#9678;' }}
-                </button>
-              </div>
-              @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
-                <div class="ce-input-error">Password is required.</div>
-              }
-            </div>
+            <ce-input
+              label="Password"
+              inputId="login-password"
+              [type]="showPassword() ? 'text' : 'password'"
+              autocomplete="current-password"
+              placeholder="••••••••"
+              formControlName="password"
+              [error]="passwordError()"
+            >
+              <button
+                input-suffix
+                type="button"
+                class="password-toggle"
+                (click)="showPassword.set(!showPassword())"
+                [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+                tabindex="-1">
+                <ce-icon [name]="showPassword() ? 'eye-off' : 'eye'" [size]="16" />
+              </button>
+            </ce-input>
 
-            <label class="ce-checkbox">
-              <input type="checkbox" formControlName="remember" />
-              <span class="ce-checkbox-box"></span>
-              <span>Remember my email</span>
-            </label>
+            <ce-checkbox
+              label="Remember my email"
+              [checked]="loginForm.get('remember')?.value ?? false"
+              (checkedChange)="loginForm.patchValue({ remember: $event })"
+            />
 
             <ce-button variant="primary" size="lg" type="submit"
                     [disabled]="loginForm.invalid || submitting()"
@@ -122,7 +129,7 @@ const DEMO_ACCOUNTS = [
                 Bootstrap credentials are prefilled. You must change your password after signing in.
               </p>
               <ce-button type="button" variant="ghost" size="sm" class="bootstrap-shortcut-btn"
-                      (buttonClick)="fillBootstrapCredentials()">
+                      (click)="fillBootstrapCredentials()">
                 Use Platform Admin
               </ce-button>
             </details>
@@ -135,7 +142,7 @@ const DEMO_ACCOUNTS = [
               <div class="demo-shortcuts-grid">
                 @for (account of demoAccounts; track account.email) {
                   <ce-button type="button" variant="ghost" size="sm" class="demo-shortcut-btn"
-                          (buttonClick)="fillDemoAccount(account.email)">
+                          (click)="fillDemoAccount(account.email)">
                     {{ account.label }}
                   </ce-button>
                 }
@@ -217,91 +224,36 @@ const DEMO_ACCOUNTS = [
       gap: var(--space-4);
     }
 
-    .ce-input-group { display: flex; flex-direction: column; gap: var(--space-1); }
-    .ce-input-label {
-      font-size: var(--font-size-sm);
-      font-weight: var(--font-weight-medium);
-      color: var(--color-text-primary);
-    }
-    .ce-input-wrapper {
-      display: flex;
-      align-items: center;
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      transition: border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
-      overflow: hidden;
-    }
-    .ce-input-wrapper:focus-within {
-      border-color: var(--color-primary);
-      box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-primary) 15%, transparent);
-    }
-    .ce-input-wrapper.has-error {
-      border-color: var(--color-danger);
-      box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-danger) 15%, transparent);
-    }
-    .ce-input {
-      flex: 1;
-      border: 0;
-      background: transparent;
-      padding: var(--space-3);
-      font-family: inherit;
-      font-size: var(--font-size-sm);
-      color: var(--color-text-primary);
-      outline: none;
-      min-height: 2.5rem;
-    }
-    .ce-input::placeholder { color: var(--color-text-muted); }
-    .ce-input-error {
-      font-size: var(--font-size-xs);
-      color: var(--color-danger);
-      font-weight: var(--font-weight-medium);
-    }
-    .ce-input-suffix {
-      display: flex;
-      align-items: center;
-      padding: 0 var(--space-3);
-      color: var(--color-text-muted);
-      background: transparent;
-      border: 0;
-      cursor: pointer;
-      font-size: 1.1rem;
-    }
-
-    .ce-checkbox {
-      display: inline-flex;
-      align-items: center;
-      gap: var(--space-2);
-      cursor: pointer;
-      font-size: var(--font-size-sm);
-      color: var(--color-text-secondary);
-      user-select: none;
-      min-height: 44px;
-    }
-    .ce-checkbox input { position: absolute; opacity: 0; pointer-events: none; }
-    .ce-checkbox-box {
-      width: 1.25rem;
-      height: 1.25rem;
-      border: 1.5px solid var(--color-border);
-      background: var(--color-surface);
-      border-radius: var(--radius-sm);
+    .login-theme-toggle {
+      position: fixed;
+      top: var(--space-4);
+      right: var(--space-4);
+      z-index: 40;
+      width: 44px;
+      height: 44px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      transition: background var(--duration-fast), border-color var(--duration-fast);
-      flex-shrink: 0;
+      background: transparent;
+      border: 0;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      color: var(--color-text-primary);
     }
-    .ce-checkbox input:checked + .ce-checkbox-box {
-      background: var(--color-primary);
-      border-color: var(--color-primary);
+    .login-theme-toggle:hover { background: var(--color-neutral-light); }
+
+    .password-toggle {
+      display: inline-flex;
+      align-items: center;
+      background: transparent;
+      border: 0;
+      cursor: pointer;
+      color: var(--color-text-muted);
+      padding: 0;
     }
-    .ce-checkbox input:checked + .ce-checkbox-box::after {
-      content: "";
-      width: 0.4rem;
-      height: 0.7rem;
-      border: solid white;
-      border-width: 0 2px 2px 0;
-      transform: rotate(45deg) translateY(-1px);
+    .back-icon {
+      display: inline-flex;
+      transform: rotate(180deg);
     }
 
     .login-error {
@@ -413,6 +365,7 @@ export class LoginPage implements OnDestroy {
   private readonly authService = inject(AuthService);
   readonly demoInfo = inject(DemoInfoService);
   readonly bootstrapInfo = inject(BootstrapInfoService);
+  readonly themeService = inject(ThemeService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   private readonly destroy$ = new Subject<void>();
@@ -462,18 +415,37 @@ export class LoginPage implements OnDestroy {
       },
       error: () => this.tenantHint.set(null),
     });
+
+    this.loginForm.get('email')?.valueChanges.pipe(
+      debounceTime(400),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$),
+    ).subscribe((email) => {
+      if (email && this.isValidEmail(email)) {
+        this.emailChange$.next(email);
+      }
+    });
+  }
+
+  emailError(): string | null {
+    const control = this.loginForm.get('email');
+    if (control?.invalid && control.touched) {
+      return 'Please enter a valid email address.';
+    }
+    return null;
+  }
+
+  passwordError(): string | null {
+    const control = this.loginForm.get('password');
+    if (control?.invalid && control.touched) {
+      return 'Password is required.';
+    }
+    return null;
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  onEmailBlur(): void {
-    const email = this.loginForm.get('email')?.value;
-    if (email && this.isValidEmail(email)) {
-      this.emailChange$.next(email);
-    }
   }
 
   onSubmit(): void {

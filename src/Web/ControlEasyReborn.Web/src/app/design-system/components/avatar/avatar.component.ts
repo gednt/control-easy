@@ -8,7 +8,7 @@ import { Component, input, ChangeDetectionStrategy, computed } from '@angular/co
     @if (src()) {
       <img [src]="src()!" [alt]="name()" class="ce-avatar-img" [class]="'size-' + size()" />
     } @else {
-      <div class="ce-avatar-initials" [class]="'size-' + size()" [style.background]="backgroundColor()">
+      <div class="ce-avatar-initials" [class]="'size-' + size()" [style.background]="background() ?? backgroundColor()">
         {{ initials() }}
       </div>
     }
@@ -35,6 +35,8 @@ export class CeAvatarComponent {
   src = input<string | null>(null);
   name = input('');
   size = input<'xs' | 'sm' | 'md' | 'lg' | 'xl'>('md');
+  /** When set, overrides the hash-based fallback background. */
+  background = input<string | null>(null);
 
   initials = computed(() => {
     const n = this.name();

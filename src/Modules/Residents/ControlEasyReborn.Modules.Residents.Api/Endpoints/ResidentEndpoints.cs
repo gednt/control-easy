@@ -21,10 +21,11 @@ public static class ResidentEndpoints
             string? search,
             int? skip,
             int? take,
+            Guid? apartmentId,
             ListResidentsHandler handler,
             CancellationToken ct) =>
         {
-            var response = await handler.HandleAsync(search, skip ?? 0, take ?? 50, ct);
+            var response = await handler.HandleAsync(search, skip ?? 0, take ?? 50, ct, apartmentId);
             return Results.Ok(response);
         });
 

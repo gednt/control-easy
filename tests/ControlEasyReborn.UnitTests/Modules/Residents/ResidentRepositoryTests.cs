@@ -47,7 +47,7 @@ public sealed class ResidentRepositoryTests
 
         await _sut.FindAsync(Guid.NewGuid(), CancellationToken.None);
 
-        _fakeClient.Operations[0].Sql.Should().Contain("tenant_id = @ctx_tenant");
+        _fakeClient.Operations[0].Sql.Should().Contain("tenant_id = @param1");
         _fakeClient.Operations[0].Parameters.Should().Contain(_tenantId);
     }
 
@@ -74,6 +74,34 @@ public sealed class ResidentRepositoryTests
         var op = _fakeClient.Operations[0];
         op.Sql.Should().Contain("Name LIKE @param0");
         op.Parameters.Should().Contain("%Maria%");
+    }
+
+    [Fact]
+    public async Task ListAsync_with_apartmentId_sends_apartment_filter()
+    {
+        _fakeClient.SelectResultFactory = () => EmptyResidentsTable();
+        var apartmentId = Guid.NewGuid();
+
+        await _sut.ListAsync(null, 0, 50, CancellationToken.None, apartmentId);
+
+        var op = _fakeClient.Operations[0];
+        op.Sql.Should().Contain("ApartmentId = @param0");
+        op.Parameters.Should().Contain(apartmentId.ToString());
+    }
+
+    [Fact]
+    public async Task ListAsync_with_search_and_apartmentId_sends_both_predicates()
+    {
+        _fakeClient.SelectResultFactory = () => EmptyResidentsTable();
+        var apartmentId = Guid.NewGuid();
+
+        await _sut.ListAsync("Maria", 0, 50, CancellationToken.None, apartmentId);
+
+        var op = _fakeClient.Operations[0];
+        op.Sql.Should().Contain("Name LIKE @param0");
+        op.Sql.Should().Contain("ApartmentId = @param1");
+        op.Parameters.Should().Contain("%Maria%");
+        op.Parameters.Should().Contain(apartmentId.ToString());
     }
 
     [Fact]
@@ -121,7 +149,51 @@ public sealed class ResidentRepositoryTests
         var op = _fakeClient.Operations[0];
         op.OperationType.Should().Be("Update");
         op.Sql.Should().Contain("UPDATE Residents");
+        op.Sql.Should().Contain("Id = @param7");
         op.Parameters.Should().Contain(resident.Id);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_update_sql_contains_tenant_filter()
+    {
+        var resident = new Resident(
+            id: Guid.NewGuid(),
+            tenantId: _tenantId,
+            name: "Maria Silva",
+            cpf: "52998224725",
+            email: null,
+            phone: null,
+            apartmentId: null,
+            active: true,
+            createdAtUtc: DateTime.UtcNow,
+            updatedAtUtc: DateTime.UtcNow);
+
+        await _sut.UpdateAsync(resident, CancellationToken.None);
+
+        var op = _fakeClient.Operations[0];
+        op.Sql.Should().Contain("tenant_id = @param8");
+        op.Parameters.Should().Contain(_tenantId);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_deactivate_sends_active_zero()
+    {
+        var resident = new Resident(
+            id: Guid.NewGuid(),
+            tenantId: _tenantId,
+            name: "Maria Silva",
+            cpf: "52998224725",
+            email: null,
+            phone: null,
+            apartmentId: null,
+            active: false,
+            createdAtUtc: DateTime.UtcNow,
+            updatedAtUtc: DateTime.UtcNow);
+
+        await _sut.UpdateAsync(resident, CancellationToken.None);
+
+        var op = _fakeClient.Operations[0];
+        op.Parameters[5].Should().Be("0");
     }
 
     [Fact]

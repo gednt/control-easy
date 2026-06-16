@@ -16,5 +16,7 @@ export { CeTooltipDirective } from './components/tooltip/tooltip.directive';
 export { CePaginationComponent } from './components/pagination/pagination.component';
 export { CeBreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
 export { CeCheckboxComponent } from './components/checkbox/checkbox.component';
+export { CeIconComponent } from './components/icon/icon.component';
+export type { LucideIconName } from './components/icon/icon.types';
 export { ThemeService } from './theme/theme.service';
 export type { Theme, ResolvedTheme } from './theme/theme.service';

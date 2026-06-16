@@ -782,6 +782,7 @@ export class ResidentsPage {
       cpf: value.cpf,
       phone: value.phone ?? null,
       apartmentId: value.apartmentId,
+      active: resident.active,
     }).subscribe({
       next: () => {
         this.saving.set(false);
@@ -809,7 +810,7 @@ export class ResidentsPage {
     const resident = this.residentToDeactivate();
     if (!resident) return;
     this.deactivating.set(true);
-    this.api.deactivate(resident.id).subscribe({
+    this.api.deactivate(resident.id, resident.name, resident.cpf, resident.email, resident.phone, resident.apartmentId).subscribe({
       next: () => {
         this.deactivating.set(false);
         this.closeDeactivateConfirm();

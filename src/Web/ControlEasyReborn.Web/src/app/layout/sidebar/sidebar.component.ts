@@ -2,13 +2,19 @@ import { Component, ChangeDetectionStrategy, computed, inject } from '@angular/c
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { TenantSessionService } from '../../core/services/tenant-session.service';
+import { DrawerService } from '../../core/services/drawer.service';
+import { CeIconComponent } from '../../design-system/components/icon/icon.component';
+import { CeAvatarComponent } from '../../design-system/components/avatar/avatar.component';
+import type { LucideIconName } from '../../design-system/components/icon/icon.types';
+
+const BRAND_GRADIENT = 'linear-gradient(135deg, var(--color-primary), var(--color-accent-pink))';
 
 @Component({
   selector: 'ce-sidebar',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, CeIconComponent, CeAvatarComponent],
   template: `
-    <aside class="sidebar" aria-label="Main navigation">
+    <aside id="primary-sidebar" class="sidebar is-drawer" [class.is-open]="drawerService.isOpen()" aria-label="Main navigation">
       <div class="sidebar-brand">
         <div class="sidebar-brand-mark">CE</div>
         <div class="sidebar-brand-text">ControlEasy</div>
@@ -17,56 +23,48 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
         @if (auth.isPlatformAdmin()) {
           <div class="sidebar-nav-section">
             <div class="sidebar-nav-title">Platform</div>
-            <a class="sidebar-nav-item" routerLink="/platform/condominiums" routerLinkActive="active">
-              <span class="sidebar-nav-icon">&#127970;</span>
+            <a class="sidebar-nav-item" routerLink="/platform/condominiums" routerLinkActive="active" (click)="closeDrawer()">
+              <span class="sidebar-nav-icon"><ce-icon name="building" [size]="20" /></span>
               <span class="sidebar-nav-text">Condominiums</span>
             </a>
           </div>
         } @else {
-        <div class="sidebar-nav-section">
-          <div class="sidebar-nav-title">Overview</div>
-          <a class="sidebar-nav-item"
-             routerLink="/"
-             routerLinkActive="active"
-             [routerLinkActiveOptions]="{exact: true}">
-            <span class="sidebar-nav-icon">&#9783;</span>
-            <span class="sidebar-nav-text">Dashboard</span>
-          </a>
-        </div>
-        <div class="sidebar-nav-section">
-          <div class="sidebar-nav-title">Modules</div>
-          <a class="sidebar-nav-item" routerLink="/residents" routerLinkActive="active">
-            <span class="sidebar-nav-icon">&#9787;</span>
-            <span class="sidebar-nav-text">Residents</span>
-          </a>
-          <a class="sidebar-nav-item" routerLink="/apartments" routerLinkActive="active">
-            <span class="sidebar-nav-icon">&#127968;</span>
-            <span class="sidebar-nav-text">Apartments</span>
-          </a>
-          <a class="sidebar-nav-item" routerLink="/visits" routerLinkActive="active">
-            <span class="sidebar-nav-icon">&#9788;</span>
-            <span class="sidebar-nav-text">Visits</span>
-          </a>
-          <a class="sidebar-nav-item" routerLink="/vehicles" routerLinkActive="active">
-            <span class="sidebar-nav-icon">&#9789;</span>
-            <span class="sidebar-nav-text">Vehicles</span>
-          </a>
-          <a class="sidebar-nav-item" routerLink="/service-providers" routerLinkActive="active">
-            <span class="sidebar-nav-icon">&#9790;</span>
-            <span class="sidebar-nav-text">Service Providers</span>
-          </a>
-        </div>
-        <div class="sidebar-nav-section">
-          <div class="sidebar-nav-title">Settings</div>
-          <a class="sidebar-nav-item" routerLink="/administration" routerLinkActive="active">
-            <span class="sidebar-nav-icon">&#9881;</span>
-            <span class="sidebar-nav-text">Administration</span>
-          </a>
-        </div>
+          <div class="sidebar-nav-section">
+            <div class="sidebar-nav-title">Overview</div>
+            <a class="sidebar-nav-item"
+               routerLink="/"
+               routerLinkActive="active"
+               [routerLinkActiveOptions]="{exact: true}"
+               (click)="closeDrawer()">
+              <span class="sidebar-nav-icon"><ce-icon name="dashboard" [size]="20" /></span>
+              <span class="sidebar-nav-text">Dashboard</span>
+            </a>
+          </div>
+          <div class="sidebar-nav-section">
+            <div class="sidebar-nav-title">Modules</div>
+            @for (item of navItems; track item.route) {
+              <a class="sidebar-nav-item" [routerLink]="item.route" routerLinkActive="active" (click)="closeDrawer()">
+                <span class="sidebar-nav-icon"><ce-icon [name]="item.icon" [size]="20" /></span>
+                <span class="sidebar-nav-text">{{ item.label }}</span>
+              </a>
+            }
+          </div>
+          <div class="sidebar-nav-section">
+            <div class="sidebar-nav-title">Settings</div>
+            <a class="sidebar-nav-item" routerLink="/administration" routerLinkActive="active" (click)="closeDrawer()">
+              <span class="sidebar-nav-icon"><ce-icon name="settings" [size]="20" /></span>
+              <span class="sidebar-nav-text">Administration</span>
+            </a>
+          </div>
         }
       </nav>
       <div class="sidebar-footer">
-        <div class="sidebar-footer-avatar">{{ initials() }}</div>
+        <ce-avatar
+          class="sidebar-footer-avatar"
+          [name]="displayName()"
+          size="md"
+          [background]="brandGradient"
+        />
         <div class="sidebar-footer-text">
           <div class="sidebar-footer-name">{{ displayName() }}</div>
           <div class="sidebar-footer-role">{{ roleLabel() }}</div>
@@ -90,7 +88,18 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
       overflow: hidden;
     }
     @media (max-width: 639px) {
-      .sidebar { display: none; }
+      .sidebar.is-drawer {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: var(--sidebar-width);
+        z-index: 60;
+        transform: translateX(-100%);
+        transition: transform var(--duration-base) var(--ease-out);
+      }
+      .sidebar.is-drawer.is-open {
+        transform: translateX(0);
+      }
     }
     .sidebar-brand {
       display: flex;
@@ -167,7 +176,6 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 1rem;
     }
     .sidebar-footer {
       padding: var(--space-3);
@@ -175,19 +183,6 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
       display: flex;
       align-items: center;
       gap: var(--space-3);
-    }
-    .sidebar-footer-avatar {
-      width: 2.5rem;
-      height: 2.5rem;
-      border-radius: var(--radius-full);
-      background: linear-gradient(135deg, var(--color-primary), var(--color-accent-pink));
-      color: var(--color-text-on-primary);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: var(--font-weight-semibold);
-      font-size: 0.85rem;
-      flex-shrink: 0;
     }
     .sidebar-footer-name {
       color: var(--color-text-on-primary);
@@ -212,12 +207,25 @@ import { TenantSessionService } from '../../core/services/tenant-session.service
 export class SidebarComponent {
   readonly auth = inject(AuthService);
   readonly tenantSession = inject(TenantSessionService);
+  readonly drawerService = inject(DrawerService);
+  readonly brandGradient = BRAND_GRADIENT;
+
+  readonly navItems: ReadonlyArray<{ route: string; label: string; icon: LucideIconName }> = [
+    { route: '/residents', label: 'Residents', icon: 'users' },
+    { route: '/apartments', label: 'Apartments', icon: 'building' },
+    { route: '/visits', label: 'Visits', icon: 'calendar' },
+    { route: '/vehicles', label: 'Vehicles', icon: 'car' },
+    { route: '/service-providers', label: 'Service Providers', icon: 'briefcase' },
+  ];
 
   readonly displayName = computed(() =>
     this.tenantSession.userDisplayName() ?? this.fallbackDisplayName(),
   );
   readonly roleLabel = computed(() => this.formatRole(this.auth.roles()[0]));
-  readonly initials = computed(() => this.displayName().trim().slice(0, 1).toUpperCase() || 'A');
+
+  closeDrawer(): void {
+    this.drawerService.close();
+  }
 
   private formatRole(role: string | undefined): string {
     if (!role) return 'Signed in';

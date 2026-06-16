@@ -21,8 +21,10 @@ import {
   CePaginationComponent,
   CeBreadcrumbsComponent,
   CeCheckboxComponent,
+  CeIconComponent,
   ThemeService,
 } from '../index';
+import { ICON_SHOWCASE_NAMES, ICON_SHOWCASE_SIZES } from '../components/icon/icon.stories';
 
 @Component({
   selector: 'ce-showcase-page',
@@ -48,6 +50,7 @@ import {
     CePaginationComponent,
     CeBreadcrumbsComponent,
     CeCheckboxComponent,
+    CeIconComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -63,6 +66,28 @@ import {
           </select>
         </div>
       </div>
+
+      <section class="showcase-section">
+        <h2>Icons</h2>
+        <p class="showcase-hint">Lucide-backed <code>ce-icon</code> at default sizes.</p>
+        <div class="showcase-icon-grid">
+          @for (iconName of iconNames; track iconName) {
+            <div class="showcase-icon-cell" [title]="iconName">
+              <ce-icon [name]="iconName" [size]="20" />
+              <span>{{ iconName }}</span>
+            </div>
+          }
+        </div>
+        <p class="showcase-hint">Size variants (search icon):</p>
+        <div class="showcase-row">
+          @for (iconSize of iconSizes; track iconSize) {
+            <div class="showcase-icon-size">
+              <ce-icon name="search" [size]="iconSize" />
+              <span>{{ iconSize }}px</span>
+            </div>
+          }
+        </div>
+      </section>
 
       <section class="showcase-section">
         <h2>Buttons</h2>
@@ -315,11 +340,38 @@ import {
       grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
       gap: var(--space-4);
     }
+    .showcase-hint {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-3);
+    }
+    .showcase-icon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+      gap: var(--space-3);
+      margin-bottom: var(--space-6);
+    }
+    .showcase-icon-cell,
+    .showcase-icon-size {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface);
+      font-size: var(--font-size-xs);
+      color: var(--color-text-secondary);
+      text-align: center;
+    }
   `],
 })
 export class ShowcasePageComponent {
   readonly themeService = inject(ThemeService);
   readonly toastService = inject(ToastService);
+  readonly iconNames = ICON_SHOWCASE_NAMES;
+  readonly iconSizes = ICON_SHOWCASE_SIZES;
 
   localTheme = signal<'light' | 'dark'>('light');
   modalOpen = signal(false);

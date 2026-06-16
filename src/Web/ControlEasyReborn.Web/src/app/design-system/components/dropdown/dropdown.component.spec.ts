@@ -66,10 +66,10 @@ describe('CeDropdownComponent', () => {
     expect(panel).toBeFalsy();
   });
 
-  it('should close on destroy', () => {
+  it('should close when close() is called', () => {
     component.toggle();
     expect(component.isOpen()).toBe(true);
-    component.ngOnDestroy();
+    component.close();
     expect(component.isOpen()).toBe(false);
   });
 });

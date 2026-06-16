@@ -32,21 +32,34 @@ public sealed class ResidentRepository : IResidentRepository
         return MapFirstOrDefault(rows);
     }
 
-    public async Task<IReadOnlyList<Resident>> ListAsync(string? search, int skip, int take, CancellationToken ct)
+    public async Task<IReadOnlyList<Resident>> ListAsync(string? search, int skip, int take, CancellationToken ct, Guid? apartmentId = null)
     {
         var db = _factory.Create(_ctx);
-        var whereClause = string.IsNullOrWhiteSpace(search)
-            ? "1=1"
-            : "(Name LIKE @param0 OR Cpf LIKE @param0 OR Email LIKE @param0)";
-        var parameters = string.IsNullOrWhiteSpace(search)
-            ? Array.Empty<object>()
-            : new object[] { "%" + search + "%" };
+        var whereParts = new List<string>();
+        var paramList = new List<object>();
+        var paramIndex = 0;
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            whereParts.Add("(Name LIKE @param" + paramIndex + " OR Cpf LIKE @param" + paramIndex + " OR Email LIKE @param" + paramIndex + ")");
+            paramList.Add("%" + search + "%");
+            paramIndex++;
+        }
+
+        if (apartmentId.HasValue)
+        {
+            whereParts.Add("ApartmentId = @param" + paramIndex);
+            paramList.Add(apartmentId.Value.ToString());
+            paramIndex++;
+        }
+
+        var whereClause = whereParts.Count > 0 ? string.Join(" AND ", whereParts) : "1=1";
 
         var rows = await db.SelectAsync(
             fields: "Id, TenantId, Name, Cpf, Email, Phone, ApartmentId, Active, CreatedAtUtc, UpdatedAtUtc",
             table: TableName,
             whereClause: whereClause,
-            parameters: parameters,
+            parameters: paramList.ToArray(),
             ct: ct);
 
         return MapList(rows);
@@ -66,13 +79,14 @@ public sealed class ResidentRepository : IResidentRepository
 
     public async Task UpdateAsync(Resident resident, CancellationToken ct)
     {
+        const int fieldCount = 7;
         var db = _factory.Create(_ctx);
         await db.UpdateAsync(
             new[] { "Name", "Cpf", "Email", "Phone", "ApartmentId", "Active", "UpdatedAtUtc" },
             TableName,
             new[] { resident.Name, resident.Cpf, resident.Email ?? string.Empty, resident.Phone ?? string.Empty, resident.ApartmentId.HasValue ? resident.ApartmentId.Value.ToString() : string.Empty, resident.Active ? "1" : "0", resident.UpdatedAtUtc.HasValue ? resident.UpdatedAtUtc.Value.ToString("o") : string.Empty },
-            $"Id = '{resident.Id}'",
-            Array.Empty<object>(),
+            $"Id = @param{fieldCount}",
+            new object[] { resident.Id },
             ct: ct);
     }
 
