@@ -63,25 +63,30 @@ dotnet test  tests/ControlEasyReborn.Tests.sln
 ```
 
 ### Docker image caching
-Before the first build of a session, pull base images once so subsequent builds use the local cache and never hit the registry:
+Only pull base images if they are not present locally. Use `docker image inspect` to check before pulling:
 
 ```bash
-docker pull mcr.microsoft.com/dotnet/sdk:10.0
-docker pull mcr.microsoft.com/dotnet/aspnet:10.0
-docker pull node:20-alpine
-docker pull nginx:alpine
-docker pull mysql:8.0
-docker pull adminer:4
-docker pull traefik:v3.1
+for img in \
+  mcr.microsoft.com/dotnet/sdk:8.0 \
+  mcr.microsoft.com/dotnet/aspnet:8.0 \
+  node:20-alpine \
+  nginx:alpine \
+  mysql:8.0 \
+  adminer:4 \
+  traefik:v3.1; do
+  docker image inspect "$img" >/dev/null 2>&1 || docker pull "$img"
+done
 ```
 
-After the initial pull, always build with `--pull never` (via environment variable) to avoid redundant registry calls and MCR rate-limiting:
+This skips the pull for images already cached locally, avoiding unnecessary registry calls and MCR rate-limiting. In a fresh environment (no local cache), all images will be pulled automatically.
+
+After images are present, always build without pulling to avoid redundant registry calls:
 
 ```bash
 COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker compose -f docker/docker-compose.yml build api web
 ```
 
-If the base images are missing (fresh environment), run the pull step first, then build.
+If MCR is rate-limiting (HTTP 429 or 401), wait a few minutes and retry.
 
 ### Post-task verification (Docker)
 After completing **every implementation task**, rebuild the affected Docker images and restart Compose before marking the task done. Run from the repo root:
