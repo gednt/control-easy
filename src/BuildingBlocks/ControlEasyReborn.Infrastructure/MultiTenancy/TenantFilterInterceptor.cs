@@ -60,7 +60,7 @@ public sealed class TenantFilterInterceptor : IQueryInterceptor
             {
                 return;
             }
-            context.Sql = InjectPredicate(context.Sql, "@param" + context.Parameters.Count);
+            context.Sql = InjectPredicate(context.Sql, TenantParameterName);
             context.Parameters.Add(_tenantId);
         }
     }

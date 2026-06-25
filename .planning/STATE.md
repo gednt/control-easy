@@ -1,12 +1,12 @@
 ---
 gsd_state_version: '1.0'
-status: planning
+status: executing
 progress:
   total_phases: 14
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 15
-  completed_plans: 0
-  percent: 43
+  completed_plans: 1
+  percent: 50
 ---
 
 # Project State
@@ -16,16 +16,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-24)
 
 **Core value:** Gatehouse staff can reliably register and control access through a fast, tenant-isolated web UI.
-**Current focus:** Phase 7 — DBTools NuGet Migration
+**Current focus:** Phase 8 — Design System Hardening
 
 ## Current Position
 
-Phase: 7 of 14 (DBTools NuGet Migration)
-Plan: 0 of 1 in current phase
+Phase: 8 of 14 (Design System Hardening)
+Plan: 0 of 2 in current phase
 Status: Ready to plan
-Last activity: 2026-06-24 — Added Phase 7 (DBTools 1.4.3 NuGet) + `.specs/dbtools-nuget-migration/`
+Last activity: 2026-06-24 — Phase 7 complete (DBTools NuGet migration)
 
-Progress: [██████░░░░] 43% (6/14 phases complete)
+Progress: [███████░░░] 50% (7/14 phases complete)
 
 ## Performance Metrics
 
@@ -44,8 +44,7 @@ Progress: [██████░░░░] 43% (6/14 phases complete)
 
 ### Blockers/Concerns
 
-- Verify `TenantFilterInterceptor` / `IQueryInterceptor` API compatibility with NuGet 1.4.3 before deleting vendor
-- Docker build currently copies vendored lib — must validate NuGet restore in container
+- Integration tests (Testcontainers) should be re-run before merge — not executed in full this session
 
 ## Deferred Items
 

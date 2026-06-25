@@ -109,6 +109,7 @@ public sealed class TenantAwareLinqFactoryInterceptorTests
         public string BuildPagingClause(int? skip, int? take, string orderByClause) => string.Empty;
         public string GetLastInsertedIdSql() => "SELECT LAST_INSERT_ID()";
         public bool SupportsMerge => false;
+        public bool UsesTopNSyntax => false;
         public string BuildUpsertSql(string tableName, string[] columns, string matchColumn, string parameterPrefix) => string.Empty;
     }
 

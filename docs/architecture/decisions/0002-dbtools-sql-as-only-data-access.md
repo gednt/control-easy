@@ -1,4 +1,4 @@
-# 0002 — DBTools_SQL as the Sole Data-Access Layer
+# 0002 — DBTools as the Sole Data-Access Layer
 
 Date: 2026-06-13
 
@@ -19,11 +19,11 @@ The options are:
 
 1. **Entity Framework Core** — mature ORM, LINQ provider, migrations, multi-provider.
 2. **Dapper** — micro-ORM, raw SQL, manual mapping.
-3. **DBTools_SQL** — multi-provider library with `LinqHelper<TModel>` / `Linq<TModel>` (lambda predicates, property selectors, JOINs, deferred `IQueryable`), plus `IAsyncSqlClient` for raw SQL escape hatch.
+3. **DBTools** ([NuGet package](https://www.nuget.org/packages/DBTools) 1.4.3, pinned in `src/Directory.Packages.props`) — multi-provider library with `LinqHelper<TModel>` / `Linq<TModel>` (lambda predicates, property selectors, JOINs, deferred `IQueryable`), plus `IAsyncSqlClient` for raw SQL escape hatch.
 
 ## Decision
 
-We adopt **DBTools_SQL** (option 3) as the sole data-access layer.
+We adopt **DBTools** (option 3) as the sole data-access layer, consumed as a versioned NuGet package (not vendored source).
 
 All repository implementations use `TenantAwareLinqFactory` (which wraps `IAsyncSqlClient` with the `TenantFilterInterceptor`) for tenant-filtered queries. The factory produces per-scope `IAsyncSqlClient` instances with interceptors attached.
 
@@ -39,5 +39,5 @@ The multi-provider configuration is in `appsettings.json` (`Db:Provider = "MySQL
 ## Consequences
 
 - **Pros:** Multi-provider abstraction; LINQ-first with escape hatch; no ORM overhead (change tracking, lazy loading); interceptor pipeline enables cross-cutting concerns (tenant filtering, audit, soft delete) without repository cooperation.
-- **Cons:** DBTools_SQL is a vendor library with a smaller community than EF Core; some advanced query patterns (complex JOINs, CTEs) may require falling back to raw SQL; no built-in migration system — schema changes are managed via SQL scripts in `docker/mysql/init/`.
+- **Cons:** DBTools is a smaller-community library than EF Core; some advanced query patterns may require raw SQL; no built-in migration system — schema changes are managed via SQL scripts in `docker/mysql/init/`.
 - **Escape hatch:** `IAsyncSqlClient` exposes raw SQL execution for cases where the parameterized API is insufficient. This must be used sparingly and documented with a comment explaining why the LINQ API was insufficient.

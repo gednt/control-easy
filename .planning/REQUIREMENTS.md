@@ -13,7 +13,7 @@ Requirements for the modernization milestone. Status reflects `.specs/` task com
 - [x] **FOUND-02**: Multi-tenant data isolation via JWT `tenant_id` + query interceptor
 - [x] **FOUND-03**: Docker Compose stack (api, web, db, reverse-proxy, adminer)
 - [x] **FOUND-04**: DBTools LINQ-first data access via vendored library (no EF Core in Reborn)
-- [ ] **PLAT-01**: DBTools consumed from NuGet ([DBTools 1.4.3](https://www.nuget.org/packages/DBTools)) — vendored `src/lib/DBTools_SQL/` removed
+- [x] **PLAT-01**: DBTools consumed from NuGet ([DBTools 1.4.3](https://www.nuget.org/packages/DBTools)) — vendored `src/lib/DBTools_SQL/` removed
 - [x] **FOUND-05**: JWT authentication with PlatformAdmin, TenantAdmin, Attendant roles
 - [x] **FOUND-06**: OpenAPI + ng-openapi-gen TypeScript client generation
 - [x] **FOUND-07**: Integration tests with Testcontainers.MySql

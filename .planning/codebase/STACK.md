@@ -5,7 +5,7 @@
 ## Languages
 
 **Primary:**
-- C# 12 (`LangVersion: latest` in `src/Directory.Build.props`) — ASP.NET Core API, modular monolith backend, DBTools_SQL library, xUnit tests
+- C# 12 (`LangVersion: latest` in `src/Directory.Build.props`) — ASP.NET Core API, modular monolith backend, DBTools NuGet package, xUnit tests
 - TypeScript 5.5 (`typescript: ~5.5.2` in `src/Web/ControlEasyReborn.Web/package.json`) — Angular 18 SPA in `src/Web/ControlEasyReborn.Web/`
 
 **Secondary:**
@@ -29,7 +29,7 @@
 **Core:**
 - ASP.NET Core 8 Web API — composition root at `src/Host/ControlEasyReborn.Api/Program.cs`; minimal hosting, endpoint routing, JWT auth, Swagger
 - Angular 18.2 — standalone components, signals, OnPush change detection (schematics in `src/Web/ControlEasyReborn.Web/angular.json`); prefix `ce`
-- DBTools_SQL (vendored) — multi-provider LINQ data access at `src/lib/DBTools_SQL/DBTools/`; wired via `src/BuildingBlocks/ControlEasyReborn.Infrastructure/Data/ServiceCollectionExtensions.cs`
+- DBTools 1.4.3 (NuGet) — multi-provider LINQ data access; pinned in `src/Directory.Packages.props`; wired via `src/BuildingBlocks/ControlEasyReborn.Infrastructure/Data/ServiceCollectionExtensions.cs`
 
 **Testing:**
 - xUnit 2.9.2 — `tests/ControlEasyReborn.UnitTests/`, `tests/ControlEasyReborn.IntegrationTests/`, `tests/ControlEasyReborn.ArchitectureTests/`
@@ -52,7 +52,7 @@
 ## Key Dependencies
 
 **Critical:**
-- MySqlConnector 2.3.7 — MySQL ADO.NET driver (declared in `tests/ControlEasyReborn.IntegrationTests/ControlEasyReborn.IntegrationTests.csproj`; loaded at runtime by reflection in `src/lib/DBTools_SQL/DBTools/Providers/MySqlProvider.cs`)
+- MySqlConnector 2.3.7 — MySQL ADO.NET driver (pinned in `src/Directory.Packages.props`; used by DBTools MySQL provider)
 - Microsoft.AspNetCore.Authentication.JwtBearer 8.0.10 — JWT bearer authentication in `src/Host/ControlEasyReborn.Api/Program.cs`
 - Serilog.AspNetCore 8.0.3 + Serilog.Sinks.Seq 6.0.0 — structured logging to console and Seq
 - Swashbuckle.AspNetCore 6.6.2 — OpenAPI/Swagger UI (Development only)

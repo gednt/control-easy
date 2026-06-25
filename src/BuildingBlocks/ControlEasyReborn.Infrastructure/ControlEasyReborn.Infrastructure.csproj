@@ -4,7 +4,7 @@
     <AssemblyName>ControlEasyReborn.Infrastructure</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\lib\DBTools_SQL\DBTools\DBTools.csproj" />
+    <PackageReference Include="DBTools" />
     <ProjectReference Include="..\ControlEasyReborn.SharedKernel\ControlEasyReborn.SharedKernel.csproj" />
     <ProjectReference Include="..\..\Modules\Security\ControlEasyReborn.Modules.Security.Application\ControlEasyReborn.Modules.Security.Application.csproj" />
   </ItemGroup>

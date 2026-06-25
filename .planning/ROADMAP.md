@@ -20,7 +20,7 @@ Brownfield modernization of ControlEasy 5 into a modular web platform. Phases 1�
 
 </details>
 
-- [ ] **Phase 7: DBTools NuGet Migration (INSERTED)** — Replace `src/lib/DBTools_SQL/` with [DBTools 1.4.3](https://www.nuget.org/packages/DBTools)
+- [ ] **Phase 7: DBTools NuGet Migration (INSERTED)** — Replace `src/lib/DBTools_SQL/` with [DBTools 1.4.3](https://www.nuget.org/packages/DBTools) ✅
 - [ ] **Phase 8: Design System Hardening** — Token unification, component refactors, formal spec gap-fill *(was Phase 7)*
 - [ ] **Phase 9: UI Parity & Functional Fixes** — Mockup visual parity + interaction fixes
 - [ ] **Phase 10: Dashboard & Quick Wins** — Live stats, occupied-apartments bugfix, vehicle edit
@@ -65,10 +65,10 @@ Brownfield modernization of ControlEasy 5 into a modular web platform. Phases 1�
 
 ---
 
-### Phase 7: DBTools NuGet Migration (INSERTED) 🎯
+### Phase 7: DBTools NuGet Migration (INSERTED) ✅
 **Goal**: Replace vendored `src/lib/DBTools_SQL/` with official NuGet package; simplify Docker build and dependency management
 **Depends on**: Phase 6
-**Spec**: `.specs/dbtools-nuget-migration/` — **0/7**
+**Spec**: `.specs/dbtools-nuget-migration/` — **7/7**
 **Requirements**: PLAT-01
 **Package**: [DBTools 1.4.3](https://www.nuget.org/packages/DBTools) (.NET 8, multi-provider LINQ, `IAsyncSqlClient`, `AddDbTools` DI)
 **Current state**:
@@ -83,7 +83,7 @@ Brownfield modernization of ControlEasy 5 into a modular web platform. Phases 1�
 **Plans**: 1 plan
 
 Plans:
-- [ ] 07-01: DBTools NuGet swap (CPM pin, project ref → package ref, remove vendor, Docker, docs)
+- [x] 07-01: DBTools NuGet swap (CPM pin, project ref → package ref, remove vendor, Docker, docs)
 
 ### Phase 8: Design System Hardening 🚧
 **Goal**: Unify tokens, refactor pages to `ce-*` components, close formal design system gaps
@@ -161,8 +161,8 @@ Plans:
 | 4. Legacy Decommission | `1 - modernization-roadmap` | 6/6 cancelled | ✅ Complete | — |
 | 5. Tenant & Session UX | 4 specs | 41/41 | ✅ Complete | — |
 | 6. Apartments & Verification | 2 specs | 17/17 | ✅ Complete | — |
-| 7. DBTools NuGet Migration | `dbtools-nuget-migration` | 0/7 | 🎯 Next | — |
-| 8. Design System | `fix-design-system`, `2 - visual-design-system` | 75/138 | 🚧 In Progress | — |
+| 7. DBTools NuGet Migration | `dbtools-nuget-migration` | 7/7 | ✅ Complete | 2026-06-24 |
+| 8. Design System | `fix-design-system`, `2 - visual-design-system` | 75/138 | 🎯 Next | — |
 | 9. UI Parity & Fixes | 2 specs | 0/86 | Not started | — |
 | 10. Dashboard & Quick Wins | 3 specs | 0/8 | Not started | — |
 | 11. Demo Mode | `4 - demo-mode` | 0/11 | Not started | — |

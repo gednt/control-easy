@@ -2,7 +2,6 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 COPY src/Directory.Build.props src/Directory.Packages.props ./
-COPY src/lib/DBTools_SQL/DBTools/ src/lib/DBTools_SQL/DBTools/
 COPY src/BuildingBlocks/ControlEasyReborn.SharedKernel/ src/BuildingBlocks/ControlEasyReborn.SharedKernel/
 COPY src/BuildingBlocks/ControlEasyReborn.Infrastructure/ src/BuildingBlocks/ControlEasyReborn.Infrastructure/
 COPY src/Modules/ src/Modules/

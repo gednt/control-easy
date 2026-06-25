@@ -4,13 +4,6 @@
 
 ## Tech Debt
 
-**Vendored DBTools_SQL copy in-repo:**
-- Issue: The full `DBTools_SQL` library lives at `src/lib/DBTools_SQL/DBTools/` as a vendored copy rather than a NuGet package reference. Upstream fixes and security patches require manual sync.
-- Files: `src/lib/DBTools_SQL/DBTools/`, `src/BuildingBlocks/ControlEasyReborn.Infrastructure/Data/ServiceCollectionExtensions.cs`
-- Why: Greenfield bootstrap needed a working data-access layer before upstream packaging was wired.
-- Impact: Drift from upstream `DBTools_SQL`; duplicate maintenance burden; deprecated APIs remain callable (e.g. `[Obsolete]` methods in `src/lib/DBTools_SQL/DBTools/Core/DBTools.cs`).
-- Fix approach: Replace vendored tree with a pinned package or git submodule; run regression suite (`tests/ControlEasyReborn.IntegrationTests/`, architecture tests) after swap.
-
 **Dual tenant discriminator columns (`TenantId` + `tenant_id`):**
 - Issue: Every tenant-scoped table defines both PascalCase `TenantId` and snake_case `tenant_id`. Inserts must populate both; `TenantFilterInterceptor` only filters on `tenant_id`.
 - Files: `docker/mysql/init/02a-residents-schema.sql`, `docker/mysql/init/07-vehicles-schema.sql`, `docker/mysql/init/09-administration-schema.sql`, `src/Modules/Tenants/ControlEasyReborn.Modules.Tenants.Infrastructure/Persistence/TenantAdminRepository.cs`
