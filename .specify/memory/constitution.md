@@ -1,25 +1,36 @@
 <!--
 Sync Impact Report
 ==================
-Version change: 1.0.0 → 1.1.0  (MINOR — new principle + new governance section + Principle V split)
-Modified principles:
-  - V. Observability, Security, and Container Parity
-      → V. Observability, Security, Runtime Container Parity
-        + "Dev shell" sub-bullet (devcontainer is the canonical local shell; Compose remains the runtime target; verification gate runs against Compose, not the devcontainer)
-Added principles:
-  - VI. Workflow Tooling (GSD / spec-kit / OpenSpec split; legacy docs/ generation pipeline is deprecated; .planning/ is the source of truth for the roadmap, .specs/<feature>/ is the source of truth for per-feature specs, openspec/ is a forward-compatible slot)
-Added sections:
-  - Documentation Systems and Source of Truth (canonical homes for roadmap, per-feature specs, ADRs, design system, code maps, operator docs, and the explicit retirement of the legacy docs/ generation pipeline and the now-redundant docs/architecture/decisions/ ADRs in favor of GSD STATE.md rationale and spec-kit review.md findings)
-Removed sections: none
+Version change: 1.1.0 → 1.2.0  (MINOR — "Development Workflow & Quality Gates" section rewritten)
+Modified sections:
+  - Development Workflow & Quality Gates (empty after user deletion)
+      → Development Workflow & Quality Gates (rewritten from the actual behavior of the
+        three workflow tools: GSD phase lifecycle, spec-kit 4-command pipeline, OpenSpec
+        opt-in change-tracking layer; removed the in-house-orchestrator assumptions —
+        `plan.md` Constitution Check gate, `C.*` task prefixes, per-PR `review.md`, `8.5`
+        task numbering — that no longer describe how the project is run; added the
+        "Ownership principle" to § 4 Seams — GSD owns `.planning/`, so spec-kit and
+        OpenSpec are writers to it whenever their work changes project state, not just
+        readers of it — and broadened the spec-kit → GSD seam to cover
+        `.planning/PROJECT.md` validated/active/out-of-scope list moves, not only
+        `STATE.md` decisions)
 Templates requiring updates:
-  - .specify/templates/plan-template.md        ⚠ pending — confirm "Constitution Check" section is re-evaluated for Principle VI
+  - .specify/templates/plan-template.md        ✅ updated — "Constitution Check"
+        gating language re-anchored to spec-kit `/speckit-plan` Phase 0.
   - .specify/templates/spec-template.md         ✅ aligned
   - .specify/templates/tasks-template.md        ✅ aligned
-  - .specify/templates/checklist-template.md    ⚠ pending — confirm scope covers docs-retirement audit
-Follow-up TODOs:
-  - [RESOLVED 2026-07-12] CONSTITUTION_V_DEMOTED_RUNTIME_DOCKER_PROSE: AGENTS.md "Post-task verification" prose has been rewritten without the "(Docker)" parenthetical and with an explicit "runtime target is the Docker Compose stack; dev shell is the devcontainer" sentence. See new `AGENTS.md` § 4.1 and § 5.
-  - [TODO(CONSTITUTION_VI_OPENSPEC_ADOPTION_DATE)]: openspec/ is a stub today. Per the rewritten `AGENTS.md` § 2.3, OpenSpec is opt-in on a per-change basis at the discretion of the user; it is not a default workflow. The trigger for promoting a change from `.specs/<feature>/` to `openspec/changes/<id>/` is the user explicitly invoking `/opsx:new` on that change. No automatic promotion.
-  - [TODO(CONSTITUTION_VI_DOCS_RETIREMENT_DATE)]: docs/index.md, docs/project-overview.md, docs/development-guide.md, docs/architecture.md, docs/component-inventory.md, docs/deployment-guide.md, docs/api-contracts.md, docs/data-models.md, docs/integration-architecture.md, docs/source-tree-analysis.md, and docs/project-scan-report.json are all bmad-document-project outputs. They have been marked DEPRECATED in this change (one-line redirect note at the top of each, with `_deprecated_redirect` field in the JSON). Actual deletion is gated on the next `/gsd-complete-milestone` run.
+  - .specify/templates/checklist-template.md    ✅ aligned
+  - .specify/templates/constitution-template.md ✅ aligned
+Runtime guidance:
+  - AGENTS.md                                   ✅ updated — version pins bumped to
+        v1.2.0; Clarifications session log removed; point-in-time status notes
+        replaced with stable forward-references; closing notes tightened.
+Deferred items (stable conditions, not point-in-time snapshots):
+  - OpenSpec adoption: openspec/ is opt-in. An `openspec/changes/<id>/` folder is
+        created only when the user explicitly invokes `/opsx:new` (or equivalent)
+        on a change. No automatic promotion.
+  - Legacy docs retirement: the legacy `docs/` generation pipeline outputs are
+        deprecated. Deletion is gated on the next `/gsd-complete-milestone` run.
 -->
 
 # ControlEasy Reborn Constitution
@@ -143,27 +154,25 @@ responsibility:
   are the interface between human intent and spec-kit artifacts.
 - **OpenSpec** (`openspec/`) is a **forward-compatible slot** for the day
   the team chooses to adopt change-tracking with formal proposal/spec
-  deltas. Today it is a stub (`openspec/config.yaml` only, `schema:
-  spec-driven`, no `changes/` directory). Promoting a per-feature spec from
-  `.specs/<feature>/` to `openspec/changes/<id>/` is a one-way migration
-  triggered explicitly (see `TODO(CONSTITUTION_VI_OPENSPEC_ADOPTION_DATE)`
-  in the Sync Impact Report above); it is NOT automatic.
+  deltas. It is opt-in: an `openspec/changes/<id>/` folder is created
+  only when the user explicitly invokes `/opsx:new` (or equivalent) on
+  a change. Promoting a per-feature spec from `.specs/<feature>/` to
+  `openspec/changes/<id>/` is a one-way migration triggered
+  explicitly; it is NOT automatic.
 
-The **legacy `docs/` generation pipeline** (the output of `bmad-document-project
---mode deep` runs) is **deprecated as a source of truth** and is on a
-retirement schedule (see § "Documentation Systems and Source of Truth"
-below). It remains in the tree as a historical snapshot for the
-2026-07-12 scan only.
+The **legacy `docs/` generation pipeline** (the output of
+`bmad-document-project --mode deep` runs) is **deprecated as a source
+of truth** and is on a retirement schedule (see § "Documentation
+Systems and Source of Truth" below).
 
-**Rationale:** Three overlapping spec systems (GSD + spec-kit + OpenSpec) is
-one too many for a small team. Pinning each to a single responsibility is
-cheaper than consolidating to one tool: GSD's roadmap + codebase maps are
-hard to replicate, spec-kit's per-feature template is hard to replicate, and
-OpenSpec's proposal/scenario model is future-looking. The legacy `docs/`
-generation pipeline was useful once (it bootstrapped the project when the team
-had no GSD codebase maps) but it now duplicates `.planning/codebase/` and
-`.specs/<feature>/design.md` content, and drifts. Retirement is cheaper than
-keeping it in sync.
+**Rationale:** Three overlapping spec systems (GSD + spec-kit + OpenSpec)
+is one too many for a small team. Pinning each to a single
+responsibility is cheaper than consolidating to one tool: GSD's
+roadmap + codebase maps are hard to replicate, spec-kit's per-feature
+template is hard to replicate, and OpenSpec's proposal/scenario model
+is future-looking. The legacy `docs/` generation pipeline duplicates
+`.planning/codebase/` and `.specs/<feature>/design.md` content and
+drifts; retirement is cheaper than keeping it in sync.
 
 ## Stack & Architecture Constraints
 
@@ -215,28 +224,217 @@ conform.
 
 ## Development Workflow & Quality Gates
 
-- **Spec folder is the unit of work.** Every feature or bug fix lives under
-  `.specs/<feature>/` with at minimum `tasks.md` and either `design.md`
-  (feature) or `bugfix.md` (fix). Optional artifacts: `requirements.md`,
-  `review.md`, `analysis.md`, `docplan.md`, `docchange.md`,
-  `orchestration.md`.
-- **Plan–Spec–Tasks alignment.** `plan.md` MUST cite the spec, declare a
-  Constitution Check pass, and document any intentional deviations. The
-  `tasks.md` checklist and its Task Dependency Graph (`waves` JSON) are the
-  execution contract.
-- **Task numbering.** Numbered tasks reference the spec phase (e.g., `1.0a`,
-  `8.5`). A `C.*` (continuous) prefix is reserved for cross-cutting tasks
-  (CI, Docker rebuild, architecture tests) that run across the whole project.
-- **Definition of done.** A task is done only when: (1) the code lands on the
-  branch, (2) the spec checkbox is updated, (3) the affected Docker services
-  are rebuilt and observed healthy, (4) the task's verification gate (unit,
-  integration, or manual smoke) passes, and (5) the Sync Impact Report (for
-  any constitutional change) is regenerated.
-- **Code review.** Every PR must include a `.specs/.../review.md` (or a
-  comment linking to one) and a passing `dotnet test` for the affected test
-  projects. Architecture tests are non-skippable.
-- **Commits.** Commit messages reference the task ID (`8.5: add demo
-  banner to app shell`). No force-pushes to `main`/`master`.
+The project runs three workflow tools — **GSD**, **spec-kit**, and **OpenSpec** —
+each with a single, non-overlapping responsibility (Principle VI). This section
+describes how each tool works day-to-day and, critically, the **seams** where
+they hand off to each other so the three compose into one development loop
+rather than three parallel ones.
+
+### 1. GSD — planner and roadmap owner (`.planning/`)
+
+GSD owns the project-level state: the roadmap, the requirements, the live
+execution state, and the seven codebase maps. Every agent reads it before
+doing anything else; every agent that changes state updates it.
+
+**Phase lifecycle.** The roadmap is a sequence of phases. A phase moves through
+a standard lifecycle, each step a `/gsd-*` command:
+
+1. `/gsd-discuss-phase <N>` — surface scope, assumptions, and decisions;
+   produce `CONTEXT.md`.
+2. `/gsd-plan-phase <N>` — spawn `gsd-phase-researcher` (writes `RESEARCH.md`)
+   then `gsd-planner` (writes `NN-PLAN.md`); verify with `gsd-plan-checker`
+   until the plan passes.
+3. `/gsd-execute-phase <N>` — wave-based parallel execution; each plan gets a
+   `gsd-executor` subagent that runs tasks atomically and commits per task.
+4. `/gsd-verify-work <N>` — conversational UAT; produce `NN-UAT.md`; if gaps
+   are found, `/gsd-execute-phase <N> --gaps-only` closes them.
+5. `/gsd-validate-phase <N>` — retroactive Nyquist audit of test coverage;
+   produce `VALIDATION.md` + generated tests.
+6. `/gsd-transition` — advance the roadmap pointer; re-validate `PROJECT.md`,
+   `REQUIREMENTS.md`, and this constitution against what shipped.
+7. `/gsd-complete-milestone <version>` — at a milestone boundary: archive
+   roadmap + requirements to `.planning/milestones/`, update `PROJECT.md`,
+   tag the release, and trigger the legacy-`docs/` retirement schedule
+   (see "Documentation Systems and Source of Truth" below).
+
+**Artifacts GSD owns:** `PROJECT.md`, `REQUIREMENTS.md`, `ROADMAP.md`,
+`STATE.md`, `.planning/codebase/{STACK,STRUCTURE,ARCHITECTURE,CONVENTIONS,
+CONCERNS,INTEGRATIONS,TESTING}.md`, and per-phase folders under
+`.planning/phases/<NN>-<slug>/` (`CONTEXT.md`, `RESEARCH.md`, `NN-PLAN.md`,
+`NN-SUMMARY.md`, `NN-VERIFICATION.md`, `VALIDATION.md`, `NN-UAT.md`).
+
+**Decisions and rationale.** GSD `STATE.md` is the canonical home for the
+*decision and rationale* of any architectural choice; spec-kit `review.md` /
+`analysis.md` holds the *finding* that prompted it (see "Documentation
+Systems and Source of Truth").
+
+### 2. spec-kit — per-feature spec owner (`.specs/`, `.specify/`)
+
+spec-kit owns the per-feature implementation contract. Every feature or bug
+fix lives under `.specs/<feature>/`. The spec-kit command skills
+(`.agents/skills/speckit-*`) are the interface between human intent and the
+spec artifacts. The pipeline is four commands, run in order:
+
+1. `/speckit-specify "<description>"` — create `.specs/<feature>/spec.md`
+   from the feature description; generate a quality checklist under
+   `.specs/<feature>/checklists/`; resolve up to 3 `[NEEDS CLARIFICATION]`
+   markers with the user. Output: `spec.md` (user stories with priorities,
+   functional requirements, success criteria, edge cases).
+2. `/speckit-plan` — fill `plan.md` from the template: Technical Context,
+   Constitution Check (read from this file), Phase 0 `research.md`,
+   Phase 1 `data-model.md` + `contracts/` + `quickstart.md`. Re-evaluate
+   the Constitution Check after design.
+3. `/speckit-tasks` — generate `tasks.md` organized by user story (Setup →
+   Foundational → one phase per story in priority order → Polish), with
+   `[P]` parallel markers, `[USn]` story labels, exact file paths, and a
+   dependency graph.
+4. `/speckit-implement` — execute `tasks.md` phase-by-phase, marking each
+   task `[X]` as it lands; respect `[P]` parallelism and TDD ordering where
+   tests are requested.
+
+**Auxiliary commands:** `/speckit-clarify` (resolve remaining
+clarifications), `/speckit-checklist` (generate domain checklists — UX,
+security, test, etc.), `/speckit-converge` (consolidation),
+`/speckit-analyze` (code analysis → `analysis.md`),
+`/speckit-constitution` (amend this file).
+
+**This constitution is the binding governance document for spec-kit.**
+`/speckit-plan` Phase 0 reads `.specify/memory/constitution.md` and fills
+the `plan.md` "Constitution Check" section from it; any violation that
+cannot be justified in the plan's Complexity Tracking table blocks
+planning. spec-kit does NOT own the roadmap or the phase state — it owns
+the per-feature contract that GSD phases consume.
+
+### 3. OpenSpec — opt-in change-tracking layer (`openspec/`)
+
+OpenSpec is **opt-in**, at the discretion of the user, on a per-change
+basis. It is NOT the default workflow. Most changes go through spec-kit
+alone; only some go through OpenSpec as well. The two coexist; nothing in
+spec-kit is replaced by adopting OpenSpec on a change.
+
+When the user opts a change into OpenSpec, the agent creates an
+`openspec/changes/<id>/` folder with a `proposal.md` + delta-specs +
+`design.md` + `tasks.md` lifecycle:
+
+1. `proposal.md` — why, what, scope, success criteria. The "Why" section
+   cross-references the spec-kit `.specs/<feature>/` folder.
+2. **Delta specs** under `openspec/changes/<id>/specs/<domain>/` using
+   `## ADDED Requirements`, `## MODIFIED Requirements`,
+   `## REMOVED Requirements` sections — the diff against the canonical
+   `openspec/specs/<domain>/`, not a rewrite.
+3. `design.md` and `tasks.md` — the lifecycle is
+   `proposal → specs → design → tasks`, progressive, not waterfall.
+4. `/opsx:apply <id>` — implement against the delta specs and the task
+   list; the agent keeps the OpenSpec `tasks.md` and the spec-kit
+   `tasks.md` in sync. **The spec-kit `tasks.md` is the one the
+   verification gate reads** (see Quality Gates below).
+5. `/opsx:archive <id>` — fold the delta specs into the canonical
+   `openspec/specs/<domain>/` and move the change to
+   `openspec/changes/archive/<date>-<id>/`.
+
+`openspec/` is opt-in: no agent creates an `openspec/changes/<id>/`
+folder without explicit user instruction. The canonical
+`openspec/specs/<domain>/` accumulates folded deltas over time; the
+spec-kit `requirements.md` / `design.md` do NOT have to mirror them —
+they are independent, with cross-references added to the spec-kit
+`requirements.md` "OpenSpec" subsection when relevant.
+
+### 4. Seams — how the three tools compose
+
+The three tools are designed to hand off to each other at well-defined
+points. The seams below are non-negotiable.
+
+**Ownership principle.** GSD owns `.planning/` — it is the single writer
+of the roadmap pointer, the phase state, and the milestone archive, and
+the single reader-of-record for project-level state. The other two tools
+are **writers** to `.planning/` whenever their work changes project
+state, and **readers** of `.planning/` whenever they need project
+context. Concretely: spec-kit and OpenSpec MUST update
+`.planning/STATE.md` (decisions, blockers, deferred items) and
+`.planning/PROJECT.md` (validated/active/out-of-scope lists) when their
+work changes those facts; they MUST NOT update `ROADMAP.md`, the phase
+pointer, or the milestone archive — those are GSD's job
+(`/gsd-transition`, `/gsd-complete-milestone`). Conversely, GSD consumes
+`.specs/<feature>/` and `openspec/` artifacts but MUST NOT rewrite them
+— e.g., GSD editing a `.specs/<feature>/tasks.md` checkbox is a
+constitutional violation (that is spec-kit's job via
+`/speckit-implement`).
+
+- **GSD → spec-kit.** A GSD phase references one or more spec-kit
+  `.specs/<feature>/` folders in its phase detail block
+  (`ROADMAP.md` → "Phase N" → "Specs:"). The GSD planner reads the
+  spec-kit `tasks.md` to size the phase; the GSD executor reads the same
+  `tasks.md` to run tasks. GSD does NOT rewrite the spec-kit artifacts —
+  it consumes them.
+- **spec-kit → GSD.** When a spec-kit task completes, the executor
+  updates `.planning/STATE.md` (decisions, blockers, deferred items)
+  and, if a requirement is validated or invalidated, `.planning/
+  PROJECT.md` (move between the Active / Validated / Out-of-Scope
+  lists) so the next GSD command sees fresh state. spec-kit does NOT
+  advance the roadmap pointer or mark phases complete — that is GSD's
+  job (`/gsd-transition`, `/gsd-complete-milestone`).
+- **spec-kit ↔ OpenSpec.** When a change is opted into OpenSpec, the
+  spec-kit `.specs/<feature>/` folder is created as usual AND an
+  `openspec/changes/<id>/` folder is created. The agent that runs
+  `/opsx:apply` keeps both `tasks.md` files in sync. The spec-kit
+  `tasks.md` is the verification-gate source of truth; the OpenSpec
+  `tasks.md` is the change-tracking source of truth. On `/opsx:archive`,
+  the delta specs fold into `openspec/specs/<domain>/` and the
+  `openspec/changes/<id>/` folder moves to archive; the spec-kit
+  `.specs/<feature>/` folder stays in place as the implementation
+  record. If an OpenSpec change validates or invalidates a requirement,
+  the executor updates `.planning/STATE.md` and `.planning/PROJECT.md`
+  under the same ownership rule as spec-kit (see above).
+- **GSD ↔ OpenSpec.** GSD does not directly read `openspec/`. The
+  cross-reference flows through spec-kit: the spec-kit
+  `requirements.md` "OpenSpec" subsection links the feature to its
+  OpenSpec change id, and GSD reads that subsection when planning the
+  phase. At milestone boundaries (`/gsd-complete-milestone`), the
+  canonical `openspec/specs/<domain>/` is a candidate for re-validation
+  alongside the legacy-`docs/` retirement schedule.
+- **Constitution.** This file is the shared governance contract for all
+  three. spec-kit reads it at `/speckit-plan` Phase 0; GSD re-validates
+  it at every phase transition (`/gsd-transition`) and milestone
+  (`/gsd-complete-milestone`); OpenSpec delta specs MUST NOT contradict
+  it (a delta spec that violates a principle is a blocker, not a
+  proposal).
+
+### 5. Quality gates
+
+The verification gate is the same in every mode and is owned by the
+runtime target — the Docker Compose stack — not by any of the three
+workflow tools. The tools produce the code; the gate verifies the code.
+
+- **Per-task gate (spec-kit `/speckit-implement`).** A task is "done"
+  only when: (1) the code lands on the branch, (2) the `tasks.md`
+  checkbox is marked `[X]`, (3) the affected Docker services are rebuilt
+  and observed healthy
+  (`docker compose build api web && up -d --force-recreate api web`),
+  and (4) the task's test slice passes (`dotnet test` for the affected
+  test projects). Architecture tests are non-skippable for any change
+  touching the tenant filter, an entity, or an endpoint.
+- **Per-phase gate (GSD `/gsd-verify-work`, `/gsd-validate-phase`).**
+  Before a phase transitions, the phase's UAT
+  (`NN-UAT.md`) must be clean or its gaps closed via
+  `/gsd-execute-phase <N> --gaps-only`, and the Nyquist validation
+  (`VALIDATION.md`) must be green.
+- **Per-milestone gate (GSD `/gsd-complete-milestone`).** Before a
+  milestone is archived, `/gsd-audit-milestone` must pass; the
+  legacy-`docs/` retirement schedule is re-checked; the constitution is
+  re-validated against what shipped.
+- **Per-PR gate.** Every PR MUST pass `dotnet test` for the affected
+  test projects (Unit, Integration, Architecture) and the Docker rebuild
+  smoke. A `.specs/.../review.md` (or a PR comment linking to one) is
+  required for any change that touches a contract, an entity, or the
+  tenant filter. Commit messages reference the spec-kit task ID
+  (e.g., `T014: add resident filter to visits query`). No force-pushes
+  to `main`/`master`.
+- **Per-constitutional-change gate.** Any change to this file requires
+  a Sync Impact Report at the top, a version bump per semantic
+  versioning, and maintainer approval (see Governance). The agent that
+  amends the constitution MUST propagate the change to
+  `AGENTS.md` runtime guidance and flag any affected templates in the
+  Sync Impact Report.
 
 ## Documentation Systems and Source of Truth
 
@@ -270,7 +468,7 @@ correct and the older one is stale.
 **Retirement schedule** (for the legacy `docs/` generation pipeline and the
 now-redundant `docs/architecture/decisions/` ADRs):
 
-- **Phase 0 (this constitution bump, v1.1.0):** mark the legacy docs as
+- **Phase 0 (v1.1.0):** mark the legacy docs as
   deprecated. Update each legacy doc with a one-line redirect note pointing
   to its canonical home in `AGENTS.md` and `.planning/`.
 - **Next milestone boundary** (per `/gsd-complete-milestone`): delete the
@@ -325,4 +523,4 @@ unless an amendment is in flight.
   (via `/gsd-transition`). "What This Is" and "Out of Scope" drift are
   treated as constitutional concerns, not just documentation hygiene.
 
-**Version**: 1.1.0 | **Ratified**: 2026-07-12 | **Last Amended**: 2026-07-12
+**Version**: 1.2.0 | **Ratified**: 2026-07-12 | **Last Amended**: 2026-07-12

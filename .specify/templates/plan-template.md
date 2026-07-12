@@ -38,7 +38,10 @@
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+*This section is filled by the `/speckit-plan` command at Phase 0 from
+`.specify/memory/constitution.md` and re-checked after Phase 1 design.
+A constitution violation that cannot be justified in the Complexity
+Tracking table below blocks planning.*
 
 [Gates determined based on constitution file]
 

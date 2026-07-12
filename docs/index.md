@@ -84,7 +84,6 @@ content is summarized in the source-of-truth table there).
 ### Project context
 - [AGENTS.md](../AGENTS.md) — authoritative project overview, target stack, conventions, post-task verification
 - [README.md](../README.md)
-- [Orchestrator.md](../Orchestrator.md)
 - [CHANGELOG.md](../CHANGELOG.md)
 
 ### GSD planning

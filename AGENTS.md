@@ -5,13 +5,9 @@
 > ControlEasy Reborn.
 >
 > Constitutional authority: `.specify/memory/constitution.md`
-> (currently v1.1.0, ratified 2026-07-12). Where this file and the
+> (currently v1.2.0, ratified 2026-07-12). Where this file and the
 > constitution disagree, the constitution wins; this file is amended
 > in the same change.
->
-> A short note on the history of this file and on the retirement of
-> the legacy `docs/` generation pipeline is at the end of the
-> document; the constitution holds the binding retirement schedule.
 
 ---
 
@@ -37,7 +33,7 @@ Application → Infrastructure → Api).
 
 This project runs three workflow systems, each with a single,
 non-overlapping responsibility. The split is binding
-(constitution v1.1.0, Principle VI).
+(constitution v1.2.0, Principle VI).
 
 ### 2.1 GSD — planner and roadmap owner
 
@@ -64,6 +60,20 @@ GSD phase boundaries (via `/gsd-transition`,
 `/gsd-complete-milestone`) are the moments at which
 documentation is re-validated and the constitution is
 re-checked.
+
+> **Ownership rule (constitution v1.2.0 § 4 Seams).** GSD owns
+> `.planning/`. It is the single writer of the roadmap pointer,
+> the phase state, and the milestone archive. spec-kit and
+> OpenSpec are **writers** to `.planning/` whenever their work
+> changes project state — they MUST update `STATE.md` (decisions,
+> blockers, deferred items) and `PROJECT.md` (validated / active
+> / out-of-scope list moves) when their work changes those facts —
+> and **readers** of `.planning/` whenever they need project
+> context. They MUST NOT update `ROADMAP.md`, the phase pointer,
+> or the milestone archive; those are GSD's job
+> (`/gsd-transition`, `/gsd-complete-milestone`). Conversely, GSD
+> consumes `.specs/<feature>/` and `openspec/` artifacts but MUST
+> NOT rewrite them.
 
 ### 2.2 spec-kit — per-feature spec owner
 
@@ -147,7 +157,7 @@ only and `openspec/` is untouched. This is the common case.
 | Mapping | Mapster or AutoMapper | |
 | Validation | FluentValidation | |
 | Testing | xUnit + FluentAssertions + NSubstitute + Testcontainers.MySql + Playwright | Karma + Jasmine for Angular unit. |
-| CI | **Not yet implemented** (continuous task C.1 in `.planning/PROJECT.md`) | When C.1 lands, the devcontainer image is the candidate for the CI job image (see `.specs/devcontainers/tasks.md` C.12). |
+| CI | **Pending** (continuous task C.1 in `.planning/PROJECT.md`) | When C.1 lands, the devcontainer image is the candidate for the CI job image (see `.specs/devcontainers/tasks.md` C.12). |
 
 ### 3.1 Naming & coding conventions
 
@@ -216,20 +226,11 @@ which Compose is invoked (Docker-out-of-Docker).
 
 > See `.specs/devcontainers/` for the full spec
 > (`requirements.md` UC-D1…D5, `design.md` decisions, `tasks.md`
-> waves 1–3). This section is the operator-level reference.
->
-> **Status of the dev shell, 2026-07-12:** the devcontainer
-> Dockerfile, the worktree shell scripts
-> (`scripts/worktree-up.sh`, `scripts/worktree-down.sh`,
-> `scripts/lib/worktree.sh`, `scripts/lib/resolver.sh`), the
-> per-worktree Compose override generator, and the
-> `pre-commit` / shellcheck / hadolint wiring are the
-> deliverables of `.specs/devcontainers/tasks.md` tasks 9.1
-> through 9.5. **None of them are on disk yet.** Until wave 1
-> of the devcontainer spec lands, the worktree convention
-> (§ 4.3) is documented as a target, and the main-checkout
-> commands in § 4.6 / § 5.1 are the only ones that actually
-> run on a fresh clone.
+> waves 1–3). This section is the operator-level reference for a
+> workflow that is implemented by tasks 9.1–9.5 of that spec.
+> Until those tasks land, the worktree convention (§ 4.3) is a
+> target, and the main-checkout commands in § 5.1 are the ones
+> that run on a fresh clone.
 
 ### 4.1 Option D — Dev container (canonical)
 
@@ -317,20 +318,17 @@ reviewed. The convention is:
 | Published host port range | `18080 + (worktree-index × 10)` | `18090` (worktree index 1) |
 | DB volume name | `ce-<branch>-mysql-data` | `ce-feat-dashboard-live-stats-mysql-data` |
 
-> **Status note (2026-07-12):** the `scripts/worktree-up.sh` /
-> `scripts/worktree-down.sh` / `scripts/lib/worktree.sh` /
-> `scripts/lib/resolver.sh` paths referenced below are the
-> deliverables of `.specs/devcontainers/tasks.md` tasks 9.2 / 9.3 /
-> 9.4 / 9.5. **They are not on disk yet.** Until wave 2 of that spec
-> lands, run the equivalent manual steps documented in § 4.1
-> (main-checkout form), or wait for the scripts to appear under
-> `scripts/`.
-
-`scripts/worktree-up.sh` automates the worktree creation, the env
+The worktree shell scripts (`scripts/worktree-up.sh`,
+`scripts/worktree-down.sh`, `scripts/lib/worktree.sh`,
+`scripts/lib/resolver.sh`) are future deliverables of
+`.specs/devcontainers/tasks.md` tasks 9.2–9.5. When they land,
+`worktree-up.sh` will automate the worktree creation, the env
 file generation, the resolver entry, and the first
-`docker compose up`. `scripts/worktree-down.sh` tears it down
-(deletes only the worktree's own compose project; never touches
-the main checkout's stack).
+`docker compose up`; `worktree-down.sh` will tear it down
+(deleting only the worktree's own compose project; never touching
+the main checkout's stack). Until then, run the equivalent
+`docker compose -p "ce-..."` commands by hand (the lines in the
+verification gate below work today).
 
 #### Why per-worktree Compose projects
 
@@ -365,9 +363,10 @@ dotnet test src/ControlEasyReborn.sln
 ### 4.4 Retired modes (kept for reference, not for new work)
 
 - **Option A — Full Docker on host.** The historical default.
-  Still works if the devcontainer is unavailable (e.g., inside
-  a non-IDE terminal that does not support devcontainers). The
-  verification gate is identical.
+  Falls back to the same `docker/docker-compose.yml` file as
+  Option D, so the verification gate is identical. Not maintained
+  as a first-class mode; use when the devcontainer is unavailable
+  (e.g., inside a non-IDE terminal).
 - **Option B — Hybrid (host tooling + Docker DB).** Useful for
   fast inner loops where the API and web are running on the host
   and only the DB lives in Compose. Same verification gate.
@@ -394,20 +393,14 @@ dotnet test src/ControlEasyReborn.sln
 
 ### 4.6 Common tasks (canonical, devcontainer mode)
 
-> **Status note (2026-07-12):** the `scripts/worktree-up.sh` /
-> `scripts/worktree-down.sh` commands below are the deliverables of
-> `.specs/devcontainers/tasks.md` tasks 9.2 / 9.3. **They are not on
-> disk yet.** Until wave 2 of that spec lands, run the equivalent
-> `docker compose -p "ce-..."` commands by hand (the `docker compose`
-> lines in this block already work today). The worktree shell
-> scripts are convenience wrappers around those `docker compose`
-> lines, plus the env-file generation and the resolver entry that
-> § 4.5 describes.
+The commands below are the `docker compose` invocations that
+work today on any checkout. The `scripts/worktree-up.sh` /
+`scripts/worktree-down.sh` wrappers (future deliverables of
+`.specs/devcontainers/tasks.md` tasks 9.2–9.3) will automate
+the env-file generation and resolver entry around these same
+`docker compose` lines.
 
 ```bash
-# Bring up the worktree's stack
-./scripts/worktree-up.sh
-
 # Tail the API logs of the worktree's stack
 docker compose -p "ce-$(git rev-parse --abbrev-ref HEAD | tr / -)" \
   logs -f api
@@ -416,10 +409,6 @@ docker compose -p "ce-$(git rev-parse --abbrev-ref HEAD | tr / -)" \
 # (do NOT run dotnet on the host — use the devcontainer shell)
 docker compose -p "ce-$(git rev-parse --abbrev-ref HEAD | tr / -)" \
   exec api dotnet --info
-
-# Tear down the worktree's stack
-# (does NOT touch the main checkout)
-./scripts/worktree-down.sh
 
 # Reset the database (re-runs all init scripts in the worktree's compose)
 docker compose -p "ce-$(git rev-parse --abbrev-ref HEAD | tr / -)" \
@@ -435,7 +424,7 @@ docker compose -p "ce-$(git rev-parse --abbrev-ref HEAD | tr / -)" \
 After completing **every implementation task**, rebuild the
 affected Docker images and restart Compose before marking the
 task done. **The runtime target is the Docker Compose stack;
-the dev shell is the devcontainer** (per constitution v1.1.0,
+the dev shell is the devcontainer** (per constitution v1.2.0,
 Principle V). The verification gate is the same in every mode.
 
 ### 5.1 Standard verification (main checkout)
@@ -564,7 +553,7 @@ without explicit user instruction.
 ## 7. Documentation
 
 This `AGENTS.md` is the canonical home for runtime
-documentation. The mapping below is the constitution v1.1.0
+documentation. The mapping below is the constitution v1.2.0
 "Documentation Systems and Source of Truth" table, reproduced
 here as the agent-facing reference.
 
@@ -649,28 +638,11 @@ E2E_BASE_URL=https://ce-<branch>.localhost:18080+10N npm run e2e
 
 ---
 
-## Clarifications
-
-### Session 2026-07-12
-
-- Q1 (Devcontainer pre-conditions): Where should the devcontainer host prerequisites (Docker Engine 24+, IDE, WSL2, etc.) live? → A: **C — keep them implicit, document in the `.devcontainer/Dockerfile` header comment only.** Smallest diff; the contributor is reading the Dockerfile anyway at that point. AGENTS.md § 4.1 is unchanged; the preconditions are the Dockerfile's job, not AGENTS.md's.
-- Q2 (Legacy `AGENTS.md` references in the document): The new AGENTS.md has many mentions of "the legacy host-shell + Docker-only AGENTS.md" and "the legacy `docs/` generation pipeline" that bloat the document and confuse the reader. Strip them: remove the "supersedes the legacy AGENTS.md" / "replaces the legacy host-shell + Docker-only AGENTS.md" framing, remove the § 2.4 "Legacy `docs/` generation pipeline — retired" subsection as a section (its content moves to a one-line "Note on history" at the end of the file), and tighten the § 7.1 paragraph. The constitution v1.1.0 still records the retirement schedule; the AGENTS.md just doesn't restate it on every page.
-- Q3 (Forward references to scripts that don't exist yet): The new AGENTS.md § 4 references `./scripts/worktree-up.sh`, `./scripts/worktree-down.sh`, and similar paths. **None of those scripts exist on disk today** — they are *future deliverables* of the devcontainer spec (`.specs/devcontainers/tasks.md` tasks 9.2 / 9.3 / 9.4 / 9.5). A reader landing on AGENTS.md today will try to run them and get "No such file or directory." The prose is aspirational. The fix is to make every `scripts/...` reference in AGENTS.md a *forward reference* to the devcontainer spec, and to make the worktree convention block explicitly say "this section is the operator-level reference for a workflow that is implemented by task 9.x of the devcontainer spec; until that lands, run the commands in the main-checkout form documented in § 4.6 / § 5.1."
-- Q4 (Modernization framing): The new AGENTS.md § 1 still opens with "**ControlEasy Reborn** is the modernization of a legacy condominium access-control desktop application". Given the current codebase (the WPF code lives in a separate reference repo, the Strangler cutover is cancelled, and the spec-kit `.specs/` folders are *new features*, not migrations), the "modernization" framing is no longer how the project describes itself. Strip the single modernization reference in § 1. The "legacy WPF" and "Strangler Fig" mentions stay — they are load-bearing for explaining why the WPF code is not in this repo and why the FeatureManagement flags are scaffolding-only.
-
----
-
-*AGENTS.md: 2026-07-12. Constitutional authority:
-`.specify/memory/constitution.md` v1.1.0. GSD: `.planning/`.
-spec-kit: `.specs/` and `.specify/`. OpenSpec: opt-in, at the
-discretion of the user.*
-
-*Note on history: this file replaces an earlier host-shell +
-Docker-only `AGENTS.md`. The constitution v1.1.0 Principle VI
-records the GSD / spec-kit / OpenSpec split; the constitution's
+*Constitutional authority: `.specify/memory/constitution.md` v1.2.0.
+GSD: `.planning/`. spec-kit: `.specs/` and `.specify/`. OpenSpec:
+opt-in, at the discretion of the user. The constitution's
 "Documentation Systems and Source of Truth" section records the
-retirement schedule for the legacy `docs/` generation pipeline
-(a `bmad-document-project --mode deep` output from 2026-07-12).
-The legacy `docs/` files remain in the tree as a historical
-snapshot with one-line redirect notes at the top, gated for
-actual deletion at the next `/gsd-complete-milestone` boundary.*
+retirement schedule for the legacy `docs/` generation pipeline;
+the legacy `docs/` files carry one-line redirect notes at the top
+and are gated for deletion at the next `/gsd-complete-milestone`
+boundary.*
