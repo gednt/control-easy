@@ -1,0 +1,43 @@
+# .gitattributes — enforce line endings and binary/text detection
+#
+# Shell scripts MUST use LF line endings (bash refuses CRLF).
+# PowerShell scripts use CRLF (Windows convention).
+# Dockerfiles use LF.
+
+# Default: text with auto line-ending normalization
+* text=auto
+
+# Shell scripts — always LF
+*.sh           text eol=lf
+*.bash         text eol=lf
+scripts/lib/*  text eol=lf
+
+# PowerShell scripts — CRLF (Windows convention)
+*.ps1          text eol=crlf
+*.psm1         text eol=crlf
+*.psd1         text eol=crlf
+
+# Dockerfiles — LF
+*.Dockerfile   text eol=lf
+Dockerfile     text eol=lf
+.devcontainer/Dockerfile text eol=lf
+
+# YAML / JSON / Markdown — LF
+*.yml          text eol=lf
+*.yaml         text eol=lf
+*.json         text eol=lf
+*.md           text eol=lf
+
+# .gitignore — LF
+.gitignore     text eol=lf
+
+# Binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.pdf  binary
+*.zip  binary
+*.nupkg binary
+*.snupkg binary

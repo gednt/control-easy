@@ -1,0 +1,73 @@
+# docker/docker-compose.worktree.template.yml
+#
+# Template for the per-worktree Compose override. Copied to
+# docker/docker-compose.worktree.<slug>.yml by scripts/worktree-up.sh
+# with the placeholders below substituted via envsubst.
+#
+# Placeholders (substituted by scripts/worktree-up.sh):
+#   ${COMPOSE_PROJECT_NAME}  e.g. ce-feat-dashboard-live-stats
+#   ${TRAEFIK_HOST}          e.g. ce-feat-dashboard-live-stats.localhost
+#   ${TRAEFIK_PORT}          e.g. 18090
+#   ${MYSQL_VOLUME_NAME}     e.g. ce-feat-dashboard-live-stats-mysql-data
+#
+# The generated file is .gitignore'd (see .gitignore § "Devcontainer / Worktree").
+#
+# This override:
+#   - Republishes the Traefik HTTP port on the host to ${TRAEFIK_PORT}.
+#   - Rewrites the Traefik router Host() rules to ${TRAEFIK_HOST}.
+#   - Renames the MySQL volume to ${MYSQL_VOLUME_NAME} for isolation.
+#   - Adds the worktree project name as a container label for debugging.
+
+services:
+  reverse-proxy:
+    ports:
+      # Override the host port to the worktree's allocated port.
+      # The in-container ports (:80, :443, :8080) are unchanged.
+      - "${TRAEFIK_PORT}:80"
+      # Disable the historical :8443 and :8082 bindings to avoid collisions
+      # with the main checkout and other worktrees.
+      - "127.0.0.1:${TRAEFIK_PORT}:80"
+    labels:
+      - "ce.worktree.project=${COMPOSE_PROJECT_NAME}"
+      - "ce.worktree.host=${TRAEFIK_HOST}"
+      - "ce.worktree.port=${TRAEFIK_PORT}"
+
+  api:
+    environment:
+      # Use the per-worktree JWT signing key from the env file.
+      Jwt__SigningKey: ${JWT_SIGNING_KEY}
+    labels:
+      - "traefik.http.routers.api.rule=Host(`${TRAEFIK_HOST}`) && PathPrefix(`/api`)"
+      - "ce.worktree.project=${COMPOSE_PROJECT_NAME}"
+      - "ce.worktree.host=${TRAEFIK_HOST}"
+      - "ce.worktree.port=${TRAEFIK_PORT}"
+
+  web:
+    labels:
+      - "traefik.http.routers.web.rule=Host(`${TRAEFIK_HOST}`)"
+      - "ce.worktree.project=${COMPOSE_PROJECT_NAME}"
+      - "ce.worktree.host=${TRAEFIK_HOST}"
+      - "ce.worktree.port=${TRAEFIK_PORT}"
+
+  db:
+    volumes:
+      # Override the volume name to the worktree's own MySQL volume.
+      - ${MYSQL_VOLUME_NAME}:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d:ro
+    labels:
+      - "ce.worktree.project=${COMPOSE_PROJECT_NAME}"
+      - "ce.worktree.host=${TRAEFIK_HOST}"
+      - "ce.worktree.port=${TRAEFIK_PORT}"
+
+  adminer:
+    labels:
+      - "traefik.http.routers.adminer.rule=Host(`${TRAEFIK_HOST}`) && PathPrefix(`/db`)"
+      - "ce.worktree.project=${COMPOSE_PROJECT_NAME}"
+
+volumes:
+  # Declare the worktree's own MySQL volume (Compose creates it under the
+  # project's namespace). The name here is the EXTERNAL name; we use
+  # external: true so the volume is created by the project, not by Compose.
+  ${MYSQL_VOLUME_NAME}:
+    external: false
+    name: ${MYSQL_VOLUME_NAME}

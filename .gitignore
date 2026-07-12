@@ -308,3 +308,14 @@ coverage/
 *.log
 logs/
 *.log.*
+
+# -------- Devcontainer / Worktree (Phase 9) --------
+# Generated per-worktree compose override (created by scripts/worktree-up.sh)
+# The pattern matches docker-compose.worktree.<slug>.yml but NOT the
+# checked-in docker-compose.worktree.template.yml (negated below).
+docker/docker-compose.worktree.*.yml
+!docker/docker-compose.worktree.template.yml
+# Per-worktree env files (created by scripts/worktree-up.sh)
+docker/.env.worktree.*
+# Per-user resolver shim on Windows when admin is unavailable
+.control-easy/

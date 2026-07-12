@@ -1,0 +1,76 @@
+# .pre-commit-config.yaml — ControlEasy Reborn
+#
+# Pinned hooks for shell scripts, Dockerfiles, secrets, C# format, and
+# Angular ESLint. Fast checks run on `pre-commit`; heavier checks
+# (hadolint, gitleaks full scan) run on `pre-push`.
+#
+# Install:
+#   pre-commit install
+#   pre-commit install --hook-type pre-push
+# Run all: `pre-commit run --all-files`
+#
+# See .specs/devcontainers/tasks.md task 9.4.
+
+minimum_pre_commit_version: "3.6.0"
+default_install_hook_types: [pre-commit, pre-push]
+
+repos:
+  # ----- Fast checks (pre-commit) -----
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.10.0
+    hooks:
+      - id: shellcheck
+        files: ^scripts/.*\.sh$
+        args: ["--severity=warning"]
+
+  - repo: local
+    hooks:
+      - id: dotnet-format
+        name: dotnet format (verify no changes)
+        entry: dotnet format --verify-no-changes --severity warn
+        language: system
+        files: \.cs$
+        pass_filenames: false
+        types: [file]
+
+      - id: eslint
+        name: eslint (Angular)
+        entry: bash -c 'cd src/Web/ControlEasyReborn.Web && npx eslint "src/**/*.ts"'
+        language: system
+        files: ^src/Web/ControlEasyReborn.Web/src/.*\.ts$
+        pass_filenames: false
+
+      - id: prettier-check
+        name: prettier --check
+        entry: bash -c 'cd src/Web/ControlEasyReborn.Web && npx prettier --check "src/**/*.{ts,html,css,scss}"'
+        language: system
+        files: ^src/Web/ControlEasyReborn.Web/src/.*\.(ts|html|css|scss)$
+        pass_filenames: false
+
+      - id: ps-script-analyzer
+        name: PSScriptAnalyzer (PowerShell)
+        entry: pwsh -NoProfile -Command "Invoke-ScriptAnalyzer -Path scripts/ -Recurse -Severity Warning,Error -EnableExit"
+        language: system
+        files: ^scripts/.*\.ps(m|d)?1$
+        pass_filenames: false
+
+  # ----- Heavier checks (pre-push) -----
+  - repo: https://github.com/hadolint/hadolint-precommit
+    rev: v2.12.0
+    hooks:
+      - id: hadolint
+        files: |
+          (?x)^(
+              Dockerfile|
+              docker/.*\.Dockerfile|
+              \.devcontainer/Dockerfile
+          )$
+        args: ["--failure-threshold", "warning"]
+        stages: [pre-push]
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.0
+    hooks:
+      - id: gitleaks
+        args: ["--redact", "--verbose"]
+        stages: [pre-push]

@@ -1,0 +1,81 @@
+# .github/workflows/lint.yml
+#
+# Lint skeleton — runs the same hooks as `pre-commit run --all-files` on
+# every PR. This is the seed for the still-pending CI-01 work (see
+# .planning/PROJECT.md continuous task C.1 and .planning/REQUIREMENTS.md
+# CI-01..04). When C.1 lands, this file becomes the first CI job and the
+# devcontainer image (.devcontainer/Dockerfile) becomes the candidate
+# CI job image (see .specs/devcontainers/tasks.md task C.12).
+#
+# This workflow does NOT yet:
+#   - Build the Docker stack (deferred to CI-01 task C.2)
+#   - Run `dotnet test` (deferred to CI-01 task C.3)
+#   - Run Playwright E2E (deferred to CI-01 task C.4)
+#
+# It DOES:
+#   - Run shellcheck on scripts/*.sh
+#   - Run hadolint on Dockerfiles
+#   - Run gitleaks for secrets
+#   - Run `dotnet format --verify-no-changes` on C# files
+#   - Run ESLint on Angular *.ts files
+
+name: lint
+
+on:
+  pull_request:
+    branches: [main, master]
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: src/Web/ControlEasyReborn.Web/package-lock.json
+
+      - name: Install Angular dependencies
+        working-directory: src/Web/ControlEasyReborn.Web
+        run: npm ci
+
+      - name: Install pre-commit
+        run: pipx install pre-commit
+
+      - name: Cache pre-commit
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Run pre-commit (all files)
+        run: pre-commit run --all-files
+
+      - name: Run hadolint (Dockerfiles)
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: .devcontainer/Dockerfile
+          recursive: true
+          failure-threshold: warning
+
+      - name: Run gitleaks (full scan)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

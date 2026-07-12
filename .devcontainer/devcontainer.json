@@ -1,0 +1,71 @@
+{
+  "name": "ControlEasy Reborn (DooD)",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+
+  "containerEnv": {
+    "DEVCONTAINER": "true",
+    "COMPOSE_DOCKER_CLI_BUILD": "1",
+    "DOCKER_BUILDKIT": "1"
+  },
+
+  "mounts": [
+    {
+      "source": "ce-nuget-cache",
+      "target": "/home/vscode/.nuget/packages",
+      "type": "volume"
+    },
+    {
+      "source": "ce-playwright-cache",
+      "target": "/home/vscode/.cache/ms-playwright",
+      "type": "volume"
+    }
+  ],
+
+  "containerUser": "vscode",
+  "updateRemoteUserUID": true,
+
+  "forwardPorts": [8080, 8443, 18080, 18090, 18100, 18110, 18120, 18130, 18140, 18150],
+
+  "postCreateCommand": "if [ \"${AUTO_START_COMPOSE:-false}\" = \"true\" ]; then docker compose -f docker/docker-compose.yml up -d --build; else echo 'AUTO_START_COMPOSE=false (default); manual bring-up is the verification gate. Run: docker compose -f docker/docker-compose.yml up -d --build'; fi",
+
+  "features": {
+    "ghcr.io/devcontainers/features/dotnet:2": {
+      "version": "8.0",
+      "additionalVersions": ""
+    },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "version": "latest",
+      "dockerDashComposeVersion": "v2.29.7"
+    }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csharp",
+        "ms-dotnettools.vscode-dotnet-runtime",
+        "ms-azuretools.vscode-docker",
+        "ms-vscode-remote.remote-containers",
+        "redhat.vscode-yaml",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "angular.ng-template",
+        "eamodio.gitlens"
+      ],
+      "settings": {
+        "files.eol": "\n",
+        "files.insertFinalNewline": true,
+        "files.trimTrailingWhitespace": true,
+        "[csharp]": { "editor.formatOnSave": true },
+        "[typescript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+        "dotnet.unitTests.runSettingsPath": "tests/.runsettings"
+      }
+    }
+  },
+
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/home/vscode/.dotnet/tools"
+  }
+}

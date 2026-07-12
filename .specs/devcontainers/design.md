@@ -1,5 +1,13 @@
 # Design — Dev Containers & Worktrees
 
+> **Source:** Cross-referenced with the BMAD PRD at
+> `_bmad-output/planning-artifacts/prds/prd-ControlEasy-2026-07-12/prd.md`
+> (final, 2026-07-12). Editorial corrections from
+> `review-prose.md` and structural guidance from `review-structure.md`
+> are applied to `requirements.md` and `tasks.md`. Operational cleanup
+> guidance and rejected-alternative rationale live in the PRD's
+> `addendum.md` (referenced below where relevant).
+
 ## Overview
 
 This spec adds two coupled primitives to the local development loop:

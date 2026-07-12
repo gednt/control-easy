@@ -299,11 +299,10 @@ which Compose is invoked (Docker-out-of-Docker).
 
 > See `.specs/devcontainers/` for the full spec
 > (`requirements.md` UC-D1…D5, `design.md` decisions, `tasks.md`
-> waves 1–3). This section is the operator-level reference for a
-> workflow that is implemented by tasks 9.1–9.5 of that spec.
-> Until those tasks land, the worktree convention (§ 4.3) is a
-> target, and the main-checkout commands in § 5.1 are the ones
-> that run on a fresh clone.
+> waves 1–3). This section is the operator-level reference for that
+> spec, which is now implemented (tasks 9.1–9.8 landed). The
+> devcontainer, the worktree scripts, and the verification-gate
+> test are all available under this repo.
 
 ### 4.1 Option D — Dev container (canonical)
 
@@ -393,15 +392,17 @@ reviewed. The convention is:
 
 The worktree shell scripts (`scripts/worktree-up.sh`,
 `scripts/worktree-down.sh`, `scripts/lib/worktree.sh`,
-`scripts/lib/resolver.sh`) are future deliverables of
-`.specs/devcontainers/tasks.md` tasks 9.2–9.5. When they land,
-`worktree-up.sh` will automate the worktree creation, the env
+`scripts/lib/resolver.sh`) automate the worktree creation, the env
 file generation, the resolver entry, and the first
-`docker compose up`; `worktree-down.sh` will tear it down
+`docker compose up`; `scripts/worktree-down.sh` tears it down
 (deleting only the worktree's own compose project; never touching
-the main checkout's stack). Until then, run the equivalent
-`docker compose -p "ce-..."` commands by hand (the lines in the
-verification gate below work today).
+the main checkout's stack). The verification-gate end-to-end test
+is `scripts/verify-devcontainer.sh`. **Windows contributors on
+plain PowerShell** (no Git Bash) use the `.ps1` equivalents:
+`scripts/worktree-up.ps1`, `scripts/worktree-down.ps1`,
+`scripts/lib/worktree.psm1`, `scripts/lib/resolver.psm1`. The two
+script families produce the same Compose project, hostname, port,
+and volume for the same branch.
 
 #### Why per-worktree Compose projects
 
@@ -468,10 +469,9 @@ dotnet test src/ControlEasyReborn.sln
 
 The commands below are the `docker compose` invocations that
 work today on any checkout. The `scripts/worktree-up.sh` /
-`scripts/worktree-down.sh` wrappers (future deliverables of
-`.specs/devcontainers/tasks.md` tasks 9.2–9.3) will automate
-the env-file generation and resolver entry around these same
-`docker compose` lines.
+`scripts/worktree-down.sh` wrappers automate the env-file
+generation and resolver entry around these same `docker compose`
+lines.
 
 ```bash
 # Tail the API logs of the worktree's stack
