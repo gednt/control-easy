@@ -1,0 +1,80 @@
+{
+  "workflow_version": "1.2.0",
+  "timestamps": {
+    "started": "2026-07-12T15:23:26-03:00",
+    "last_updated": "2026-07-12T15:31:00-03:00",
+    "completed": "2026-07-12T15:31:00-03:00"
+  },
+  "mode": "initial_scan",
+  "scan_level": "deep",
+  "project_root": "C:/Users/reisf/repos/ControlEasy",
+  "project_knowledge": "C:/Users/reisf/repos/ControlEasy/docs",
+  "repository_type": "multi-part",
+  "project_parts": [
+    {
+      "part_id": "api",
+      "part_name": "ControlEasy Reborn API",
+      "root_path": "src/",
+      "project_type_id": "backend",
+      "display_name": "ASP.NET Core 8 Modular Monolith",
+      "tech_summary": "C# 12 / .NET 8, ASP.NET Core, DBTools NuGet 1.4.3, MySQL 8, JWT"
+    },
+    {
+      "part_id": "web",
+      "part_name": "ControlEasy Reborn Web",
+      "root_path": "src/Web/ControlEasyReborn.Web",
+      "project_type_id": "web",
+      "display_name": "Angular 18 SPA",
+      "tech_summary": "TypeScript 5.5 / Angular 18.2 standalone, signals, Tailwind v4, RxJS"
+    }
+  ],
+  "completed_steps": [
+    { "step": "step_1", "status": "completed", "timestamp": "2026-07-12T15:24:10-03:00", "summary": "Classified as multi-part (api=backend, web=web); DBTools NuGet confirmed complete" },
+    { "step": "step_2", "status": "completed", "timestamp": "2026-07-12T15:25:00-03:00", "summary": "Inventoried 7 GSD codebase maps + 4 ADRs + getting-started/demo-mode/migration/design-system/penpot" },
+    { "step": "step_3", "status": "completed", "timestamp": "2026-07-12T15:25:30-03:00", "summary": "Tech stack per part validated against live files (appsettings.json, package.json, docker-compose.yml, global.json)" },
+    { "step": "step_4", "status": "completed", "timestamp": "2026-07-12T15:26:00-03:00", "summary": "Conditional scans: API inventory (10 module route groups), data models (10 init scripts + dual-column pattern), UI components (9 modules + ce-* design system)" },
+    { "step": "step_5", "status": "completed", "timestamp": "2026-07-12T15:26:30-03:00", "summary": "Source tree documented (source-tree-analysis.md)" },
+    { "step": "step_6", "status": "completed", "timestamp": "2026-07-12T15:27:00-03:00", "summary": "Dev (3 modes) + deployment (compose, env vars, hardening checklist) documented" },
+    { "step": "step_7", "status": "completed", "timestamp": "2026-07-12T15:28:00-03:00", "summary": "Integration architecture: 7 services, cross-part routing via Traefik, JWT auth flow, multi-tenancy data path" },
+    { "step": "step_8", "status": "completed", "timestamp": "2026-07-12T15:28:30-03:00", "summary": "Consolidated architecture.md across both parts" },
+    { "step": "step_9", "status": "completed", "timestamp": "2026-07-12T15:29:00-03:00", "summary": "Supporting docs: project-overview.md, source-tree-analysis.md, component-inventory.md, development-guide.md, deployment-guide.md, api-contracts.md, data-models.md, integration-architecture.md" },
+    { "step": "step_10", "status": "completed", "timestamp": "2026-07-12T15:30:00-03:00", "summary": "Master index.md generated; links to all generated + consumed docs" },
+    { "step": "step_11", "status": "completed", "timestamp": "2026-07-12T15:31:00-03:00", "summary": "Validation pass: 0 incomplete-marker matches across all generated docs; all 10 expected files exist; no fuzzy markers (TBD/TODO/Coming soon/Not yet generated/Pending) detected" },
+    { "step": "step_12", "status": "completed", "timestamp": "2026-07-12T15:31:00-03:00", "summary": "Workflow finalized; final state written" }
+  ],
+  "current_step": "completed",
+  "findings": {
+    "project_classification": "multi-part (api=backend, web=web)",
+    "primary_tech": "ASP.NET Core 8 + Angular 18 + MySQL 8 + DBTools NuGet 1.4.3",
+    "phase_status": "Phase 7 of 14 complete on disk; ROADMAP says current focus = Phase 8 (Design System), 0 of 2 plans started",
+    "drift_observations": [
+      "REQUIREMENTS.md still lists PLAT-01 (DBTools NuGet) as 'Pending' though Phase 7 is shipped on disk",
+      "STATE.md velocity metrics show 0 plans completed (GSD execution not started) — Phase 8 not yet begun",
+      "Last planning activity 2026-06-24; today is 2026-07-12 (~18 days idle)"
+    ],
+    "verification_summary": "Read 7 GSD codebase maps, 4 ADRs, AGENTS.md, STATE/ROADMAP/REQUIREMENTS, live appsettings.json, package.json, docker-compose.yml, global.json, Directory.Packages.props, openspec/config.yaml; verified 20 .specs/ folders and vendored DBTools removal. No automated tests or builds executed (document-generation task only).",
+    "open_risks": [
+      "Index.md points to .planning/codebase/*.md which is GSD-managed; if those maps are deleted, the BMad index will have dead links",
+      "No live Swagger fetches were performed; API surface catalog reflects static analysis of endpoint files, not runtime OpenAPI",
+      "BMad scan docs and GSD codebase maps now overlap; risk of drift if either is updated in isolation"
+    ],
+    "next_checks": [
+      "Reconcile REQUIREMENTS.md PLAT-01 checkbox (mark Complete) and STATE.md to reflect Phase 7 reality",
+      "Run /gsd-plan-phase 8 to break the design system work into executable plans (GSD workflow)",
+      "Schedule a bmad-document-project --mode deep_dive for the demo-mode spec to capture the seeded data model end-to-end"
+    ]
+  },
+  "outputs_generated": [
+    "project-scan-report.json",
+    "index.md",
+    "project-overview.md",
+    "source-tree-analysis.md",
+    "architecture.md",
+    "component-inventory.md",
+    "development-guide.md",
+    "deployment-guide.md",
+    "api-contracts.md",
+    "data-models.md",
+    "integration-architecture.md"
+  ]
+}
