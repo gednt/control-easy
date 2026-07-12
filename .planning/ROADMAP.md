@@ -122,12 +122,12 @@ Plans:
 - [ ] 10-03: Vehicle edit UI
 
 ### Phase 11: Demo Mode
-**Spec**: `.specs/4 - demo-mode/` — 0/11
+**Spec**: `.specs/4 - demo-mode/` — 10/10 (spec numbered 8.1–8.10; the 11th "task" was a continuous-engineering item in `1 - modernization-roadmap/tasks.md`, not a demo task)
 **Requirements**: DEMO-01, DEMO-02
-**Plans**: 1 plan
+**Status**: ✅ Complete on disk (verified 2026-07-12) — flag set in `STATE.md` to move "Phase 11" to "Complete"; the spec checkbox reconciliation is in commit history.
 
 Plans:
-- [ ] 11-01: Demo mode stack, seed scripts, UI banner, docs
+- [x] 11-01: Demo mode stack, seed scripts, UI banner, docs
 
 ### Phase 12: Photo Capture & Hardware (v2)
 **Spec**: `.specs/3 - photo-capture-hardware-integration/` — 0/35
@@ -165,7 +165,7 @@ Plans:
 | 8. Design System | `fix-design-system`, `2 - visual-design-system` | 75/138 | 🎯 Next | — |
 | 9. UI Parity & Fixes | 2 specs | 0/86 | Not started | — |
 | 10. Dashboard & Quick Wins | 3 specs | 0/8 | Not started | — |
-| 11. Demo Mode | `4 - demo-mode` | 0/11 | Not started | — |
+| 11. Demo Mode | `4 - demo-mode` | 10/10 | ✅ Complete | 2026-07-12 |
 | 12. Photo & Hardware | `3 - photo-capture-hardware-integration` | 0/35 | Deferred (v2) | — |
 | 13. Continuous Engineering | C.1–C.7 | 0/7 | Not started | — |
 | 14. Multi-Arch | `1 - modernization-roadmap-arm64` | 0/8 | Deferred (v2) | — |

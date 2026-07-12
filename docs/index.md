@@ -1,3 +1,14 @@
+<!--
+DEPRECATED — redirect to canonical home.
+This file is a `bmad-document-project --mode deep` output from
+2026-07-12. It is on a milestone-boundary retirement schedule
+(see `.specify/memory/constitution.md` v1.1.0 § "Documentation
+Systems and Source of Truth — Retirement schedule").
+
+Canonical home: `AGENTS.md` § 7 "Documentation" (this file's
+content is summarized in the source-of-truth table there).
+-->
+
 # Project Documentation Index — ControlEasy Reborn
 
 **Generated:** 2026-07-12 by `bmad-document-project` (initial_scan · deep)

@@ -1,3 +1,14 @@
+<!--
+DEPRECATED — redirect to canonical home.
+This file is a `bmad-document-project --mode deep` output from
+2026-07-12. It is on a milestone-boundary retirement schedule
+(see `.specify/memory/constitution.md` v1.1.0 § "Documentation
+Systems and Source of Truth — Retirement schedule").
+
+Canonical home: `AGENTS.md` § 3.3 "Database / DBTools integration" +
+`.specs/1 - modernization-roadmap/design.md` "DBTools_SQL Integration".
+-->
+
 # Data Models — ControlEasy Reborn
 
 **Part:** `api`

@@ -55,8 +55,8 @@ Requirements for the modernization milestone. Status reflects `.specs/` task com
 
 ### Demo & Evaluation
 
-- [ ] **DEMO-01**: One-command demo stack with seeded tenants and fixed credentials
-- [ ] **DEMO-02**: Demo UI banner and reset procedures
+- [x] **DEMO-01**: One-command demo stack with seeded tenants and fixed credentials
+- [x] **DEMO-02**: Demo UI banner and reset procedures
 
 ### Continuous Engineering
 
@@ -102,7 +102,7 @@ Deferred to future milestone. Tracked in `.specs/` but not in current execution 
 | TENANT-03 | Phase 5 | `platform-admin-first-boot` | Complete |
 | TENANT-04 | Phase 6 | `apartment-edit-residents` | Complete |
 | TENANT-05 | Phase 5 | `getting-started` | Complete |
-| PLAT-01 | Phase 7 | `dbtools-nuget-migration` | Pending |
+| PLAT-01 | Phase 7 | `dbtools-nuget-migration` | Complete |
 | UI-01–02 | Phase 8 | `fix-design-system` | In Progress (70/74) |
 | UI-03 | Phase 9 | `mockup-visual-parity` | Pending |
 | UI-04 | Phase 9 | `2-mockup-functional-fixes` | Pending |
@@ -110,7 +110,7 @@ Deferred to future milestone. Tracked in `.specs/` but not in current execution 
 | DASH-01–02 | Phase 10 | `dashboard` | Pending |
 | DASH-03 | Phase 10 | `occupied-apartments-bug` | Pending |
 | DASH-04 | Phase 10 | `vehicle-edit` | Pending |
-| DEMO-01–02 | Phase 11 | `4 - demo-mode` | Pending |
+| DEMO-01–02 | Phase 11 | `4 - demo-mode` | Complete |
 | PHOTO-01–02 | Phase 12 | `3 - photo-capture-hardware-integration` | Deferred (v2) |
 | CI-01–04 | Phase 13 | `1 - modernization-roadmap` C.1–C.7 | Pending |
 | ARCH-01–02 | Phase 14 | `1 - modernization-roadmap-arm64` | Deferred (v2) |
@@ -124,4 +124,4 @@ Deferred to future milestone. Tracked in `.specs/` but not in current execution 
 
 ---
 *Requirements defined: 2026-06-24*
-*Last updated: 2026-06-24 after adding PLAT-01 (DBTools NuGet migration)*
+*Last updated: 2026-07-12 after demo-mode spec reconciliation (DEMO-01/02, PLAT-01) and Phase 8 checkmark audit*
