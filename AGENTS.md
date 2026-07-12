@@ -639,6 +639,7 @@ here as the agent-facing reference.
 | Post-task verification | This `AGENTS.md` § 5 |
 | Spec structure | This `AGENTS.md` § 6 |
 | Workflow tooling (GSD / spec-kit / OpenSpec split) | This `AGENTS.md` § 2 + constitution Principle VI |
+| **Agent flow cheat sheet** (GSD/spec-kit/OpenSpec lifecycle diagrams, command tables, seams, concurrency budget) | `docs/agent-flow-cheatsheet.md` |
 | Codebase maps (STACK, STRUCTURE, ARCHITECTURE, CONVENTIONS, CONCERNS, INTEGRATIONS, TESTING) | `.planning/codebase/*.md` |
 | Per-feature spec (requirements, design, tasks, bugfix, review) | `.specs/<feature>/{requirements,design,tasks,bugfix,review,analysis}.md` |
 | Constitution (binding governance) | `.specify/memory/constitution.md` |
