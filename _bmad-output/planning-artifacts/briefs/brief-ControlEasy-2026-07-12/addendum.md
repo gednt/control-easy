@@ -217,10 +217,10 @@ docker compose -f docker/docker-compose.yml -f docker/docker-compose.demo.yml up
 
 ## J. Implementation status snapshot (as of 2026-07-12)
 
-- **Done in repo:** `docker-compose.demo.yml` exists; `docs/demo-mode.md` exists and is complete.
-- **Spec says not done:** tasks 8.1–8.10 marked `[ ]` in `.specs/4 - demo-mode/tasks.md`. `ROADMAP.md` says "0/11" for demo mode.
-- **CONCERNS.md (2026-06-24) confirms partial implementation:** `DemoSeederService`, `DemoModeTests`, and the demo Docker overlay "already exist" (per the "Spec task checkboxes out of sync with code" entry) — but the spec housekeeping is stale.
-- **Recommended first action when resuming Phase 8:** run `bmad-product-brief` → update → reconcile `tasks.md` against the actual codebase, then `gsd-plan-phase` to break any remaining work into plans.
+- **All 10 numbered tasks (8.1–8.10) are complete on disk** (verified 2026-07-12 via live codebase review: `DemoOptions`, `DemoFixtures`, `DemoSeederService`, `DemoEndpoints`, `docker-compose.demo.yml`, `DemoInfoService`, `DemoBannerComponent`, login shortcuts, `/help/demo` route, `DemoModeTests`, architecture-test exemption for `DemoMetadata`, and `docs/demo-mode.md`).
+- **Spec checkboxes reconciled:** `.specs/4 - demo-mode/tasks.md` was updated to mark all 10 tasks as `[x]` with inline "Verified 2026-07-12" notes pointing to the concrete files.
+- **Planning docs updated:** `ROADMAP.md` now shows "10/10 Complete" for Phase 11 (Demo Mode); `REQUIREMENTS.md` ticks DEMO-01 and DEMO-02 as complete.
+- **Recommended next action:** Confirm no remaining work, or close out Phase 11 entirely and move to Phase 8 (Design System).
 
 ## K. Risks (from spec design.md)
 

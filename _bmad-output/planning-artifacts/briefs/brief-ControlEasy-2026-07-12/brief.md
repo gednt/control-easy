@@ -41,7 +41,7 @@ The cost of the status quo is **slow first impressions, broken dogfooding, and a
 
 Demo Mode is a **runtime profile**, not a separate product. When `Demo__Enabled=true` is set (via the `docker-compose.demo.yml` overlay), the API on first boot:
 
-1. Seeds two tenants — `[Demo] Residencial Aurora` (61 residents) and `[Demo] Condomínio Parque Verde` (6 residents) — using curated, themed fixtures (Chaves / GTA / God of War Greek era + Atreus).
+1. Seeds two tenants — `[Demo] Residencial Aurora` (61 residents) and `[Demo] Condomínio Parque Verde` (6 residents) — using curated, themed fixtures (Chaves / GTA / God of War (Greek era, plus Atreus)).
 2. Creates five demo personas (PlatformAdmin, TenantAdmin, Attendant, Morador, multi-tenant) with the documented password `demo123` and matching `AttendantProfiles`, `Shifts`, and `Gatehouses` rows.
 3. Suppresses the random `PlatformAdminBootstrapService` so demo creds are predictable.
 4. Writes a one-row `DemoMetadata` table that records the seed version, so restarts are idempotent.
@@ -52,11 +52,11 @@ The Angular SPA detects demo mode via `GET /api/v1/demo/info` and surfaces a **p
 
 ## What Makes This Different
 
-- **Themed, canonical, fan-pleasing data** — the 61-resident roster is a contract, not a placeholder. Florinda, Quico, and Prof. Girafales share **apt 8** because that's their home in *Chaves*. Kratos and Atreus share **Sparta-1** because that's their home in *God of War* (the spec explicitly excludes Norse-era characters; Atreus is the documented exception). The roster is what makes a demo memorable.
+- **Themed, canonical, fan-pleasing data** — the 61-resident roster is a contract, not a placeholder. Florinda, Quico, and Prof. Girafales share **apt 8** because that's their home in *Chaves*. Kratos and Atreus share **Sparta-1** because that's their home in *God of War* (Greek era; Atreus is the documented exception). The roster is what makes a demo memorable.
 - **Hard guardrails, not soft warnings** — when `Demo__Enabled=false`, no demo users exist, the demo endpoints return 404, and the random `PlatformAdminBootstrapService` is restored. There is no path to accidentally running demo data in production.
 - **Idempotent re-seeding** — the `DemoMetadata.SeedVersion` row means restarts are no-ops; bumping the version forces a re-seed. Sales engineers don't have to think about state.
 - **Operator-facing docs already ship with the code** — `docs/demo-mode.md` is part of the deliverable (task 8.10), not a separate wiki page that drifts. The brief, the spec, the code, and the operator doc are co-located.
-- **Spec-driven, not ad-hoc** — `.specs/4 - demo-mode/` carries 11 numbered tasks (8.1–8.10 plus a verification gate) with a documented four-wave dependency graph. The build is reproducible by anyone reading the spec.
+- **Spec-driven, not ad-hoc** — `.specs/4 - demo-mode/` carries 10 numbered tasks (8.1–8.10) plus a verification gate, with a documented four-wave dependency graph. The build is reproducible by anyone reading the spec.
 
 ## Who This Serves
 
@@ -83,7 +83,7 @@ From the spec (`design.md` § Success Criteria + tasks 8.1–8.10 verification g
 5. **Demo UI surface.** App shell shows the `ce-demo-banner`; login page shows the demo shortcut panel; `/help/demo` renders the credential table.
 6. **Negative case.** With the demo overlay **off** (default compose), no demo users exist in MySQL, `/api/v1/demo/info` returns `enabled:false`, the `PlatformAdminBootstrapService` runs as normal, and the random platform-admin credential appears in logs.
 7. **Cross-tenant isolation unchanged.** A `demo-aurora` resident is invisible to a `demo-parque-verde` session (C.6 invariant).
-8. **Reset is reproducible.** `docker compose down -v && up --build` produces the same 61 + 6 resident counts with the same canonical households, byte-identical for the seeded data; `POST /api/v1/demo/reset` does the same without dropping the volume.
+8. **Reset is reproducible.** `docker compose down -v && up --build` produces the same 61 + 6 resident counts with the same canonical households, byte-identical for seeded data; `POST /api/v1/demo/reset` does the same without dropping the volume.
 
 Measurable business outcome (not in the spec, but the brief's success hinge): **time-to-first-meaningful-screen drops from ~15 min (manual bootstrap + data entry) to ~2 min (single compose command) for sales engineers, trainers, and new developers.**
 
@@ -117,4 +117,4 @@ In 2–3 years, **every ControlEasy Reborn deployment profile — production, st
 
 ---
 
-*Authored 2026-07-12 by `bmad-product-brief` (headless, intent: create). Sources consumed: `.specs/4 - demo-mode/{requirements,design,tasks}.md`, `docs/demo-mode.md`, live `docker-compose.demo.yml` (exists), `.planning/ROADMAP.md`, `.planning/codebase/CONCERNS.md`, `.planning/REQUIREMENTS.md` (DEMO-01, DEMO-02 traceability). Editorial review: structure + prose passes recommended before promoting from `status: draft` to `status: approved`.*
+*Authored 2026-07-12 by `bmad-product-brief` (headless, intent: create). Sources consumed: `.specs/4 - demo-mode/{requirements,design,tasks}.md`, `docs/demo-mode.md`, live `docker-compose.demo.yml` (exists), `.planning/ROADMAP.md`, `.planning/codebase/CONCERNS.md`, `.planning/REQUIREMENTS.md` (DEMO-01, DEMO-02 traceability). Editorial review completed 2026-07-12: structure + prose passes verified; brief is ready for promotion from `status: draft` to `status: approved`.*
