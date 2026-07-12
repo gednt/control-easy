@@ -1,36 +1,106 @@
 <!--
-Sync Impact Report
-==================
-Version change: 1.1.0 → 1.2.0  (MINOR — "Development Workflow & Quality Gates" section rewritten)
-Modified sections:
-  - Development Workflow & Quality Gates (empty after user deletion)
-      → Development Workflow & Quality Gates (rewritten from the actual behavior of the
-        three workflow tools: GSD phase lifecycle, spec-kit 4-command pipeline, OpenSpec
-        opt-in change-tracking layer; removed the in-house-orchestrator assumptions —
-        `plan.md` Constitution Check gate, `C.*` task prefixes, per-PR `review.md`, `8.5`
-        task numbering — that no longer describe how the project is run; added the
-        "Ownership principle" to § 4 Seams — GSD owns `.planning/`, so spec-kit and
-        OpenSpec are writers to it whenever their work changes project state, not just
-        readers of it — and broadened the spec-kit → GSD seam to cover
-        `.planning/PROJECT.md` validated/active/out-of-scope list moves, not only
-        `STATE.md` decisions)
+Sync Impact Report (v1.3.0)
+===========================
+Version change: 1.2.0 → 1.3.0  (MINOR — new Principle VII + post-cleanup factual sync)
+
+Previous report (1.1.0 → 1.2.0): "Development Workflow & Quality Gates" section
+was rewritten from the actual behavior of the three workflow tools; the
+"Ownership principle" was added to § 4 Seams; AGENTS.md version pins were
+bumped to v1.2.0; templates were aligned. (Preserved for audit trail.)
+
+What changed in 1.2.0 → 1.3.0:
+  - Principle IV — corrected the unit-test mocking library from "Moq" to
+    "NSubstitute" (matches AGENTS.md § 3, .planning/codebase/STACK.md,
+    .planning/codebase/TESTING.md, and Directory.Packages.props), and added
+    the concrete integration-test harness (WebApplicationFactory<Program>)
+    and the architecture-test package name (NetArchTest.Rules). This is a
+    factual correction, not a policy change.
+  - Principle VII (NEW) — Sub-Agent Orchestration & Concurrency Budget.
+    Raises AGENTS.md § 2.4 (sub-agent invocation) and § 2.5 (concurrency
+    budget) to constitutional status: any agent MAY invoke any of
+    GSD/spec-kit/OpenSpec as a sub-agent across seams; the default budget
+    is 3 sub-agents per level (4 total in-flight including the main
+    orchestrator); the budget is per agent, not per workflow tool; the
+    override path requires a recorded rationale in proposal.md /
+    design.md / tasks.md, audited at the next /gsd-complete-milestone.
+  - Development Workflow & Quality Gates § 4 Seams — intro amended to
+    cross-reference Principle VII instead of duplicating the sub-agent
+    protocol inline; per-milestone gate extended to audit concurrency-
+    budget override rationales.
+  - Documentation Systems and Source of Truth table — three rows updated
+    to reflect commit b34b4d2 (2026-07-12): (a) ADR row notes the legacy
+    docs/architecture/decisions/0001-…0004-… files were deleted (kept in
+    git history only); (b) Design system row notes docs/design-system/
+    and docs/penpot/ were deleted (canonical homes are now
+    .specs/2 - visual-design-system/ and mockup/); (c) new row added for
+    docs/agent-flow-cheatsheet.md (the agent flow cheat sheet, added in
+    commit 9979c1a, 2026-07-12).
+  - Retirement schedule — Phase 0 (v1.1.0 deprecation) marked ✅ done;
+    a new "Partial deletion (v1.3.0, commit b34b4d2, 2026-07-12)" entry
+    records the early deletion of the fully-superseded ADRs, design-
+    system guides, Penpot assets, and legacy-mapping doc; the next
+    milestone boundary gate is narrowed to the remaining legacy docs
+    (index, project-overview, development-guide, deployment-guide,
+    api-contracts, data-models, integration-architecture, source-tree-
+    analysis, component-inventory, architecture, project-scan-report.json).
+
+Modified principles:
+  - IV. Test-First & Verification Discipline (factual correction: Moq → NSubstitute;
+    added WebApplicationFactory<Program> + NetArchTest.Rules specifics)
+  - VI. Workflow Tooling (intro cross-reference to new Principle VII added)
+  - VII. Sub-Agent Orchestration & Concurrency Budget (NEW)
+
+Added sections:
+  - Principle VII (Sub-Agent Orchestration & Concurrency Budget)
+  - Documentation Systems and Source of Truth: row for
+    docs/agent-flow-cheatsheet.md
+
+Removed sections: none
+
 Templates requiring updates:
-  - .specify/templates/plan-template.md        ✅ updated — "Constitution Check"
-        gating language re-anchored to spec-kit `/speckit-plan` Phase 0.
-  - .specify/templates/spec-template.md         ✅ aligned
-  - .specify/templates/tasks-template.md        ✅ aligned
-  - .specify/templates/checklist-template.md    ✅ aligned
-  - .specify/templates/constitution-template.md ✅ aligned
+  - .specify/templates/plan-template.md        ✅ no change required — the
+    "Constitution Check" gate is principle-agnostic and already cites the
+    constitution file by path; Principle VII is picked up at /speckit-plan
+    Phase 0 automatically.
+  - .specify/templates/spec-template.md         ✅ no change required.
+  - .specify/templates/tasks-template.md        ✅ no change required —
+    the [P] parallel markers and the wave-dependency JSON block already
+    compose naturally with the concurrency budget (the budget bounds
+    fan-out at runtime; [P] declares the opportunity).
+  - .specify/templates/checklist-template.md    ✅ no change required.
+  - .specify/templates/constitution-template.md ✅ no change required —
+    the template is a placeholder skeleton with [PRINCIPLE_N_NAME] /
+    [PRINCIPLE_N_DESCRIPTION] slots; the project constitution is already
+    fully populated and does not re-derive from the template.
+
 Runtime guidance:
-  - AGENTS.md                                   ✅ updated — version pins bumped to
-        v1.2.0; Clarifications session log removed; point-in-time status notes
-        replaced with stable forward-references; closing notes tightened.
+  - AGENTS.md                                   ✅ updated — version pin
+        bumped to v1.3.0; the testing row already names NSubstitute
+        (no edit needed for the Principle IV correction); § 2.4 and
+        § 2.5 already contain the sub-agent invocation and concurrency
+        budget text that Principle VII elevates (no edit needed for the
+        Principle VII addition, only the version pin); documentation map
+        already lists docs/agent-flow-cheatsheet.md.
+  - docs/agent-flow-cheatsheet.md               ✅ updated — version pin
+        bumped to v1.3.0 in the § 10 versions block; the cheat sheet
+        already references the constitution as the governance anchor.
+
 Deferred items (stable conditions, not point-in-time snapshots):
-  - OpenSpec adoption: openspec/ is opt-in. An `openspec/changes/<id>/` folder is
-        created only when the user explicitly invokes `/opsx:new` (or equivalent)
-        on a change. No automatic promotion.
-  - Legacy docs retirement: the legacy `docs/` generation pipeline outputs are
-        deprecated. Deletion is gated on the next `/gsd-complete-milestone` run.
+  - OpenSpec adoption: openspec/ is opt-in. An `openspec/changes/<id>/`
+    folder is created only when the user explicitly invokes `/opsx:new`
+    (or equivalent) on a change. No automatic promotion.
+  - Legacy docs retirement: the partial deletion in commit b34b4d2
+    removed the ADRs, design-system guides, Penpot assets, and legacy-
+    mapping doc. The remaining legacy docs (index, project-overview,
+    development-guide, deployment-guide, api-contracts, data-models,
+    integration-architecture, source-tree-analysis, component-inventory,
+    architecture, project-scan-report.json) are gated for deletion at
+    the next /gsd-complete-milestone boundary.
+  - STATE.md drift: .planning/STATE.md still records "Current focus:
+    Phase 8" with last activity 2026-06-24, predating the 2026-07-12
+    governance refactor. Updating STATE.md is GSD's writer-of-record job
+    (via /gsd-* commands), not spec-kit's; flagged for the next
+    /gsd-transition or /gsd-complete-milestone run.
 -->
 
 # ControlEasy Reborn Constitution
@@ -88,12 +158,13 @@ convenience erodes both guarantees at once.
 ### IV. Test-First & Verification Discipline
 
 Tests are written, observed to fail, and only then implemented (Red → Green →
-Refactor). Unit tests (xUnit + FluentAssertions + Moq), integration tests
-(against Testcontainers-spun MySQL), and architecture tests (NetArchTest) are
-mandatory for: new entities, new endpoints, cross-tenant paths, raw-SQL sites,
-and any change to the tenant filter interceptor. Every implementation task has
-a verification gate — most tasks ship a `docker compose build && up -d` smoke
-plus a `dotnet test` slice. The post-task Docker rebuild rule from `AGENTS.md`
+Refactor). Unit tests (xUnit + FluentAssertions + NSubstitute), integration
+tests (against Testcontainers-spun MySQL, with `WebApplicationFactory<Program>`
+helpers), and architecture tests (NetArchTest.Rules) are mandatory for: new
+entities, new endpoints, cross-tenant paths, raw-SQL sites, and any change to
+the tenant filter interceptor. Every implementation task has a verification
+gate — most tasks ship a `docker compose build && up -d` smoke plus a
+`dotnet test` slice. The post-task Docker rebuild rule from `AGENTS.md`
 (non-optional) is a constitutional requirement: no task is "done" until the
 affected containers are rebuilt, restarted, and observed healthy.
 
@@ -174,6 +245,43 @@ is future-looking. The legacy `docs/` generation pipeline duplicates
 `.planning/codebase/` and `.specs/<feature>/design.md` content and
 drifts; retirement is cheaper than keeping it in sync.
 
+### VII. Sub-Agent Orchestration & Concurrency Budget
+
+Any agent — including a main orchestrator and any in-flight sub-agent —
+MAY invoke any of GSD, spec-kit, or OpenSpec skills as a sub-agent when
+the work at hand crosses the seam between the three tools (see §
+"Development Workflow & Quality Gates" → "Seams"). Sub-agent
+invocation MUST NOT bypass the ownership rules in Principle VI: a
+sub-agent writes only to the directory owned by its own workflow tool
+(GSD → `.planning/`, spec-kit → `.specs/` and `.specify/`, OpenSpec →
+`openspec/`); it reads from the other tools' directories but does not
+rewrite them; the sub-agent's parent is responsible for catching
+ownership violations before they land.
+
+**Concurrency budget.** The default concurrency budget is **up to 3
+sub-agents in flight concurrently, in addition to the main
+orchestrator** (total in-flight count per level: 4 = 1 main + 3 subs).
+The budget is **per agent, not per workflow tool**: a sub-agent that
+itself spawns sub-agents gets its own independent budget of 3 — a
+sub-agent may not "consume" its parent's budget. Exceeding the budget
+(4+ sub-agents in flight at any level) is permitted only when the
+originating artifact records an explicit rationale in its
+`proposal.md` "Why" section, `design.md` "Decisions" section, or
+`tasks.md` task description for the wave in question. The rationale is
+reviewed at the next `/gsd-complete-milestone` boundary. No environment
+variable, config file, or CLI flag overrides the budget — the override
+is qualitative and lives next to the work it justifies.
+
+**Rationale:** Without a bound on fan-out, an autonomous agent can
+spawn a fan-in cascade that exhausts the context budget or produces
+unbounded per-step latency. A per-agent, per-level budget of 3 keeps
+fan-out predictable while still permitting the parallelism that
+wave-based GSD plans and spec-kit `[P]` task markers rely on. The
+qualitative override path (rationale recorded in the originating
+artifact) ensures that an exception is visible at the next milestone
+audit without a separate scan — the rationale lives next to the work
+it justifies.
+
 ## Stack & Architecture Constraints
 
 The stack is fixed by `AGENTS.md` and the modernization roadmap. New code MUST
@@ -225,10 +333,11 @@ conform.
 ## Development Workflow & Quality Gates
 
 The project runs three workflow tools — **GSD**, **spec-kit**, and **OpenSpec** —
-each with a single, non-overlapping responsibility (Principle VI). This section
-describes how each tool works day-to-day and, critically, the **seams** where
-they hand off to each other so the three compose into one development loop
-rather than three parallel ones.
+each with a single, non-overlapping responsibility (Principle VI), and any agent
+MAY invoke any of them as a sub-agent within the concurrency budget
+(Principle VII). This section describes how each tool works day-to-day and,
+critically, the **seams** where they hand off to each other so the three
+compose into one development loop rather than three parallel ones.
 
 ### 1. GSD — planner and roadmap owner (`.planning/`)
 
@@ -342,7 +451,13 @@ they are independent, with cross-references added to the spec-kit
 ### 4. Seams — how the three tools compose
 
 The three tools are designed to hand off to each other at well-defined
-points. The seams below are non-negotiable.
+points. The seams below are non-negotiable. Sub-agent invocation across
+these seams is governed by Principle VII; the ownership rules in this
+section apply equally to sub-agents as to main orchestrators. The sub-agent invocation
+protocol and concurrency budget that govern cross-tool fan-out are in
+Principle VII (and reproduced as operator guidance in `AGENTS.md`
+§ 2.4 and § 2.5, and in `docs/agent-flow-cheatsheet.md` § 4 and § 5). The seams
+below assume that protocol and do not repeat it.
 
 **Ownership principle.** GSD owns `.planning/` — it is the single writer
 of the roadmap pointer, the phase state, and the milestone archive, and
@@ -421,7 +536,9 @@ workflow tools. The tools produce the code; the gate verifies the code.
 - **Per-milestone gate (GSD `/gsd-complete-milestone`).** Before a
   milestone is archived, `/gsd-audit-milestone` must pass; the
   legacy-`docs/` retirement schedule is re-checked; the constitution is
-  re-validated against what shipped.
+  re-validated against what shipped; and any concurrency-budget
+  override rationales recorded during the milestone (Principle VII)
+  are audited.
 - **Per-PR gate.** Every PR MUST pass `dotnet test` for the affected
   test projects (Unit, Integration, Architecture) and the Docker rebuild
   smoke. A `.specs/.../review.md` (or a PR comment linking to one) is
@@ -451,8 +568,9 @@ correct and the older one is stale.
 | Per-feature spec (requirements, design, tasks, bugfix, review) | `.specs/<feature>/{requirements,design,tasks,bugfix,review,analysis}.md` | spec-kit | Required artifacts vary per spec type. |
 | Constitution (binding governance) | `.specify/memory/constitution.md` | spec-kit | This file. Amended by `/speckit-constitution`. |
 | Per-feature OpenAPI / contracts | `.specs/<feature>/design.md` (section "Contracts") | spec-kit | Generated artifacts land under `src/Host/.../wwwroot/swagger/`. |
-| Architecture Decision Records (ADRs) | **Two homes, two scopes:** GSD STATE.md holds the *decision and rationale*; spec-kit `review.md` / `analysis.md` files hold the *finding* that prompted the decision. | GSD + spec-kit | The legacy `docs/architecture/decisions/0001-…0004-…` ADRs are kept for historical reference but new ADRs are recorded in GSD STATE.md and cross-referenced from the relevant `.specs/<feature>/` file. |
-| Design system (tokens, components) | `docs/design-system/`, `docs/penpot/`, `mockup/` | spec-kit (`.specs/2 - visual-design-system/`) | Tokens contract enforced by `.planning/REQUIREMENTS.md` trace rows and continuous task C.7. |
+| Architecture Decision Records (ADRs) | **Two homes, two scopes:** GSD STATE.md holds the *decision and rationale*; spec-kit `review.md` / `analysis.md` files hold the *finding* that prompted the decision. | GSD + spec-kit | The legacy `docs/architecture/decisions/0001-…0004-…` ADRs were deleted in commit `b34b4d2` (2026-07-12) — kept for historical reference only in git history; new ADRs are recorded in GSD STATE.md and cross-referenced from the relevant `.specs/<feature>/` file. |
+| Design system (tokens, components) | `.specs/2 - visual-design-system/` + `mockup/` | spec-kit | Tokens contract enforced by `.planning/REQUIREMENTS.md` trace rows and continuous task C.7. The legacy `docs/design-system/` and `docs/penpot/` assets were deleted in commit `b34b4d2` (2026-07-12); the spec under `.specs/2 - visual-design-system/` and `mockup/` are the canonical homes going forward. |
+| Agent flow cheat sheet (GSD/spec-kit/OpenSpec lifecycle diagrams, command tables, seams, concurrency budget) | `docs/agent-flow-cheatsheet.md` | spec-kit | Quick-reference card; **not** a substitute for this constitution. The constitution wins on any conflict. Added 2026-07-12. |
 | Operator docs (first boot, demo mode) | `AGENTS.md` "Operator reference" + `docs/getting-started.md` + `docs/demo-mode.md` | spec-kit | When the doc describes a one-command procedure, it is in `AGENTS.md`. |
 | Local development (dev shell, devcontainer, worktrees, build/test commands) | `AGENTS.md` "Local development" | spec-kit | This is the home for Option D. The legacy `docs/development-guide.md` is being retired (see Retirement schedule below). |
 | Deployment, hardening, env vars | `AGENTS.md` "Deployment" + `.planning/REQUIREMENTS.md` (NFRs) | spec-kit + GSD | The legacy `docs/deployment-guide.md` is being retired. |
@@ -468,19 +586,31 @@ correct and the older one is stale.
 **Retirement schedule** (for the legacy `docs/` generation pipeline and the
 now-redundant `docs/architecture/decisions/` ADRs):
 
-- **Phase 0 (v1.1.0):** mark the legacy docs as
-  deprecated. Update each legacy doc with a one-line redirect note pointing
-  to its canonical home in `AGENTS.md` and `.planning/`.
-- **Next milestone boundary** (per `/gsd-complete-milestone`): delete the
-  legacy `docs/{index,project-overview,development-guide,deployment-guide,
-  api-contracts,data-models,integration-architecture,source-tree-analysis,
-  component-inventory,architecture}.md` files and `docs/project-scan-report.json`.
-  Keep `docs/architecture/decisions/` for historical reference, but stop
-  writing new ADRs there.
+- **Phase 0 (v1.1.0):** mark the legacy docs as deprecated. Update each
+  legacy doc with a one-line redirect note pointing to its canonical
+  home in `AGENTS.md` and `.planning/`. ✅ Done at v1.1.0 ratification.
+- **Partial deletion (v1.3.0, commit `b34b4d2`, 2026-07-12):** the
+  following were deleted ahead of the next milestone boundary because
+  they were fully superseded and no longer load-bearing:
+  `docs/architecture/decisions/0001…0004-*.md` (legacy ADRs — moved to
+  GSD `STATE.md` + spec-kit `review.md`/`analysis.md`),
+  `docs/design-system/` (design system usage guides — moved to
+  `.specs/2 - visual-design-system/`),
+  `docs/penpot/` (Penpot design system assets — moved to `mockup/`),
+  `docs/migration/legacy-mapping.md` (legacy mapping — superseded by
+  the Strangler Fig notes in `AGENTS.md` § 3.2). This deletion is
+  reflected in the source-of-truth table above.
+- **Next milestone boundary** (per `/gsd-complete-milestone`): delete
+  the remaining legacy `docs/{index,project-overview,development-guide,
+  deployment-guide,api-contracts,data-models,integration-architecture,
+  source-tree-analysis,component-inventory,architecture}.md` files and
+  `docs/project-scan-report.json`. These still carry one-line redirect
+  notes at the top and are gated for deletion at the next milestone.
 - **GSD phase transitions** are the trigger for re-validating this
-  retirement schedule. If a phase boundary finds that a legacy doc is still
-  load-bearing, that doc is promoted to a canonical home (this section is
-  amended) and the migration is paused.
+  retirement schedule. If a phase boundary finds that a remaining
+  legacy doc is still load-bearing, that doc is promoted to a
+  canonical home (this section is amended) and the migration is
+  paused.
 
 **Source-of-truth tiebreakers:**
 
@@ -523,4 +653,4 @@ unless an amendment is in flight.
   (via `/gsd-transition`). "What This Is" and "Out of Scope" drift are
   treated as constitutional concerns, not just documentation hygiene.
 
-**Version**: 1.2.0 | **Ratified**: 2026-07-12 | **Last Amended**: 2026-07-12
+**Version**: 1.3.0 | **Ratified**: 2026-07-12 | **Last Amended**: 2026-07-12

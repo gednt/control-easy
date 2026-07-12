@@ -1,7 +1,7 @@
 # Agent Flow Cheat Sheet — GSD · spec-kit · OpenSpec
 
 > **Canonical home (dev/operator reference):** this file.
-> **Governance anchor:** `.specify/memory/constitution.md` v1.2.0
+> **Governance anchor:** `.specify/memory/constitution.md` v1.3.0
 > (Principle VI — "Workflow Tooling").
 > **Runtime anchor:** `AGENTS.md` § 2 (Workflow tooling).
 >
@@ -228,8 +228,9 @@ matches the spec's lineage.
 Phase 0 and fills the `plan.md` "Constitution Check" section
 from it. Any principle violation that cannot be justified in
 `plan.md` "Complexity Tracking" **blocks planning**. The
-seven principles of the constitution v1.2.0 are the binding
-contract; the agent does not interpret them — it cites them.
+eight principles of the constitution v1.3.0 are the binding
+contract; the agent does not interpret them — it cites them. (v1.3.0
+adds Principle VII on sub-agent orchestration; the count is now eight.)
 
 ### 2.6 spec-kit's relationship to GSD and OpenSpec
 
@@ -643,12 +644,16 @@ the work.
 
 ## 10. Versions & last amended
 
-- **Constitution:** v1.2.0 (ratified 2026-07-12,
+- **Constitution:** v1.3.0 (ratified 2026-07-12,
   last amended 2026-07-12)
-- **AGENTS.md:** version pins to v1.2.0
-- **This cheat sheet:** v1.0 — created 2026-07-12; promote
-  to v1.x on any change to the GSD/spec-kit/OpenSpec
-  ownership rule or the concurrency budget.
+- **AGENTS.md:** version pins to v1.3.0
+- **This cheat sheet:** v1.1 — created 2026-07-12; v1.1 on
+  2026-07-12 aligns with constitution v1.3.0 (Principle VII elevates
+  the sub-agent invocation protocol and concurrency budget to
+  constitutional status; the cheat sheet's § 4 and § 5 content is
+  unchanged but is now cited from the constitution). Promote to
+  v1.x on any change to the GSD/spec-kit/OpenSpec ownership rule or
+  the concurrency budget.
 - **OpenSpec schema in this repo:** `spec-driven`
   (`openspec/config.yaml`)
 - **spec-kit workflow version:** 1.0.0

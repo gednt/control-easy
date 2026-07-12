@@ -5,7 +5,7 @@
 > ControlEasy Reborn.
 >
 > Constitutional authority: `.specify/memory/constitution.md`
-> (currently v1.2.0, ratified 2026-07-12). Where this file and the
+> (currently v1.3.0, ratified 2026-07-12). Where this file and the
 > constitution disagree, the constitution wins; this file is amended
 > in the same change.
 
@@ -35,7 +35,7 @@ Application → Infrastructure → Api).
 
 This project runs three workflow systems, each with a single,
 non-overlapping responsibility. The split is binding
-(constitution v1.2.0, Principle VI).
+(constitution v1.3.0, Principle VI).
 
 ### 2.1 GSD — planner and roadmap owner
 
@@ -63,7 +63,7 @@ GSD phase boundaries (via `/gsd-transition`,
 documentation is re-validated and the constitution is
 re-checked.
 
-> **Ownership rule (constitution v1.2.0 § 4 Seams).** GSD owns
+> **Ownership rule (constitution v1.3.0 § 4 Seams).** GSD owns
 > `.planning/`. It is the single writer of the roadmap pointer,
 > the phase state, and the milestone archive. spec-kit and
 > OpenSpec are **writers** to `.planning/` whenever their work
@@ -497,7 +497,7 @@ docker compose -p "ce-$(git rev-parse --abbrev-ref HEAD | tr / -)" \
 After completing **every implementation task**, rebuild the
 affected Docker images and restart Compose before marking the
 task done. **The runtime target is the Docker Compose stack;
-the dev shell is the devcontainer** (per constitution v1.2.0,
+the dev shell is the devcontainer** (per constitution v1.3.0,
 Principle V). The verification gate is the same in every mode.
 
 ### 5.1 Standard verification (main checkout)
@@ -626,7 +626,7 @@ without explicit user instruction.
 ## 7. Documentation
 
 This `AGENTS.md` is the canonical home for runtime
-documentation. The mapping below is the constitution v1.2.0
+documentation. The mapping below is the constitution v1.3.0
 "Documentation Systems and Source of Truth" table, reproduced
 here as the agent-facing reference.
 
@@ -712,7 +712,7 @@ E2E_BASE_URL=https://ce-<branch>.localhost:18080+10N npm run e2e
 
 ---
 
-*Constitutional authority: `.specify/memory/constitution.md` v1.2.0.
+*Constitutional authority: `.specify/memory/constitution.md` v1.3.0.
 GSD: `.planning/`. spec-kit: `.specs/` and `.specify/`. OpenSpec:
 opt-in, at the discretion of the user. The constitution's
 "Documentation Systems and Source of Truth" section records the
