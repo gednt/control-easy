@@ -31,6 +31,8 @@ Application → Infrastructure → Api).
 
 ## 2. Workflow tooling (GSD · spec-kit · OpenSpec)
 
+**Read first:** § 2.4 ([Sub-agent invocation](#24-sub-agent-invocation)) and § 2.5 ([Concurrency budget](#25-concurrency-budget)) apply to every agent operating under this file.
+
 This project runs three workflow systems, each with a single,
 non-overlapping responsibility. The split is binding
 (constitution v1.2.0, Principle VI).
@@ -139,6 +141,77 @@ When the user opts a change into OpenSpec:
 
 When the user does **not** opt in, the change is spec-kit
 only and `openspec/` is untouched. This is the common case.
+
+### 2.4 Sub-agent invocation
+
+The three workflow tools in § 2.1–§ 2.3 are owned by their
+respective skill sets, but **any agent — including a main
+orchestrator and any in-flight sub-agent — MAY invoke any of
+GSD, spec-kit, or OpenSpec skills as a sub-agent** when the
+work at hand crosses the seam between the three tools.
+
+Examples (non-exhaustive):
+
+- A main agent running `/opsx:apply` for an OpenSpec change
+ may invoke a GSD `gsd-codebase-mapper` sub-agent to refresh a
+ `.planning/codebase/` map that informs a `design.md` decision.
+- A GSD `gsd-plan-phase` orchestrator may invoke a spec-kit
+ `speckit-specify` sub-agent to draft the
+ `.specs/<feature>/requirements.md` and `design.md` for a new
+ feature introduced by the phase.
+- A spec-kit `speckit-implement` task that the user has opted
+ into OpenSpec may invoke `/opsx:apply` as a sub-agent to drive
+ the change-tracking lifecycle, keeping the spec-kit and
+ OpenSpec `tasks.md` files in sync.
+
+Sub-agent invocation MUST NOT bypass the ownership rules in
+§ 2.1–§ 2.3:
+
+- A sub-agent writes only to the directory owned by its own
+ workflow tool (GSD → `.planning/`, spec-kit → `.specs/` and
+ `.specify/`, OpenSpec → `openspec/`).
+- A sub-agent reads from the other tools' directories but does
+ not rewrite them.
+- The sub-agent's parent is responsible for respecting those
+ rules on the sub-agent's behalf and for catching violations
+ before they land.
+
+### 2.5 Concurrency budget
+
+To keep fan-out predictable and the per-step latency bounded,
+the default concurrency budget is:
+
+> **Up to 3 sub-agents in flight concurrently, in addition to
+> the main orchestrator.** Total in-flight count per level:
+> 4 (1 main + 3 subs).
+
+The budget is **per agent, not per workflow tool**: a main
+agent running an OpenSpec apply that fans out to GSD and
+spec-kit sub-agents is still capped at three concurrent
+sub-agents. A sub-agent that itself spawns sub-agents gets its
+own independent budget of 3 — a sub-agent may not "consume"
+its parent's budget, and deeper nesting is permitted with the
+budget applied at every level.
+
+**Override path.** Exceeding the budget (4+ sub-agents in
+flight at any level) is permitted only when the originating
+artifact records an explicit rationale:
+
+- `proposal.md` "Why" section, or
+- `design.md` "Decisions" section, or
+- `tasks.md` task description for the wave in question.
+
+The rationale is reviewed at the next
+`/gsd-complete-milestone` boundary, alongside the rest of the
+work the change has produced. A rationale recorded in
+`tasks.md` is the most common path for apply-time overruns; a
+rationale recorded in `proposal.md` or `design.md` is for
+overruns anticipated before implementation.
+
+No environment variable, no config file, no CLI flag
+overrides the budget. The override is qualitative and lives
+next to the work it justifies, so the next milestone audit
+sees it without a separate scan.
 
 ---
 
