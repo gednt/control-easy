@@ -36,13 +36,13 @@ public sealed class GetSessionHandler
             ?? throw new UnauthorizedException("No active profile in current token.");
 
         var profile = await _profiles.FindAsync(profileId, ct)
-            ?? throw new NotFoundException("Attendant profile " + profileId + " was not found.");
+            ?? throw new UnauthorizedException("Attendant profile " + profileId + " was not found.");
 
         var user = await _users.FindAsync(profile.UserId, ct)
-            ?? throw new NotFoundException("User not found.");
+            ?? throw new UnauthorizedException("User not found.");
 
         var currentTenant = await _tenants.FindAsync(tenantId, ct)
-            ?? throw new NotFoundException("Tenant " + tenantId + " was not found.");
+            ?? throw new UnauthorizedException("Tenant " + tenantId + " was not found.");
 
         var isPlatformAdmin = UserTenantAccess.IsPlatformAdmin(user.Roles);
         var switchableTenants = isPlatformAdmin

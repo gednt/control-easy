@@ -24,7 +24,7 @@ public sealed class GetMyProfileHandler
         var profile = await _profiles.FindAsync(profileId, ct);
         if (profile is null)
         {
-            throw new NotFoundException("Attendant profile " + profileId + " was not found.");
+            throw new UnauthorizedException("Attendant profile " + profileId + " was not found.");
         }
         return CreateAttendantProfileHandler.ToResponse(profile);
     }
