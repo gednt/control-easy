@@ -2,22 +2,23 @@ import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { CeStatTileComponent } from '../../design-system/components/stat-tile/stat-tile.component';
+import { CeButtonComponent, CeCardComponent, CeSpinnerComponent } from '../../design-system';
 import { DashboardApiService, DashboardStatsResponse, RecentVisit } from './dashboard-api.service';
 import { getApiErrorMessage } from '../../core/utils/api-error.util';
 
 @Component({
   selector: 'ce-dashboard-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, CeStatTileComponent],
+  imports: [CommonModule, RouterLink, CeStatTileComponent, CeButtonComponent, CeCardComponent, CeSpinnerComponent],
   template: `
     <div class="page-header">
       <div class="page-title-block">
         <h1 class="page-title">Dashboard</h1>
         <p class="page-subtitle">Welcome to ControlEasy Reborn.</p>
       </div>
-      <button class="ce-button variant-secondary size-md" (click)="refresh()">
+      <ce-button variant="secondary" size="md" (click)="refresh()">
         &#8635; Refresh
-      </button>
+      </ce-button>
     </div>
 
     @if (pageError()) {
@@ -26,7 +27,7 @@ import { getApiErrorMessage } from '../../core/utils/api-error.util';
 
     @if (loading()) {
       <div class="loading-state">
-        <div class="ce-spinner tone-primary size-lg"></div>
+        <ce-spinner tone="primary" size="lg" />
         <p>Loading statistics...</p>
       </div>
     } @else if (stats()) {
@@ -74,7 +75,7 @@ import { getApiErrorMessage } from '../../core/utils/api-error.util';
           <h2 class="section-title">Recent Visits</h2>
           <a routerLink="/visits" class="section-link">View all</a>
         </div>
-        <div class="ce-card">
+        <ce-card [padded]="false">
           <table class="ce-table" aria-label="Recent visits table">
             <thead>
               <tr>
@@ -113,7 +114,7 @@ import { getApiErrorMessage } from '../../core/utils/api-error.util';
               }
             </tbody>
           </table>
-        </div>
+        </ce-card>
       </div>
     }
   `,
@@ -138,25 +139,6 @@ import { getApiErrorMessage } from '../../core/utils/api-error.util';
       font-size: var(--font-size-sm);
     }
 
-    .ce-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: var(--space-2);
-      font-weight: var(--font-weight-medium);
-      border: 1px solid transparent;
-      border-radius: var(--radius-lg);
-      cursor: pointer;
-      user-select: none;
-      white-space: nowrap;
-      transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), opacity var(--duration-fast) var(--ease-out);
-      text-decoration: none;
-      font-family: inherit;
-    }
-    .ce-button.variant-secondary { background: var(--color-surface); color: var(--color-text-primary); border-color: var(--color-border); }
-    .ce-button.variant-secondary:hover:not(:disabled) { background: var(--color-surface-elevated); }
-    .ce-button.size-md { height: 2.5rem; padding: 0 var(--space-4); font-size: var(--font-size-sm); }
-
     .loading-state {
       display: flex;
       flex-direction: column;
@@ -166,16 +148,6 @@ import { getApiErrorMessage } from '../../core/utils/api-error.util';
       gap: var(--space-4);
       color: var(--color-text-secondary);
     }
-    .ce-spinner {
-      display: inline-block;
-      border-radius: var(--radius-full);
-      border: 2px solid currentColor;
-      border-top-color: transparent;
-      animation: spin-slow 1.4s linear infinite;
-    }
-    .ce-spinner.size-lg { width: 2rem; height: 2rem; border-width: 3px; }
-    .ce-spinner.tone-primary { color: var(--color-primary); }
-
     .stat-tiles-row {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
@@ -228,13 +200,6 @@ import { getApiErrorMessage } from '../../core/utils/api-error.util';
     .summary-value { font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); }
     .summary-label { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
 
-    .ce-card {
-      background: var(--color-surface-elevated);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow-card);
-      overflow: hidden;
-    }
     .ce-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
     .ce-table thead { background: var(--color-neutral-light); position: sticky; top: 0; }
     .ce-table th {
@@ -299,7 +264,6 @@ import { getApiErrorMessage } from '../../core/utils/api-error.util';
     .font-semibold { font-weight: var(--font-weight-semibold); }
     .text-secondary { color: var(--color-text-secondary); }
 
-    @keyframes spin-slow { to { transform: rotate(360deg); } }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

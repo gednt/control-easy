@@ -50,7 +50,8 @@ public sealed class SchemaBackfillSyncTests
         {
             "Tenants",
             "RefreshTokens",
-            "DemoMetadata"
+            "DemoMetadata",
+            "Migrations"
         };
 
         var missing = createTableNames

@@ -35,6 +35,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    ports:
+      - "${API_PORT:-8081}:8080"
     labels:
       - "traefik.http.routers.api.rule=Host(`localhost`) && PathPrefix(`/api`)"
       - "traefik.http.routers.api.entrypoints=web"

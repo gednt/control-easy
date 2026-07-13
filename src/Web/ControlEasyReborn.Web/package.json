@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "prebuild": "npm run openapi-gen",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
@@ -11,7 +12,8 @@
     "e2e:install": "playwright install chromium",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write 'src/**/*.{ts,html,css,json}'",
-    "openapi-gen": "ng-openapi-gen --config ng-openapi-gen.json"
+    "openapi-gen": "ng-openapi-gen --config ng-openapi-gen.json",
+    "openapi-check": "npm run openapi-gen && git diff --exit-code -- src/app/api"
   },
   "private": true,
   "dependencies": {

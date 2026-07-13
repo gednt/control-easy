@@ -32,6 +32,13 @@ public sealed class PlatformAdminBootstrapService : IHostedService
     public async Task StartAsync(CancellationToken ct)
     {
         using var scope = _scopeFactory.CreateScope();
+        var demoOptions = scope.ServiceProvider.GetRequiredService<IOptions<ControlEasyReborn.SharedKernel.Demo.DemoOptions>>().Value;
+        if (demoOptions.Enabled)
+        {
+            _logger.LogInformation("Demo mode is enabled; skipping platform admin bootstrap.");
+            return;
+        }
+
         var linqFactory = scope.ServiceProvider.GetRequiredService<ITenantAwareLinqFactory>();
         var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
 

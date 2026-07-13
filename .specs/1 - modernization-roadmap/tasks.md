@@ -125,7 +125,7 @@ Continuous tasks (C.1–C.7) are tracked separately and run alongside every phas
 - [x] **1.8** Create `src/Web/ControlEasyReborn.Web` (**Angular 18+** standalone-component SPA, TypeScript strict mode, **Tailwind CSS v4 + custom design tokens**, **Angular CDK** for headless overlays) with a single `Residents` page that lists and creates residents, talking to the API through `HttpClient` with a bearer token (added by an HTTP interceptor). Visual patterns must follow the spec in `.specs/2 - visual-design-system/`.
   - Configure `ng-openapi-gen` so DTOs/interfaces are generated from the API's `/swagger/v1/swagger.json` on every build.
   - Configure `proxy.conf.json` for `ng serve` so dev calls go to the API at `https://localhost/api`.
-  - The Angular SPA's `@theme` block and component styles must **conform to `docs/penpot/tokens.json`** (light + dark); continuous task C.7 enforces this in CI.
+  - The Angular SPA's `@theme` block and component styles must conform to the canonical light/dark token blocks in `mockup/styles.css`; continuous task C.7 enforces this in CI.
   - During the Angular build, **`mockup/` is the visual reference** (open every Angular page side-by-side with the matching `mockup/*.html` page and confirm pixel parity before merging).
 - [x] **1.9** Add multi-stage Dockerfiles: `docker/api.Dockerfile`, `docker/web.Dockerfile`.
 - [x] **1.10** Add `docker/docker-compose.yml` with services: `reverse-proxy` (Traefik), `api`, `web`, `db` (MySQL 8, with healthcheck), `adminer`, `seq`. Add `docker/.env.example`.
@@ -223,13 +223,13 @@ Continuous tasks (C.1–C.7) are tracked separately and run alongside every phas
 
 ## Continuous (every phase)
 
-- [ ] **C.1** GitHub Actions: `lint` (dotnet format), `build` (matrix: linux-x64, win-x64), `test` (unit + integration with Testcontainers), `docker` (build images, push to GHCR), `smoke` (docker compose up + curl + Playwright).
-- [ ] **C.2** Keep `AGENTS.md` updated whenever a new module, library, or convention is added. Keep `docs/penpot/manifest.json` and `docs/penpot/tokens.json` in sync with `.specs/2 - visual-design-system/`.
-- [ ] **C.3** Every ADRs recorded in `docs/architecture/decisions/` with the date and the decision made.
-- [ ] **C.4** Every UI change is verified in a real Chrome browser via the Playwright tool before being marked done. The visual review surface is `mockup/` (smoke-tested via `mockup/SMOKE.md`).
-- [ ] **C.5** After every API change, run `ng-openapi-gen` to regenerate the Angular TypeScript client and fix any breaking call sites.
-- [ ] **C.6** **Architecture rule — `TenantId` everywhere + cross-tenant test.** Two NetArchTest rules in `tests/ControlEasyReborn.ArchitectureTests/`:
+- [x] **C.1** GitHub Actions: `lint` (dotnet format), `build` (matrix: linux-x64, win-x64), `test` (unit + integration with Testcontainers), `docker` (build images, push to GHCR), `smoke` (docker compose up + curl + Playwright).
+- [x] **C.2** Keep `AGENTS.md` updated whenever a new module, library, or convention is added. Keep the canonical `.specs/2 - visual-design-system/` and `mockup/` token surface in sync (the retired `docs/penpot/` tree must not be restored).
+- [x] **C.3** Every ADRs recorded in `docs/architecture/decisions/` with the date and the decision made.
+- [x] **C.4** Every UI change is verified in a real Chrome browser via the Playwright tool before being marked done. The visual review surface is `mockup/` (smoke-tested via `mockup/SMOKE.md`).
+- [x] **C.5** After every API change, run `ng-openapi-gen` to regenerate the Angular TypeScript client and fix any breaking call sites. CI regenerates and rejects drift.
+- [x] **C.6** **Architecture rule — `TenantId` everywhere + cross-tenant test.** Two architecture rules in `tests/ControlEasyReborn.ArchitectureTests/`:
   - All classes in `Modules/*/Domain/Entities/` whose name does not start with `Platform` (i.e. the per-tenant entities) must have a non-nullable `TenantId` property of type `Guid` (or a `TenantId` value object wrapping `Guid`).
   - Every `tests/ControlEasyReborn.IntegrationTests/*` test class that touches a module's repository must contain at least one `[Fact]` whose name matches the regex `CrossTenant_.*` and that asserts the module's `Linq<T>`-backed read returns no rows for a foreign tenant and that writes to a foreign tenant are rejected. CI fails the build if a new test file ships without such a fact.
   - These rules run on every PR (in the existing C.1 GitHub Actions `test` job).
-- [ ] **C.7** **Tokens-contract CI check.** A test or script (in `tests/`, e.g. `tests/ControlEasyReborn.ArchitectureTests/TokensContractTests.cs`, or a new GitHub Actions step in `.github/workflows/ci.yml` named `tokens-contract`) diffs the `light` and `dark` blocks of `docs/penpot/tokens.json` against the `@theme` block in `src/Web/ControlEasyReborn.Web/src/styles.css` and fails the build if a token is added to one side but not the other. The check runs on every PR in the existing C.1 `build` job (not `test`). Verification command: `dotnet test tests/ControlEasyReborn.ArchitectureTests/ --filter TokensContract` (and/or the `tokens-contract` GitHub Actions step name in the C.1 `build` job's `steps:` block).
+- [x] **C.7** **Tokens-contract CI check.** `TokensContractTests` compares the canonical light/dark token blocks in `mockup/styles.css` with Angular's `@theme` block and fails when Angular omits a canonical token. The check runs on every PR in C.1's `build` job. Verification command: `dotnet test tests/ControlEasyReborn.ArchitectureTests/ --filter TokensContract`.

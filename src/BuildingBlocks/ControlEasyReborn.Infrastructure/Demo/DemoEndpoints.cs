@@ -14,14 +14,8 @@ public static class DemoServiceCollectionExtensions
     public static IServiceCollection AddControlEasyDemo(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<DemoOptions>(configuration.GetSection(DemoOptions.SectionName));
-        var demoEnabled = configuration.GetValue<bool>($"{DemoOptions.SectionName}:Enabled");
-
-        if (demoEnabled)
-        {
-            services.AddSingleton<DemoSeederService>();
-            services.AddHostedService(sp => sp.GetRequiredService<DemoSeederService>());
-        }
-
+        services.AddSingleton<DemoSeederService>();
+        services.AddHostedService(sp => sp.GetRequiredService<DemoSeederService>());
         return services;
     }
 

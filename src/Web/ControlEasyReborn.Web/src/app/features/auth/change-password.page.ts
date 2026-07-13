@@ -4,7 +4,7 @@ import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, Validati
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { BootstrapInfoService } from '../../core/services/bootstrap-info.service';
-import { CeButtonComponent } from '../../design-system/components/button/button.component';
+import { CeButtonComponent, CeInputComponent } from '../../design-system';
 
 function passwordsMatch(group: AbstractControl): ValidationErrors | null {
   const newPassword = group.get('newPassword')?.value;
@@ -15,7 +15,7 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
 @Component({
   selector: 'ce-change-password-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, CeButtonComponent],
+  imports: [CommonModule, ReactiveFormsModule, CeButtonComponent, CeInputComponent],
   template: `
     <main class="login-page" tabindex="-1">
       <div class="login-card">
@@ -35,38 +35,18 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
         }
 
         <form class="login-form" [formGroup]="form" (ngSubmit)="onSubmit()">
-          <div class="ce-input-group">
-            <label class="ce-input-label" for="current-password">Current password</label>
-            <input id="current-password"
-                   class="ce-input"
-                   type="password"
-                   formControlName="currentPassword"
-                   autocomplete="current-password" />
-          </div>
+          <ce-input label="Current password" inputId="current-password" type="password"
+                    autocomplete="current-password" formControlName="currentPassword" />
 
-          <div class="ce-input-group">
-            <label class="ce-input-label" for="new-password">New password</label>
-            <input id="new-password"
-                   class="ce-input"
-                   type="password"
-                   formControlName="newPassword"
-                   autocomplete="new-password" />
-            @if (form.get('newPassword')?.invalid && form.get('newPassword')?.touched) {
-              <div class="ce-input-error">Use at least 8 characters.</div>
-            }
-          </div>
+          <ce-input label="New password" inputId="new-password" type="password"
+                    autocomplete="new-password" formControlName="newPassword"
+                    [error]="form.get('newPassword')?.invalid && form.get('newPassword')?.touched
+                      ? 'Use at least 8 characters.' : null" />
 
-          <div class="ce-input-group">
-            <label class="ce-input-label" for="confirm-password">Confirm new password</label>
-            <input id="confirm-password"
-                   class="ce-input"
-                   type="password"
-                   formControlName="confirmPassword"
-                   autocomplete="new-password" />
-            @if (form.hasError('passwordMismatch') && form.get('confirmPassword')?.touched) {
-              <div class="ce-input-error">Passwords do not match.</div>
-            }
-          </div>
+          <ce-input label="Confirm new password" inputId="confirm-password" type="password"
+                    autocomplete="new-password" formControlName="confirmPassword"
+                    [error]="form.hasError('passwordMismatch') && form.get('confirmPassword')?.touched
+                      ? 'Passwords do not match.' : null" />
 
           <ce-button variant="primary"
                      size="lg"
@@ -136,27 +116,6 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
       display: flex;
       flex-direction: column;
       gap: var(--space-4);
-    }
-    .ce-input-group {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-1);
-    }
-    .ce-input-label {
-      font-size: var(--font-size-sm);
-      font-weight: var(--font-weight-medium);
-    }
-    .ce-input {
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      padding: var(--space-3);
-      background: var(--color-surface);
-      font-family: inherit;
-      min-height: 2.5rem;
-    }
-    .ce-input-error {
-      font-size: var(--font-size-xs);
-      color: var(--color-danger);
     }
     .login-error {
       padding: var(--space-3);

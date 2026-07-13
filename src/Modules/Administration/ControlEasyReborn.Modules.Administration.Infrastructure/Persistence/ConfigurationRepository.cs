@@ -24,7 +24,7 @@ public sealed class ConfigurationRepository : IConfigurationRepository
     {
         var db = _factory.Create(_ctx);
         var rows = await db.SelectAsync(
-            fields: "Id, TenantId, `Key`, Value, Description, CreatedAtUtc, UpdatedAtUtc",
+            fields: "*",
             table: TableName,
             whereClause: "Id = @param0",
             parameters: new object[] { id },
@@ -36,7 +36,7 @@ public sealed class ConfigurationRepository : IConfigurationRepository
     {
         var db = _factory.Create(_ctx);
         var rows = await db.SelectAsync(
-            fields: "Id, TenantId, `Key`, Value, Description, CreatedAtUtc, UpdatedAtUtc",
+            fields: "*",
             table: TableName,
             whereClause: "TenantId = @param0 AND `Key` = @param1",
             parameters: new object[] { tenantId, key },
@@ -48,7 +48,7 @@ public sealed class ConfigurationRepository : IConfigurationRepository
     {
         var db = _factory.Create(_ctx);
         var rows = await db.SelectAsync(
-            fields: "Id, TenantId, `Key`, Value, Description, CreatedAtUtc, UpdatedAtUtc",
+            fields: "*",
             table: TableName,
             whereClause: "TenantId = @param0",
             parameters: new object[] { tenantId },

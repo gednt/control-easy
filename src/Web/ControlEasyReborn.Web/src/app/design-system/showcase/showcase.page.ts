@@ -22,6 +22,7 @@ import {
   CeBreadcrumbsComponent,
   CeCheckboxComponent,
   CeIconComponent,
+  CeTooltipDirective,
   ThemeService,
 } from '../index';
 import { ICON_SHOWCASE_NAMES, ICON_SHOWCASE_SIZES } from '../components/icon/icon.stories';
@@ -51,6 +52,7 @@ import { ICON_SHOWCASE_NAMES, ICON_SHOWCASE_SIZES } from '../components/icon/ico
     CeBreadcrumbsComponent,
     CeCheckboxComponent,
     CeIconComponent,
+    CeTooltipDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -59,8 +61,8 @@ import { ICON_SHOWCASE_NAMES, ICON_SHOWCASE_SIZES } from '../components/icon/ico
         <h1>Design System Showcase</h1>
         <p>Every base component rendered in both themes.</p>
         <div class="theme-switcher">
-          <label>Local theme:</label>
-          <select [value]="localTheme()" (change)="onThemeChange($event)">
+          <label for="showcase-theme">Local theme:</label>
+          <select id="showcase-theme" [value]="localTheme()" (change)="onThemeChange($event)">
             <option value="light">Light</option>
             <option value="dark">Dark</option>
           </select>
@@ -247,6 +249,30 @@ import { ICON_SHOWCASE_NAMES, ICON_SHOWCASE_SIZES } from '../components/icon/ico
       <section class="showcase-section">
         <h2>Breadcrumbs</h2>
         <ce-breadcrumbs [crumbs]="[{ label: 'Home', route: '/' }, { label: 'Residents', route: '/residents' }, { label: 'Jo\u00e3o Silva' }]"></ce-breadcrumbs>
+      </section>
+
+      <section class="showcase-section">
+        <h2>Tabs</h2>
+        <ce-tabs>
+          <ce-tab label="Overview" [content]="overviewTab" />
+          <ce-tab label="Activity" [content]="activityTab" />
+        </ce-tabs>
+        <ng-template #overviewTab><p>Overview content is active.</p></ng-template>
+        <ng-template #activityTab><p>Activity content is active.</p></ng-template>
+      </section>
+
+      <section class="showcase-section">
+        <h2>Dropdown</h2>
+        <ce-dropdown>
+          <ce-button dropdown-trigger variant="secondary">Open menu</ce-button>
+          <button role="menuitem" type="button" (click)="toastService.info('Profile selected')">Profile</button>
+          <button role="menuitem" type="button" (click)="toastService.info('Settings selected')">Settings</button>
+        </ce-dropdown>
+      </section>
+
+      <section class="showcase-section">
+        <h2>Tooltip</h2>
+        <ce-button variant="secondary" ceTooltip="Helpful tooltip text">Hover or focus me</ce-button>
       </section>
 
       <section class="showcase-section">

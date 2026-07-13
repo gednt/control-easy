@@ -1,12 +1,19 @@
 ---
-gsd_state_version: '1.0'
-status: executing
+gsd_state_version: 1.0
+milestone: v1.1
+milestone_name: milestone
+current_phase: 0
+status: Awaiting next milestone
+stopped_at: v1.0 active scope implemented and verified; ready for milestone audit
+last_updated: "2026-07-13T01:15:09.154Z"
+last_activity: 2026-07-13
+last_activity_desc: Milestone v1.0 completed and archived
 progress:
   total_phases: 14
-  completed_phases: 7
-  total_plans: 15
-  completed_plans: 1
-  percent: 50
+  completed_phases: 11
+  total_plans: 11
+  completed_plans: 11
+  percent: 79
 ---
 
 # Project State
@@ -16,21 +23,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-24)
 
 **Core value:** Gatehouse staff can reliably register and control access through a fast, tenant-isolated web UI.
-**Current focus:** Phase 8 — Design System Hardening
+**Current focus:** Planning v1.1 UI & Dashboard
 
 ## Current Position
 
-Phase: 8 of 14 (Design System Hardening)
-Plan: 0 of 2 in current phase
-Status: Ready to plan
-Last activity: 2026-06-24 — Phase 7 complete (DBTools NuGet migration)
-
-Progress: [███████░░░] 50% (7/14 phases complete)
+Phase: Milestone v1.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-13 — Milestone v1.0 completed and archived
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0 (GSD execution not started)
+
+- Total plans completed: 11
 - Average duration: —
 - Total execution time: —
 
@@ -44,7 +50,7 @@ Progress: [███████░░░] 50% (7/14 phases complete)
 
 ### Blockers/Concerns
 
-- Integration tests (Testcontainers) should be re-run before merge — not executed in full this session
+- No blocking concerns. Deferred v1.1/v2 scope remains explicitly tracked below.
 
 ## Deferred Items
 
@@ -52,9 +58,15 @@ Progress: [███████░░░] 50% (7/14 phases complete)
 |----------|------|--------|-------------|
 | v2 | Photo capture & hardware | Phase 12 | 2026-06-24 |
 | v2 | Multi-arch Docker/CI | Phase 14 | 2026-06-24 |
+| v1.1 | Mockup visual parity and functional fixes (UI-03, UI-04) | Phase 9 | 2026-07-12 |
+| v1.1 | Dashboard live stats and vehicle edit (DASH-01, DASH-02, DASH-04) | Phase 10 | 2026-07-12 |
 
 ## Session Continuity
 
-Last session: 2026-06-24
-Stopped at: Roadmap updated with DBTools NuGet migration; ready for `/gsd-plan-phase 7`
+Last session: 2026-07-13
+Stopped at: v1.0 archived; ready to define fresh v1.1 requirements
 Resume file: None
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone

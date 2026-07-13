@@ -21,5 +21,6 @@ verified: 2026-06-24
 
 ## Notes
 
-- Integration tests not re-run in this session (Testcontainers; long-running). Re-run before ship if needed.
+- At original Phase 7 verification integration tests were not rerun. Milestone closure later passed unit 79/79, integration 54/54, and architecture 6/6.
+- Docker api/web builds and recreate passed; `/health` returned 200 after the DBTools provider registration fix.
 - `TenantFilterInterceptor` parameter naming aligned to `@ctx_tenant` constant for DBTools parameter binding.

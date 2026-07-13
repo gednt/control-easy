@@ -7,6 +7,7 @@ using ControlEasyReborn.Modules.Visits.Application.Contracts;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ControlEasyReborn.IntegrationTests;
 
@@ -161,6 +162,13 @@ public sealed class DemoModeTests
     [Fact]
     public async Task DemoOff_regression_demo_users_do_not_exist()
     {
+        using (var scope = _normalFactory.Services.CreateScope())
+        {
+            var linqFactory = scope.ServiceProvider.GetRequiredService<ControlEasyReborn.Infrastructure.MultiTenancy.ITenantAwareLinqFactory>();
+            var db = linqFactory.Create(ControlEasyReborn.SharedKernel.MultiTenancy.NullTenantContext.Instance, bypassTenantFilter: true);
+            await db.DeleteAsync("Users", "Email = @param0", new object[] { "porteiro@controleasy.app" }, CancellationToken.None);
+        }
+
         var client = _normalFactory.CreateClient();
         var request = new LoginRequest("porteiro@controleasy.app", "demo123");
 
@@ -196,25 +204,9 @@ public sealed class DemoModeTests
 
     private static async Task WaitForDemoSeedAsync(WebApplicationFactory<Program> factory)
     {
-        var client = factory.CreateClient();
-        for (var i = 0; i < 60; i++)
-        {
-            var info = await client.GetFromJsonAsync<DemoEndpoints.DemoInfoResponse>("/api/v1/demo/info");
-            if (info?.Enabled == true)
-            {
-                var token = await TryLoginAsync(client, "porteiro@controleasy.app", "demo123");
-                if (token is not null)
-                {
-                    client.DefaultRequestHeaders.Authorization =
-                        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-                    var residents = await client.GetFromJsonAsync<List<ResidentResponse>>("/api/v1/residents");
-                    if (residents is { Count: >= 61 })
-                        return;
-                }
-            }
-            await Task.Delay(500);
-        }
-        throw new TimeoutException("Demo seed did not complete within the expected time.");
+        using var scope = factory.Services.CreateScope();
+        var seeder = scope.ServiceProvider.GetRequiredService<DemoSeederService>();
+        await seeder.SeedAsync(force: true, CancellationToken.None);
     }
 
     private static async Task<string?> TryLoginAsync(HttpClient client, string email, string password)

@@ -14,23 +14,27 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddControlEasyDbTools(this IServiceCollection services, IConfiguration configuration)
     {
-        var options = new DbToolsOptions
+        services.TryAddSingleton<DbToolsOptions>(sp =>
         {
-            Host = configuration["Db:Host"] ?? throw new InvalidOperationException("Db:Host is not configured."),
-            Database = configuration["Db:Database"] ?? throw new InvalidOperationException("Db:Database is not configured."),
-            Username = configuration["Db:Username"] ?? throw new InvalidOperationException("Db:Username is not configured."),
-            Password = configuration["Db:Password"] ?? throw new InvalidOperationException("Db:Password is not configured."),
-            Port = configuration["Db:Port"] ?? "3306",
-            Provider = ResolveProvider(configuration["Db:Provider"] ?? "MySQL")
-        };
-
-        services.AddSingleton(options);
+            var config = sp.GetRequiredService<IConfiguration>();
+            return new DbToolsOptions
+            {
+                Host = config["Db:Host"] ?? throw new InvalidOperationException("Db:Host is not configured."),
+                Database = config["Db:Database"] ?? throw new InvalidOperationException("Db:Database is not configured."),
+                Username = config["Db:Username"] ?? throw new InvalidOperationException("Db:Username is not configured."),
+                Password = config["Db:Password"] ?? throw new InvalidOperationException("Db:Password is not configured."),
+                Port = config["Db:Port"] ?? "3306",
+                Provider = ResolveProvider(config["Db:Provider"] ?? "MySQL")
+            };
+        });
 
         services.TryAddSingleton<ISqlValidator, SqlValidator>();
         services.TryAddSingleton<ISqlQueryBuilder>(sp =>
             new SqlQueryBuilder(sp.GetRequiredService<ISqlValidator>()));
-        services.TryAddSingleton<IDbProvider>(sp => DbProviderFactory.Create(options.Provider));
-        services.TryAddSingleton<IDbConfiguration>(sp => new ControlEasyDbConfiguration(options));
+        services.TryAddSingleton<IDbProvider>(sp =>
+            DbProviderFactory.Create(sp.GetRequiredService<DbToolsOptions>().Provider));
+        services.TryAddSingleton<IDbConfiguration>(sp =>
+            new ControlEasyDbConfiguration(sp.GetRequiredService<DbToolsOptions>()));
         services.TryAddScoped<IAsyncSqlClient>(sp =>
         {
             var config = sp.GetRequiredService<IDbConfiguration>();

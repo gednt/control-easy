@@ -109,10 +109,10 @@
   - [x] 12.2 Run `grep -rn 'var(--spacing-' src/Web/ControlEasyReborn.Web/src/app/` and confirm zero results (excluding `styles.css @theme` block)
   - [x] 12.3 Run `grep -rn 'color: white' src/Web/ControlEasyReborn.Web/src/app/` and confirm zero results
   - [x] 12.4 Run `grep -rn '#ec4899' src/Web/ControlEasyReborn.Web/src/app/` and confirm zero results
-  - [ ] 12.5 Verify showcase page renders in light and dark themes
-  - [ ] 12.6 Verify login page and change-password page use design system components
-  - [ ] 12.7 Verify modal, dropdown, tabs, breadcrumbs functional behavior
-  - [ ] 12.8 Verify dark theme toggle affects sidebar hover states
+  - [x] 12.5 Verify showcase page renders in light and dark themes
+  - [x] 12.6 Verify login page and change-password page use design system components
+  - [x] 12.7 Verify modal, dropdown, tabs, breadcrumbs functional behavior
+  - [x] 12.8 Verify dark theme toggle affects sidebar hover states
 
 ## Task Dependency Graph
 ```json

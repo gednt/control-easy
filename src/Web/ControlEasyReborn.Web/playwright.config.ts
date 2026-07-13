@@ -1,7 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
-  testDir: ['./e2e', '../../tests/visual', '../../tests/a11y'],
+  testDir: '.',
+  testMatch: ['e2e/**/*.spec.ts', 'tests/**/*.spec.ts'],
   globalSetup: './e2e/global-setup.ts',
   timeout: 60_000,
   fullyParallel: true,
@@ -12,7 +13,7 @@ export default defineConfig({
     baseURL: process.env['E2E_BASE_URL'] ?? 'http://localhost:8080',
     trace: 'on-first-retry',
   },
-  snapshotDir: '../../tests/visual/__snapshots__',
+  snapshotDir: './tests/visual/__snapshots__',
   projects: [
     {
       name: 'chromium',

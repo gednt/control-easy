@@ -8,6 +8,17 @@ ControlEasy Reborn is the web-based modernization of ControlEasy 5 — a condomi
 
 Gatehouse staff can reliably register and control access for residents, visitors, and vehicles through a fast, tenant-isolated web UI backed by a secure multi-tenant API.
 
+## Current State
+
+**v1.0 Reborn MVP shipped 2026-07-13.** The active milestone delivered 32/32 requirements across 11 phases. The standard Docker Compose runtime is healthy and demo mode remains isolated to its opt-in overlay.
+
+## Next Milestone Goals
+
+- Complete mockup visual parity and functional interaction fixes.
+- Replace dashboard placeholder data with live tenant-scoped statistics.
+- Add the vehicle editing workflow.
+- Adopt the generated OpenAPI client progressively after enriching minimal API response metadata.
+
 ## Requirements
 
 ### Validated
@@ -23,21 +34,20 @@ Gatehouse staff can reliably register and control access for residents, visitors
 - ✓ Apartment edit: manage residents inline — `.specs/apartment-edit-residents/`
 - ✓ First-boot operator documentation — `.specs/getting-started/`
 - ✓ Verification remediation (Playwright auth, demo integration, spec baseline) — `.specs/6 - verification-remediation/`
+- ✓ DBTools_SQL migrated to NuGet DBTools 1.4.3 — `.specs/dbtools-nuget-migration/`
+- ✓ Design system hardening and formal design-system contract — `.specs/fix-design-system/`, `.specs/2 - visual-design-system/`
+- ✓ Occupied-apartments dashboard count regression fixed with tenant-isolation coverage — `.specs/occupied-apartments-bug/`
+- ✓ Demo mode one-command seeded evaluation stack — `.specs/4 - demo-mode/`
+- ✓ Continuous engineering baseline (CI, generated OpenAPI client, architecture and token contracts) — `.specs/1 - modernization-roadmap/` C.1–C.7
 
 ### Active
 
-- [ ] Migrate vendored DBTools_SQL to NuGet package [DBTools 1.4.3](https://www.nuget.org/packages/DBTools) — `.specs/dbtools-nuget-migration/`
-- [ ] Complete design system inconsistency fixes (4 verification sub-tasks remain) — `.specs/fix-design-system/`
-- [ ] Dashboard live stats endpoint and UI — `.specs/dashboard/`
-- [ ] Fix occupied-apartments dashboard count bug — `.specs/occupied-apartments-bug/`
-- [ ] Vehicle edit UI — `.specs/vehicle-edit/`
-- [ ] Mockup visual parity (shell, login, feature pages) — `.specs/mockup-visual-parity/`
-- [ ] Mockup functional fixes (modals, dropdowns, filters) — `.specs/2-mockup-functional-fixes/`
-- [ ] Formal visual design system spec completion — `.specs/2 - visual-design-system/`
-- [ ] Demo mode (one-command seeded stack) — `.specs/4 - demo-mode/`
-- [ ] Photo capture and hardware integration — `.specs/3 - photo-capture-hardware-integration/`
-- [ ] Continuous engineering tasks (CI, tokens contract, cross-tenant tests) — `.specs/1 - modernization-roadmap/` C.1–C.7
-- [ ] Multi-arch Docker/CI (arm64 delta) — `.specs/1 - modernization-roadmap-arm64/`
+- [ ] Dashboard live stats endpoint and UI (v1.1) — `.specs/dashboard/`
+- [ ] Vehicle edit UI (v1.1) — `.specs/vehicle-edit/`
+- [ ] Mockup visual parity (v1.1) — `.specs/mockup-visual-parity/`
+- [ ] Mockup functional fixes (v1.1) — `.specs/2-mockup-functional-fixes/`
+- [ ] Photo capture and hardware integration (v2) — `.specs/3 - photo-capture-hardware-integration/`
+- [ ] Multi-arch Docker/CI (v2) — `.specs/1 - modernization-roadmap-arm64/`
 
 ### Out of Scope
 
@@ -93,4 +103,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-24 after adding DBTools NuGet migration (Phase 7)*
+*Last updated: 2026-07-12 after completing and verifying the active v1.0 scope*

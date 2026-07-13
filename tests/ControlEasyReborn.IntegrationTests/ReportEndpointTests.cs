@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using ControlEasyReborn.Modules.Apartments.Application.Contracts;
 using ControlEasyReborn.Modules.Reports.Application.Contracts;
 using ControlEasyReborn.Modules.Residents.Application.Contracts;
 using ControlEasyReborn.Modules.Visits.Application.Contracts;
@@ -54,5 +55,54 @@ public sealed class ReportEndpointTests
         var bodyB = await responseB.Content.ReadFromJsonAsync<List<ResidentsPerApartmentResponse>>();
         bodyB.Should().NotBeNull();
         bodyB!.Should().NotContain(x => x.ApartmentId == apartmentId);
+    }
+
+    [Fact]
+    public async Task DashboardStats_OccupiedApartments_IsTenantScoped()
+    {
+        var clientA = _factory.AsTenantA();
+        var clientB = _factory.AsTenantB();
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+
+        var beforeA = await clientA.GetFromJsonAsync<DashboardStatsResponse>("/api/v1/dashboard/stats");
+        var beforeB = await clientB.GetFromJsonAsync<DashboardStatsResponse>("/api/v1/dashboard/stats");
+
+        var apartmentResponse = await clientA.PostAsJsonAsync(
+            "/api/v1/apartments",
+            new CreateApartmentRequest($"T{suffix[..3]}", suffix[3..]));
+        apartmentResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var apartment = await apartmentResponse.Content.ReadFromJsonAsync<ApartmentResponse>();
+
+        var residentResponse = await clientA.PostAsJsonAsync(
+            "/api/v1/residents",
+            new CreateResidentRequest(
+                Name: $"Dashboard Resident {suffix}",
+                Cpf: GenerateCpf(suffix),
+                Email: null,
+                Phone: null,
+                ApartmentId: apartment!.Id));
+        residentResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var afterA = await clientA.GetFromJsonAsync<DashboardStatsResponse>("/api/v1/dashboard/stats");
+        var afterB = await clientB.GetFromJsonAsync<DashboardStatsResponse>("/api/v1/dashboard/stats");
+
+        afterA!.OccupiedApartments.Should().Be(beforeA!.OccupiedApartments + 1);
+        afterB!.OccupiedApartments.Should().Be(beforeB!.OccupiedApartments);
+    }
+
+    private static string GenerateCpf(string suffix)
+    {
+        var seed = Math.Abs(suffix.GetHashCode()).ToString("D9")[..9];
+        var digits = seed.Select(c => c - '0').ToArray();
+        var first = CalculateCpfDigit(digits, 10);
+        var second = CalculateCpfDigit(digits.Append(first).ToArray(), 11);
+        return seed + first + second;
+    }
+
+    private static int CalculateCpfDigit(IReadOnlyList<int> digits, int weight)
+    {
+        var sum = digits.Select((digit, index) => digit * (weight - index)).Sum();
+        var remainder = sum % 11;
+        return remainder < 2 ? 0 : 11 - remainder;
     }
 }

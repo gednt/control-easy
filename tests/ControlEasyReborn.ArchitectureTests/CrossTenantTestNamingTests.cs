@@ -1,4 +1,3 @@
-using System.Reflection;
 using FluentAssertions;
 using Xunit;
 
@@ -9,59 +8,29 @@ public sealed class CrossTenantTestNamingTests
     [Fact]
     public void Integration_test_classes_touching_repositories_must_have_CrossTenant_fact()
     {
-        var testAssembly = LoadIntegrationTestAssembly();
-        if (testAssembly is null)
-            return;
-
-        var testClasses = testAssembly.GetTypes()
-            .Where(t => t.GetMethods().Any(m => m.GetCustomAttributes(false).Any(a => a.GetType().Name == "FactAttribute")))
+        var repositoryRoot = FindRepositoryRoot();
+        var integrationDirectory = Path.Combine(repositoryRoot, "tests", "ControlEasyReborn.IntegrationTests");
+        var failing = Directory.EnumerateFiles(integrationDirectory, "*EndpointTests.cs")
+            .Where(path => !Path.GetFileName(path).StartsWith("Tenant", StringComparison.Ordinal))
+            .Where(path => !System.Text.RegularExpressions.Regex.IsMatch(
+                File.ReadAllText(path),
+                @"\[Fact\][\s\S]*?Task\s+CrossTenant_[A-Za-z0-9_]+\s*\("))
+            .Select(Path.GetFileName)
             .ToList();
-
-        var failing = new List<string>();
-
-        foreach (var testClass in testClasses)
-        {
-            if (!TouchesRepository(testClass))
-                continue;
-
-            var hasCrossTenant = testClass.GetMethods()
-                .Any(m => m.GetCustomAttributes(false)
-                    .Any(a => a.GetType().Name == "FactAttribute") &&
-                    System.Text.RegularExpressions.Regex.IsMatch(m.Name, @"CrossTenant_.*"));
-
-            if (!hasCrossTenant)
-            {
-                failing.Add(testClass.Name);
-            }
-        }
 
         failing.Should().BeEmpty(
             $"the following integration test classes touch repositories but lack a [Fact] matching CrossTenant_.*: {string.Join(", ", failing)}");
     }
 
-    private static Assembly? LoadIntegrationTestAssembly()
+    private static string FindRepositoryRoot()
     {
-        return AppDomain.CurrentDomain.GetAssemblies()
-            .FirstOrDefault(a => a.GetName().Name == "ControlEasyReborn.IntegrationTests");
-    }
-
-    private static bool TouchesRepository(Type testClass)
-    {
-        var ctors = testClass.GetConstructors();
-        foreach (var ctor in ctors)
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null)
         {
-            foreach (var param in ctor.GetParameters())
-            {
-                if (param.ParameterType.Name.Contains("Repository") ||
-                    param.ParameterType.Name.Contains("Factory") ||
-                    param.ParameterType.Name.Contains("TestFixture"))
-                {
-                    return true;
-                }
-            }
+            if (File.Exists(Path.Combine(directory.FullName, "AGENTS.md")))
+                return directory.FullName;
+            directory = directory.Parent;
         }
-
-        return testClass.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-            .Any(f => f.FieldType.Name.Contains("Factory") || f.FieldType.Name.Contains("Repository"));
+        throw new DirectoryNotFoundException("Could not locate the repository root from the test output directory.");
     }
 }

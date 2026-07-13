@@ -234,6 +234,14 @@ This spec ships the hook only — no admin UI for it. A future spec will add a `
 - **Accessibility (Playwright + axe-core):** an a11y scan runs on the showcase page; any `serious` or `critical` violation blocks the PR.
 - **Reduced motion (Playwright + DevTools emulate):** the showcase page is rendered with `prefers-reduced-motion: reduce`; keyframes must not animate.
 
+### Adding a base component
+
+1. Implement a standalone `ce-*` component under `src/app/design-system/components/` using tokens only.
+2. Export it from `src/app/design-system/index.ts` and add focused Jasmine coverage for behavior and ARIA state.
+3. Add every supported variant to `/design-system/showcase` with a concise usage example.
+4. Run lint, Angular unit tests, the production Docker build, and the showcase visual/a11y Playwright gates.
+5. Update this design contract and `tasks.md` whenever the public inputs, outputs, or accessibility contract changes.
+
 ## Token tables
 
 ### Color tokens — light theme

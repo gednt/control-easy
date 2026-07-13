@@ -33,8 +33,8 @@ public sealed class TenantAwareLinqFactoryInterceptorTests
         var sqlA = fakeA.Operations[0].Sql;
         var sqlB = fakeB.Operations[0].Sql;
 
-        sqlA.Should().Contain("tenant_id = @ctx_tenant");
-        sqlB.Should().Contain("tenant_id = @ctx_tenant");
+        sqlA.Should().Contain("tenant_id = @param0");
+        sqlB.Should().Contain("tenant_id = @param0");
 
         fakeA.Operations[0].Parameters.Should().Contain(tenantIdA);
         fakeB.Operations[0].Parameters.Should().Contain(tenantIdB);
@@ -67,7 +67,7 @@ public sealed class TenantAwareLinqFactoryInterceptorTests
         };
         interceptor.BeforeExecute(context);
 
-        context.Sql.Should().Contain("tenant_id = @ctx_tenant");
+        context.Sql.Should().Contain("tenant_id = @param0");
         context.Parameters.Should().Contain(tenantId);
     }
 

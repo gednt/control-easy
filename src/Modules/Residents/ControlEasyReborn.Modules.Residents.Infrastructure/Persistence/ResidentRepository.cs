@@ -81,13 +81,16 @@ public sealed class ResidentRepository : IResidentRepository
     {
         const int fieldCount = 7;
         var db = _factory.Create(_ctx);
-        await db.UpdateAsync(
+        var updated = await db.UpdateAsync(
             new[] { "Name", "Cpf", "Email", "Phone", "ApartmentId", "Active", "UpdatedAtUtc" },
             TableName,
-            new[] { resident.Name, resident.Cpf, resident.Email ?? string.Empty, resident.Phone ?? string.Empty, resident.ApartmentId.HasValue ? resident.ApartmentId.Value.ToString() : string.Empty, resident.Active ? "1" : "0", resident.UpdatedAtUtc.HasValue ? resident.UpdatedAtUtc.Value.ToString("o") : string.Empty },
+            new[] { resident.Name, resident.Cpf, resident.Email ?? string.Empty, resident.Phone ?? string.Empty, resident.ApartmentId.HasValue ? resident.ApartmentId.Value.ToString() : string.Empty, resident.Active ? "1" : "0", resident.UpdatedAtUtc.HasValue ? resident.UpdatedAtUtc.Value.ToString("yyyy-MM-dd HH:mm:ss") : string.Empty },
             $"Id = @param{fieldCount}",
-            new object[] { resident.Id },
+            new object[] { resident.Id.ToString() },
             ct: ct);
+
+        if (!updated)
+            throw new InvalidOperationException($"Failed to update resident {resident.Id}. {db.Error}");
     }
 
     private static Resident? MapFirstOrDefault(DataTable rows)

@@ -6,6 +6,7 @@ using ControlEasyReborn.Modules.Security.Application.Contracts;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ControlEasyReborn.IntegrationTests;
 
@@ -61,7 +62,7 @@ public sealed class ResidentEndpointTests
 
         var request = new CreateResidentRequest(
             Name: "Joao Santos",
-            Cpf: "94515224008",
+            Cpf: "76576734352",
             Email: "joao@tenanta.test",
             Phone: null,
             ApartmentId: null);
@@ -128,11 +129,11 @@ public sealed class ResidentEndpointTests
     {
         var demoFactory = new DemoWebApplicationFactory(_mySql);
         await WaitForDemoSeedAsync(demoFactory);
-        var token = await LoginAsync(demoFactory, "porteiro@controleasy.app", "demo123");
+        var token = await LoginAsync(demoFactory, "admin@controleasy.app", "demo123");
         var client = CreateAuthorizedClient(demoFactory, token);
 
         var residents = await GetResidentsAsync(client);
-        var target = residents.Single(r => r.Name == "Zeus");
+        var target = residents.Single(r => r.Name == "Hades");
         target.Active.Should().BeTrue();
 
         var updateResponse = await client.PutAsJsonAsync(
@@ -196,25 +197,9 @@ public sealed class ResidentEndpointTests
 
     private static async Task WaitForDemoSeedAsync(WebApplicationFactory<Program> factory)
     {
-        var client = factory.CreateClient();
-        for (var i = 0; i < 60; i++)
-        {
-            var info = await client.GetFromJsonAsync<DemoEndpoints.DemoInfoResponse>("/api/v1/demo/info");
-            if (info?.Enabled == true)
-            {
-                var token = await TryLoginAsync(client, "porteiro@controleasy.app", "demo123");
-                if (token is not null)
-                {
-                    client.DefaultRequestHeaders.Authorization =
-                        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-                    var residents = await client.GetFromJsonAsync<List<ResidentResponse>>("/api/v1/residents");
-                    if (residents is { Count: >= 61 })
-                        return;
-                }
-            }
-            await Task.Delay(500);
-        }
-        throw new TimeoutException("Demo seed did not complete within the expected time.");
+        using var scope = factory.Services.CreateScope();
+        var seeder = scope.ServiceProvider.GetRequiredService<DemoSeederService>();
+        await seeder.SeedAsync(force: true, CancellationToken.None);
     }
 
     private static async Task<string?> TryLoginAsync(HttpClient client, string email, string password)

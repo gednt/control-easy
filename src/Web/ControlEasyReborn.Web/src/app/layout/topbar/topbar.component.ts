@@ -369,11 +369,11 @@ export class TopbarComponent {
 
     while (route.firstChild) {
       route = route.firstChild;
-      const segment = route.snapshot.url.map(part => part.path).join('/');
+      const segment = (route.snapshot?.url ?? []).map(part => part.path).join('/');
       if (segment) {
         url += `/${segment}`;
       }
-      const label = route.snapshot.data['breadcrumb'] as string | undefined;
+      const label = route.snapshot?.data['breadcrumb'] as string | undefined;
       if (label) {
         crumbs.push({ label, route: url || '/' });
       }

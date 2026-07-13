@@ -95,7 +95,7 @@ public static class SecurityEndpoints
                 ?? throw new InvalidOperationException("Tenant context is not resolved.");
             var response = await handler.HandleAsync(request, tenantId, ct);
             return Results.Created($"/api/v1/security/attendant-profiles/{response.Id}", response);
-        }).RequireAuthorization(PlatformAdminRequirement.PolicyName);
+        });
 
         attendantGroup.MapGet("/{id:guid}", async (
             Guid id,
@@ -114,7 +114,7 @@ public static class SecurityEndpoints
         {
             var response = await handler.HandleAsync(id, request, ct);
             return Results.Ok(response);
-        }).RequireAuthorization(PlatformAdminRequirement.PolicyName);
+        });
 
         attendantGroup.MapPost("/{id:guid}/deactivate", async (
             Guid id,
@@ -123,7 +123,7 @@ public static class SecurityEndpoints
         {
             var response = await handler.HandleAsync(id, ct);
             return Results.Ok(response);
-        }).RequireAuthorization(PlatformAdminRequirement.PolicyName);
+        });
 
         var shiftsGroup = group.MapGroup("/shifts")
             .RequireAuthorization();
@@ -138,7 +138,7 @@ public static class SecurityEndpoints
                 ?? throw new InvalidOperationException("Tenant context is not resolved.");
             var response = await handler.HandleAsync(request, tenantId, ct);
             return Results.Created($"/api/v1/security/shifts/{response.Id}", response);
-        }).RequireAuthorization(PlatformAdminRequirement.PolicyName);
+        });
 
         shiftsGroup.MapGet("/", async (
             ITenantContext tenantContext,
@@ -164,7 +164,7 @@ public static class SecurityEndpoints
                 ?? throw new InvalidOperationException("Tenant context is not resolved.");
             var response = await handler.HandleAsync(request, tenantId, ct);
             return Results.Created($"/api/v1/security/gatehouses/{response.Id}", response);
-        }).RequireAuthorization(PlatformAdminRequirement.PolicyName);
+        });
 
         gatehousesGroup.MapGet("/", async (
             ITenantContext tenantContext,

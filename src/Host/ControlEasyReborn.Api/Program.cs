@@ -113,7 +113,7 @@ try
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
     builder.Services.AddHealthChecks()
-        .AddMySql(builder.Configuration.GetConnectionString("MySql") ?? $"Server={builder.Configuration["Db:Host"]};Port={builder.Configuration["Db:Port"]};Database={builder.Configuration["Db:Database"]};Uid={builder.Configuration["Db:Username"]};Pwd={builder.Configuration["Db:Password"]};");
+        .AddCheck<DbToolsHealthCheck>("database");
 
     builder.Services.AddFeatureManagement();
 
@@ -129,10 +129,7 @@ try
 
     builder.Services.AddControlEasyDemo(builder.Configuration);
     builder.Services.AddControlEasyBootstrap(builder.Configuration);
-    if (DemoHostingExtensions.ShouldRegisterPlatformAdminBootstrap(builder.Configuration))
-    {
-        builder.Services.AddHostedService<PlatformAdminBootstrapService>();
-    }
+    builder.Services.AddHostedService<PlatformAdminBootstrapService>();
 
     builder.Services.AddCors(options =>
     {

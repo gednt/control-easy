@@ -1,3 +1,4 @@
+using MySqlConnector;
 using System.Net;
 using System.Net.Http.Json;
 using ControlEasyReborn.Infrastructure.Demo;
@@ -5,6 +6,8 @@ using ControlEasyReborn.Modules.Apartments.Application.Contracts;
 using ControlEasyReborn.Modules.Security.Application.Contracts;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using DBTools.Abstractions;
 using Xunit;
 
 namespace ControlEasyReborn.IntegrationTests;
@@ -122,26 +125,9 @@ public sealed class ApartmentEndpointTests
 
     private static async Task WaitForDemoSeedAsync(WebApplicationFactory<Program> factory)
     {
-        var client = factory.CreateClient();
-        for (var i = 0; i < 60; i++)
-        {
-            var info = await client.GetFromJsonAsync<DemoEndpoints.DemoInfoResponse>("/api/v1/demo/info");
-            if (info?.Enabled == true)
-            {
-                var token = await TryLoginAsync(client, "porteiro@controleasy.app", "demo123");
-                if (token is not null)
-                {
-                    client.DefaultRequestHeaders.Authorization =
-                        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-                    var expectedId = DemoIds.ApartmentId(DemoIds.AuroraTenantId, "A", "14");
-                    var aptResponse = await client.GetAsync($"/api/v1/apartments/{expectedId}");
-                    if (aptResponse.IsSuccessStatusCode)
-                        return;
-                }
-            }
-            await Task.Delay(500);
-        }
-        throw new TimeoutException("Demo apartment seed did not complete within the expected time.");
+        using var scope = factory.Services.CreateScope();
+        var seeder = scope.ServiceProvider.GetRequiredService<DemoSeederService>();
+        await seeder.SeedAsync(force: true, CancellationToken.None);
     }
 
     private static async Task<string?> TryLoginAsync(HttpClient client, string email, string password)

@@ -34,8 +34,8 @@ public sealed class TenantFilterInterceptorTests
         interceptorA.BeforeExecute(contextA);
         interceptorB.BeforeExecute(contextB);
 
-        Assert.Contains("WHERE tenant_id = @ctx_tenant", contextA.Sql, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("WHERE tenant_id = @ctx_tenant", contextB.Sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("WHERE tenant_id = @param0", contextA.Sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("WHERE tenant_id = @param0", contextB.Sql, StringComparison.OrdinalIgnoreCase);
 
         // The two contexts produced two different tenant_id parameter values.
         Assert.Contains(ctxA.TenantId!.Value, contextA.Parameters);
@@ -54,9 +54,9 @@ public sealed class TenantFilterInterceptorTests
         context.Parameters.Add("Chaves");
         interceptor.BeforeExecute(context);
 
-        // The tenant filter is inserted as the first predicate after
+        // The tenant filter is appended as the last predicate after
         // the WHERE keyword; the original predicate is preserved.
-        Assert.Contains("WHERE tenant_id = @ctx_tenant AND Name = @param0", context.Sql, StringComparison.Ordinal);
+        Assert.Contains("WHERE Name = @param0 AND tenant_id = @param1", context.Sql, StringComparison.Ordinal);
         Assert.Contains(tenantId, context.Parameters);
     }
 

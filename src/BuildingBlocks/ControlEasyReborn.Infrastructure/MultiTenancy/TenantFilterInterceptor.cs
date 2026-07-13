@@ -3,7 +3,7 @@ using DBTools.Abstractions;
 
 namespace ControlEasyReborn.Infrastructure.MultiTenancy;
 
-// Appends a `WHERE tenant_id = @ctx_tenant` predicate to qualifying queries
+// Appends a parameterized `tenant_id` predicate to qualifying queries
 // going through the real DBTools_SQL `IQueryInterceptor` pipeline. The
 // interceptor is the single point where the global tenant filter is applied;
 // repositories never need to remember to add it themselves.
@@ -56,11 +56,18 @@ public sealed class TenantFilterInterceptor : IQueryInterceptor
             || context.OperationType == QueryOperationType.Update
             || context.OperationType == QueryOperationType.Delete)
         {
-            if (context.Sql.Contains(TenantColumn, System.StringComparison.OrdinalIgnoreCase))
+            var whereIndex = context.Sql.IndexOf(" WHERE ", System.StringComparison.OrdinalIgnoreCase);
+            if (whereIndex >= 0)
             {
-                return;
+                var afterWhere = context.Sql.Substring(whereIndex);
+                if (afterWhere.Contains(TenantColumn + " = ", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
             }
-            context.Sql = InjectPredicate(context.Sql, TenantParameterName);
+
+            var paramName = "@param" + context.Parameters.Count;
+            context.Sql = InjectPredicate(context.Sql, paramName);
             context.Parameters.Add(_tenantId);
         }
     }
@@ -75,9 +82,7 @@ public sealed class TenantFilterInterceptor : IQueryInterceptor
         var whereIdx = upper.IndexOf(" WHERE ", System.StringComparison.Ordinal);
         if (whereIdx >= 0)
         {
-            // Insert "tenant_id = @ctx_tenant AND " right after the WHERE keyword.
-            var insertAt = whereIdx + " WHERE ".Length;
-            return trimmed.Insert(insertAt, TenantColumn + " = " + parameterName + " AND ");
+            return trimmed + " AND " + TenantColumn + " = " + parameterName;
         }
         return trimmed + " WHERE " + TenantColumn + " = " + parameterName;
     }

@@ -7,6 +7,7 @@
 @import "./app/design-system/tokens/motion.css";
 
 @theme {
+  --color-primary-raw: var(--color-primary-raw);
   --color-background: var(--color-background);
   --color-surface: var(--color-surface);
   --color-surface-elevated: var(--color-surface-elevated);
@@ -49,6 +50,13 @@
   --color-text-on-primary: var(--color-text-on-primary);
   --color-accent-pink: var(--color-accent-pink);
   --color-accent-pink-light: var(--color-accent-pink-light);
+  --sidebar-bg: var(--color-sidebar-bg);
+  --sidebar-text: var(--color-sidebar-text);
+  --sidebar-active-bg: var(--color-sidebar-active-bg);
+  --sidebar-active-text: var(--color-sidebar-active-text);
+  --sidebar-text-muted: var(--color-sidebar-text-muted);
+  --sidebar-hover-bg: var(--color-sidebar-hover-bg);
+  --sidebar-border: var(--color-sidebar-border);
 
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
@@ -67,6 +75,16 @@
   --spacing-10: var(--space-10);
   --spacing-12: var(--space-12);
   --spacing-16: var(--space-16);
+  --space-1: var(--space-1);
+  --space-2: var(--space-2);
+  --space-3: var(--space-3);
+  --space-4: var(--space-4);
+  --space-5: var(--space-5);
+  --space-6: var(--space-6);
+  --space-8: var(--space-8);
+  --space-10: var(--space-10);
+  --space-12: var(--space-12);
+  --space-16: var(--space-16);
 
   --font-family-sans: var(--font-family-sans);
   --font-family-mono: var(--font-family-mono);
@@ -77,6 +95,7 @@
   --font-size-xl: var(--font-size-xl);
   --font-size-2xl: var(--font-size-2xl);
   --font-size-3xl: var(--font-size-3xl);
+  --font-size-4xl: var(--font-size-4xl);
   --font-weight-regular: var(--font-weight-regular);
   --font-weight-medium: var(--font-weight-medium);
   --font-weight-semibold: var(--font-weight-semibold);
@@ -91,6 +110,18 @@
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-xl);
   --shadow-primary-glow: var(--shadow-primary-glow);
+
+  --duration-fast: var(--duration-fast);
+  --duration-base: var(--duration-base);
+  --duration-slow: var(--duration-slow);
+  --ease-out: var(--ease-out);
+  --ease-in-out: var(--ease-in-out);
+  --ease-in: var(--ease-in);
+
+  --sidebar-width: var(--sidebar-width);
+  --sidebar-width-collapsed: var(--sidebar-width-collapsed);
+  --topbar-height: var(--topbar-height);
+  --content-max-width: var(--content-max-width);
 
   --animate-spin-slow: spin-slow 1.4s linear infinite;
   --animate-fade-in: fade-in 200ms var(--ease-out);

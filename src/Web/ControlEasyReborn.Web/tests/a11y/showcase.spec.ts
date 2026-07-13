@@ -1,8 +1,11 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { loginAsDemoUser } from '../../e2e/helpers/demo-auth';
 
 test('showcase page has no serious/critical a11y violations', async ({ page }) => {
+  await loginAsDemoUser(page);
   await page.goto('/design-system/showcase');
+  await expect(page.getByRole('heading', { name: 'Design System Showcase' })).toBeVisible();
   await page.waitForTimeout(500);
 
   const results = await new AxeBuilder({ page })

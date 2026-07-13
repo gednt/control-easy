@@ -5,7 +5,10 @@ COPY src/Web/ControlEasyReborn.Web/package.json src/Web/ControlEasyReborn.Web/pa
 RUN npm ci --legacy-peer-deps
 
 COPY src/Web/ControlEasyReborn.Web/ .
-RUN npm run build -- --configuration production
+# The checked-in client is regenerated and drift-checked by CI against the
+# running API. Avoid invoking package.json's prebuild hook inside this isolated
+# image build, where localhost cannot refer to the API service.
+RUN npm run ng -- build --configuration production
 
 FROM nginx:alpine AS runtime
 COPY --from=build /app/dist/controleasy-reborn-web/browser /usr/share/nginx/html

@@ -47,7 +47,7 @@ public sealed class ResidentRepositoryTests
 
         await _sut.FindAsync(Guid.NewGuid(), CancellationToken.None);
 
-        _fakeClient.Operations[0].Sql.Should().Contain("tenant_id = @ctx_tenant");
+        _fakeClient.Operations[0].Sql.Should().Contain("tenant_id = @param1");
         _fakeClient.Operations[0].Parameters.Should().Contain(_tenantId);
     }
 
@@ -150,7 +150,7 @@ public sealed class ResidentRepositoryTests
         op.OperationType.Should().Be("Update");
         op.Sql.Should().Contain("UPDATE Residents");
         op.Sql.Should().Contain("Id = @param7");
-        op.Parameters.Should().Contain(resident.Id);
+        op.Parameters.Should().Contain(resident.Id.ToString());
     }
 
     [Fact]
@@ -171,7 +171,7 @@ public sealed class ResidentRepositoryTests
         await _sut.UpdateAsync(resident, CancellationToken.None);
 
         var op = _fakeClient.Operations[0];
-        op.Sql.Should().Contain("tenant_id = @ctx_tenant");
+        op.Sql.Should().Contain("tenant_id = @param8");
         op.Parameters.Should().Contain(_tenantId);
     }
 

@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using ControlEasyReborn.Modules.Security.Application.Contracts;
 using FluentAssertions;
 using Xunit;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ControlEasyReborn.IntegrationTests;
 
@@ -43,8 +44,22 @@ public sealed class SecurityEndpointTests
     public async Task CreateAttendantProfile_as_tenantA_returns_created()
     {
         var client = _factory.AsTenantA();
+        var userId = Guid.NewGuid();
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var linqFactory = scope.ServiceProvider.GetRequiredService<ControlEasyReborn.Infrastructure.MultiTenancy.ITenantAwareLinqFactory>();
+            var db = linqFactory.Create(ControlEasyReborn.SharedKernel.MultiTenancy.NullTenantContext.Instance, bypassTenantFilter: true);
+            await db.InsertAsync(
+                new[] { "Id", "TenantId", "Email", "PasswordHash", "DisplayName", "Active", "MustChangePassword", "Roles", "CreatedAtUtc", "tenant_id" },
+                "Users",
+                new object[] { userId, TenantAwareWebApplicationFactory.TenantAId, $"attendant-{userId}@tenanta.test", "hash", "Attendant User", true, false, "Attendant", DateTime.UtcNow, TenantAwareWebApplicationFactory.TenantAId },
+                primaryKeyName: "Id",
+                autoIncrement: false,
+                ct: CancellationToken.None);
+        }
+
         var request = new CreateAttendantProfileRequest(
-            UserId: Guid.NewGuid(),
+            UserId: userId,
             DisplayName: "Test Attendant",
             ShiftId: null,
             GatehouseId: null,
@@ -59,9 +74,22 @@ public sealed class SecurityEndpointTests
     {
         var clientA = _factory.AsTenantA();
         var clientB = _factory.AsTenantB();
+        var userId = Guid.NewGuid();
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var linqFactory = scope.ServiceProvider.GetRequiredService<ControlEasyReborn.Infrastructure.MultiTenancy.ITenantAwareLinqFactory>();
+            var db = linqFactory.Create(ControlEasyReborn.SharedKernel.MultiTenancy.NullTenantContext.Instance, bypassTenantFilter: true);
+            await db.InsertAsync(
+                new[] { "Id", "TenantId", "Email", "PasswordHash", "DisplayName", "Active", "MustChangePassword", "Roles", "CreatedAtUtc", "tenant_id" },
+                "Users",
+                new object[] { userId, TenantAwareWebApplicationFactory.TenantAId, $"attendant-{userId}@tenanta.test", "hash", "Attendant User", true, false, "Attendant", DateTime.UtcNow, TenantAwareWebApplicationFactory.TenantAId },
+                primaryKeyName: "Id",
+                autoIncrement: false,
+                ct: CancellationToken.None);
+        }
 
         var request = new CreateAttendantProfileRequest(
-            UserId: Guid.NewGuid(),
+            UserId: userId,
             DisplayName: "Cross Tenant Test",
             ShiftId: null,
             GatehouseId: null,
