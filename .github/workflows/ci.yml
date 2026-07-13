@@ -85,8 +85,12 @@ jobs:
           node-version: 20
       - name: Clean dangling containers
         run: docker compose -f docker/docker-compose.yml down -v --remove-orphans || true
+      - name: Build images
+        run: docker compose -f docker/docker-compose.yml build db api
+        env:
+          API_PORT: 0
       - name: Start services with dynamic ports
-        run: docker compose -f docker/docker-compose.yml up -d --build db api
+        run: docker compose -f docker/docker-compose.yml up -d db api
         env:
           API_PORT: 0
       - name: Wait for API to be ready
@@ -94,7 +98,7 @@ jobs:
           ACTUAL_API_PORT=$(docker compose -f docker/docker-compose.yml port api 8080 | cut -d: -f2)
           echo "API is running on port $ACTUAL_API_PORT"
           for attempt in {1..30}; do
-            curl --fail --silent http://localhost:$ACTUAL_API_PORT/swagger/v1/swagger.json >/dev/null && exit 0
+            curl --fail --silent http://localhost:$ACTUAL_API_PORT/health >/dev/null && exit 0
             sleep 2
           done
           docker compose -f docker/docker-compose.yml logs api
@@ -145,8 +149,15 @@ jobs:
           node-version: 20
       - name: Clean dangling containers
         run: docker compose -f docker/docker-compose.yml down -v --remove-orphans || true
+      - name: Build images
+        run: docker compose -f docker/docker-compose.yml build
+        env:
+          REVERSE_PROXY_PORT: 0
+          REVERSE_PROXY_HTTPS_PORT: 0
+          REVERSE_PROXY_API_PORT: 0
+          API_PORT: 0
       - name: Start services with dynamic ports
-        run: docker compose -f docker/docker-compose.yml up -d --build
+        run: docker compose -f docker/docker-compose.yml up -d
         env:
           REVERSE_PROXY_PORT: 0
           REVERSE_PROXY_HTTPS_PORT: 0
@@ -157,7 +168,7 @@ jobs:
           ACTUAL_API_PORT=$(docker compose -f docker/docker-compose.yml port api 8080 | cut -d: -f2)
           echo "API is running on port $ACTUAL_API_PORT"
           for attempt in {1..30}; do
-            curl --fail --silent http://localhost:$ACTUAL_API_PORT/swagger/v1/swagger.json >/dev/null && exit 0
+            curl --fail --silent http://localhost:$ACTUAL_API_PORT/health >/dev/null && exit 0
             sleep 2
           done
           docker compose -f docker/docker-compose.yml logs
