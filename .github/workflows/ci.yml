@@ -33,7 +33,7 @@ jobs:
         working-directory: ${{ env.WEB_DIR }}
       - name: Setup Headless Chrome
         run: |
-          npx playwright install chromium
+          npx playwright install --with-deps chromium
           CHROME_PATH=$(node -e "console.log(require('@playwright/test').chromium.executablePath())")
           echo "CHROME_BIN=$CHROME_PATH" >> $GITHUB_ENV
           echo "Set CHROME_BIN to $CHROME_PATH"
@@ -58,7 +58,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: dotnet build src/ControlEasyReborn.sln --runtime ${{ matrix.runtime }}
+      - run: dotnet build src/ControlEasyReborn.sln
       - name: tokens-contract
         run: dotnet test tests/ControlEasyReborn.ArchitectureTests --filter TokensContract
       - run: npm ci --legacy-peer-deps
