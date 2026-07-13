@@ -25,8 +25,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: src/Web/ControlEasyReborn.Web/package-lock.json
       - run: dotnet restore src/ControlEasyReborn.sln
       - run: dotnet format src/ControlEasyReborn.sln --verify-no-changes --no-restore
       - run: npm ci --legacy-peer-deps
@@ -53,8 +51,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: src/Web/ControlEasyReborn.Web/package-lock.json
       - run: dotnet build src/ControlEasyReborn.sln --runtime ${{ matrix.runtime }}
       - name: tokens-contract
         run: dotnet test tests/ControlEasyReborn.ArchitectureTests --filter TokensContract
@@ -79,8 +75,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: src/Web/ControlEasyReborn.Web/package-lock.json
       - name: Start services with dynamic ports
         run: docker compose -f docker/docker-compose.yml up -d --build db api
         env:
@@ -136,8 +130,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: src/Web/ControlEasyReborn.Web/package-lock.json
       - name: Start services with dynamic ports
         run: docker compose -f docker/docker-compose.yml up -d --build
         env:
