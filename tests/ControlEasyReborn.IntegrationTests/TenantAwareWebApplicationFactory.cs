@@ -6,6 +6,11 @@ namespace ControlEasyReborn.IntegrationTests;
 
 public abstract class TenantAwareWebApplicationFactory : WebApplicationFactory<Program>
 {
+    static TenantAwareWebApplicationFactory()
+    {
+        System.Environment.SetEnvironmentVariable("DOTNET_USE_POLLING_FILE_WATCHER", "1");
+    }
+
     public static readonly Guid TenantAId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
     public static readonly Guid TenantBId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
     public static readonly Guid PlatformAdminId = Guid.Parse("99999999-9999-9999-9999-999999999999");
