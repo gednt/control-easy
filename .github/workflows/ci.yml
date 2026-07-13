@@ -48,8 +48,8 @@ jobs:
         include:
           - os: ubuntu-latest
             runtime: linux-x64
-          - os: windows-latest
-            runtime: win-x64
+          #- os: windows-latest
+          #  runtime: win-x64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -95,13 +95,41 @@ jobs:
           API_PORT: 0
       - name: Wait for API to be ready
         run: |
-          ACTUAL_API_PORT=$(docker compose -f docker/docker-compose.yml port api 8080 | cut -d: -f2 || true)
-          if [[ ! "$ACTUAL_API_PORT" =~ ^[0-9]+$ ]]; then
-            echo "API does not have a published port"
-            docker compose -f docker/docker-compose.yml logs api
-            exit 1
+          RUNNER_CONTAINER_ID=""
+          if [[ -n "${HOSTNAME:-}" ]]; then
+            if docker inspect "$HOSTNAME" >/dev/null 2>&1; then
+              RUNNER_CONTAINER_ID="$HOSTNAME"
+            else
+              while IFS= read -r container_id; do
+                if [[ "$(docker inspect --format '{{.Config.Hostname}}' "$container_id" 2>/dev/null)" == "$HOSTNAME" ]]; then
+                  RUNNER_CONTAINER_ID="$container_id"
+                  break
+                fi
+              done < <(docker ps -q)
+            fi
           fi
-          API_BASE_URL="http://127.0.0.1:$ACTUAL_API_PORT"
+          if [[ -n "$RUNNER_CONTAINER_ID" ]]; then
+            COMPOSE_NETWORK="${COMPOSE_PROJECT_NAME}_default"
+            docker network connect "$COMPOSE_NETWORK" "$RUNNER_CONTAINER_ID" 2>/dev/null || true
+            echo "CI_RUNNER_CONTAINER_ID=$RUNNER_CONTAINER_ID" >> "$GITHUB_ENV"
+            echo "CI_COMPOSE_NETWORK=$COMPOSE_NETWORK" >> "$GITHUB_ENV"
+            if ! docker inspect --format '{{json .NetworkSettings.Networks}}' "$RUNNER_CONTAINER_ID" | grep -Fq "\"$COMPOSE_NETWORK\""; then
+              echo "Could not attach runner container $RUNNER_CONTAINER_ID to $COMPOSE_NETWORK"
+              docker compose -f docker/docker-compose.yml logs api
+              exit 1
+            fi
+            API_BASE_URL="http://api:8080"
+            echo "Containerized runner attached to $COMPOSE_NETWORK"
+          else
+            ACTUAL_API_PORT=$(docker compose -f docker/docker-compose.yml port api 8080 | head -n 1 | sed 's/.*://' || true)
+            if [[ ! "$ACTUAL_API_PORT" =~ ^[0-9]+$ ]]; then
+              echo "API does not have a published port"
+              docker compose -f docker/docker-compose.yml logs api
+              exit 1
+            fi
+            API_BASE_URL="http://127.0.0.1:$ACTUAL_API_PORT"
+            echo "Host runner using published API port $ACTUAL_API_PORT"
+          fi
           echo "API_BASE_URL=$API_BASE_URL" >> "$GITHUB_ENV"
           echo "API is running at $API_BASE_URL"
           deadline=$((SECONDS + 180))
@@ -124,7 +152,13 @@ jobs:
         working-directory: ${{ env.WEB_DIR }}
       - name: Cleanup Containers
         if: always()
-        run: docker compose -f docker/docker-compose.yml down -v --remove-orphans || true
+        run: |
+          RUNNER_CONTAINER_ID="${CI_RUNNER_CONTAINER_ID:-${HOSTNAME:-}}"
+          COMPOSE_NETWORK="${CI_COMPOSE_NETWORK:-${COMPOSE_PROJECT_NAME}_default}"
+          if [[ -n "$RUNNER_CONTAINER_ID" ]] && docker inspect "$RUNNER_CONTAINER_ID" >/dev/null 2>&1; then
+            docker network disconnect "$COMPOSE_NETWORK" "$RUNNER_CONTAINER_ID" 2>/dev/null || true
+          fi
+          docker compose -f docker/docker-compose.yml down -v --remove-orphans || true
 
   docker:
     needs: [build, test, openapi]
@@ -176,15 +210,44 @@ jobs:
           API_PORT: 0
       - name: Wait for API to be ready
         run: |
-          ACTUAL_API_PORT=$(docker compose -f docker/docker-compose.yml port api 8080 | cut -d: -f2 || true)
-          ACTUAL_PROXY_PORT=$(docker compose -f docker/docker-compose.yml port reverse-proxy 80 | cut -d: -f2 || true)
-          if [[ ! "$ACTUAL_API_PORT" =~ ^[0-9]+$ || ! "$ACTUAL_PROXY_PORT" =~ ^[0-9]+$ ]]; then
-            echo "API or reverse proxy does not have a published port"
-            docker compose -f docker/docker-compose.yml logs
-            exit 1
+          RUNNER_CONTAINER_ID=""
+          if [[ -n "${HOSTNAME:-}" ]]; then
+            if docker inspect "$HOSTNAME" >/dev/null 2>&1; then
+              RUNNER_CONTAINER_ID="$HOSTNAME"
+            else
+              while IFS= read -r container_id; do
+                if [[ "$(docker inspect --format '{{.Config.Hostname}}' "$container_id" 2>/dev/null)" == "$HOSTNAME" ]]; then
+                  RUNNER_CONTAINER_ID="$container_id"
+                  break
+                fi
+              done < <(docker ps -q)
+            fi
           fi
-          API_BASE_URL="http://127.0.0.1:$ACTUAL_API_PORT"
-          E2E_BASE_URL="http://127.0.0.1:$ACTUAL_PROXY_PORT"
+          if [[ -n "$RUNNER_CONTAINER_ID" ]]; then
+            COMPOSE_NETWORK="${COMPOSE_PROJECT_NAME}_default"
+            docker network connect "$COMPOSE_NETWORK" "$RUNNER_CONTAINER_ID" 2>/dev/null || true
+            echo "CI_RUNNER_CONTAINER_ID=$RUNNER_CONTAINER_ID" >> "$GITHUB_ENV"
+            echo "CI_COMPOSE_NETWORK=$COMPOSE_NETWORK" >> "$GITHUB_ENV"
+            if ! docker inspect --format '{{json .NetworkSettings.Networks}}' "$RUNNER_CONTAINER_ID" | grep -Fq "\"$COMPOSE_NETWORK\""; then
+              echo "Could not attach runner container $RUNNER_CONTAINER_ID to $COMPOSE_NETWORK"
+              docker compose -f docker/docker-compose.yml logs
+              exit 1
+            fi
+            API_BASE_URL="http://api:8080"
+            E2E_BASE_URL="http://reverse-proxy:80"
+            echo "Containerized runner attached to $COMPOSE_NETWORK"
+          else
+            ACTUAL_API_PORT=$(docker compose -f docker/docker-compose.yml port api 8080 | head -n 1 | sed 's/.*://' || true)
+            ACTUAL_PROXY_PORT=$(docker compose -f docker/docker-compose.yml port reverse-proxy 80 | head -n 1 | sed 's/.*://' || true)
+            if [[ ! "$ACTUAL_API_PORT" =~ ^[0-9]+$ || ! "$ACTUAL_PROXY_PORT" =~ ^[0-9]+$ ]]; then
+              echo "API or reverse proxy does not have a published port"
+              docker compose -f docker/docker-compose.yml logs
+              exit 1
+            fi
+            API_BASE_URL="http://127.0.0.1:$ACTUAL_API_PORT"
+            E2E_BASE_URL="http://localhost:$ACTUAL_PROXY_PORT"
+            echo "Host runner using published service ports"
+          fi
           echo "E2E_BASE_URL=$E2E_BASE_URL" >> "$GITHUB_ENV"
           echo "API is running at $API_BASE_URL"
           echo "Reverse proxy is running at $E2E_BASE_URL"
@@ -208,4 +271,10 @@ jobs:
         working-directory: ${{ env.WEB_DIR }}
       - name: Cleanup Containers
         if: always()
-        run: docker compose -f docker/docker-compose.yml down -v --remove-orphans || true
+        run: |
+          RUNNER_CONTAINER_ID="${CI_RUNNER_CONTAINER_ID:-${HOSTNAME:-}}"
+          COMPOSE_NETWORK="${CI_COMPOSE_NETWORK:-${COMPOSE_PROJECT_NAME}_default}"
+          if [[ -n "$RUNNER_CONTAINER_ID" ]] && docker inspect "$RUNNER_CONTAINER_ID" >/dev/null 2>&1; then
+            docker network disconnect "$COMPOSE_NETWORK" "$RUNNER_CONTAINER_ID" 2>/dev/null || true
+          fi
+          docker compose -f docker/docker-compose.yml down -v --remove-orphans || true

@@ -27,9 +27,18 @@
 ## Task Dependency Graph
 
 ```json
-{"waves":[{"wave":1,"tasks":["T001","T002"]},{"wave":2,"tasks":["T003","T005"]},{"wave":3,"tasks":["T004","T006"]},{"wave":4,"tasks":["T007"]},{"wave":5,"tasks":["T008"]}]}
+{"waves":[{"wave":1,"tasks":["T001","T002"]},{"wave":2,"tasks":["T003","T005"]},{"wave":3,"tasks":["T004","T006"]},{"wave":4,"tasks":["T007"]},{"wave":5,"tasks":["T008"]},{"wave":6,"tasks":["T009","T010"]},{"wave":7,"tasks":["T011"]},{"wave":8,"tasks":["T012"]}]}
 ```
 
 ## Implementation Strategy
 
 T003-T004 resolve the reported failure; T005-T006 remove the next deterministic failures in the same jobs; verification closes the task.
+
+## Phase 5: Corrective Follow-up - Containerized Runner Networking
+
+**Independent Test**: A simulated job container attached to the Compose network reaches `api:8080`, while host execution retains its published-port fallback.
+
+- [X] T009 [US1] Detect and attach containerized job runners to the Compose project network in `.github/workflows/ci.yml`
+- [X] T010 [US2] Export Compose-DNS URLs for containerized runners and published-port URLs for host runners in `.github/workflows/ci.yml`
+- [X] T011 [US2] Disconnect containerized runners during always-run cleanup in `.github/workflows/ci.yml`
+- [X] T012 Validate YAML, simulated container networking, Compose health, and all three .NET test projects

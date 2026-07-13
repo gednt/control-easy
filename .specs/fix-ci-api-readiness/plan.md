@@ -4,7 +4,7 @@
 
 ## Summary
 
-Make CI readiness tolerant of cold-start variance and pass discovered dynamic URLs safely across steps.
+Make CI readiness work across host and Docker-container job runners, then pass runner-reachable URLs safely across steps.
 
 ## Technical Context
 
@@ -13,7 +13,7 @@ Make CI readiness tolerant of cold-start variance and pass discovered dynamic UR
 **Storage**: N/A  
 **Testing**: Shell syntax and workflow structural assertions; Compose smoke  
 **Platform**: GitHub-hosted Ubuntu  
-**Constraints**: Dynamic ports; Angular working directories; 180-second bound  
+**Constraints**: Gitea/Act containerized jobs; GitHub host jobs; dynamic ports; Angular working directories; 180-second bound
 **Scope**: Two readiness blocks and two URL consumers
 
 ## Constitution Check
@@ -30,8 +30,9 @@ Post-design re-check: PASS. No exception is required.
 
 ```text
 .github/workflows/ci.yml
+docker/docker-compose.yml
+docker/reverse-proxy/dynamic.yml
 .specs/fix-ci-api-readiness/{requirements,bugfix,plan,research,quickstart,tasks}.md
 ```
 
-**Structure Decision**: Keep implementation in the existing workflow; no application source or runtime script is needed.
-
+**Structure Decision**: Keep implementation in the existing workflow. Containerized jobs join the existing Compose network; host jobs retain published-port access.
