@@ -137,7 +137,7 @@ public sealed class FakeAsyncSqlClient : IAsyncSqlClient
         return Task.FromResult(SelectResultFactory?.Invoke() ?? new DataTable());
     }
 
-        public Task<object> ExecuteScalarAsync(string query, object[] parameters, CancellationToken ct = default)
+    public Task<object> ExecuteScalarAsync(string query, object[] parameters, CancellationToken ct = default)
     {
         _operations.Add(new FakeOperation("Scalar", query, parameters?.ToList() ?? new List<object>()));
         return Task.FromResult((object?)null)!;
