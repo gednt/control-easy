@@ -38,7 +38,7 @@ public sealed class MySqlContainerFixture : IAsyncLifetime
         await _container.StartAsync();
 
         var port = _container.GetMappedPublicPort(3306);
-        _connectionString = $"Server=127.0.0.1;Port={port};Database=controleasydb;Uid=root;Pwd=testpw;";
+        _connectionString = $"Server={_container.Hostname};Port={port};Database=controleasydb;Uid=root;Pwd=testpw;";
 
         await WaitForMySqlReady();
         await RunInitScripts();
