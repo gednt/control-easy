@@ -21,6 +21,7 @@ public sealed class MySqlContainerFixture : IAsyncLifetime
     private string _connectionString = string.Empty;
 
     public string ConnectionString => _connectionString;
+    public string Host => _container.Hostname;
 
     public MySqlContainerFixture()
     {

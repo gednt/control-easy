@@ -24,7 +24,7 @@ public sealed class TestcontainersWebApplicationFactory : TenantAwareWebApplicat
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Db:Host"] = "127.0.0.1",
+                ["Db:Host"] = _mySql.Host,
                 ["Db:Port"] = new MySqlConnector.MySqlConnectionStringBuilder(_mySql.ConnectionString).Port.ToString(),
                 ["Db:Database"] = "controleasydb",
                 ["Db:Username"] = "root",

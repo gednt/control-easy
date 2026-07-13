@@ -13,6 +13,7 @@ permissions:
 env:
   DOTNET_NOLOGO: true
   WEB_DIR: src/Web/ControlEasyReborn.Web
+  COMPOSE_PROJECT_NAME: ce-ci-${{ github.run_id }}-${{ github.run_attempt }}
 
 jobs:
   lint:
@@ -82,6 +83,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Clean dangling containers
+        run: docker compose -f docker/docker-compose.yml down -v --remove-orphans || true
       - name: Start services with dynamic ports
         run: docker compose -f docker/docker-compose.yml up -d --build db api
         env:
@@ -104,6 +107,9 @@ jobs:
           npx ng-openapi-gen --input http://localhost:$ACTUAL_API_PORT/swagger/v1/swagger.json --config ng-openapi-gen.json
           git diff --exit-code -- src/app/api
         working-directory: ${{ env.WEB_DIR }}
+      - name: Cleanup Containers
+        if: always()
+        run: docker compose -f docker/docker-compose.yml down -v --remove-orphans || true
 
   docker:
     needs: [build, test, openapi]
@@ -137,6 +143,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Clean dangling containers
+        run: docker compose -f docker/docker-compose.yml down -v --remove-orphans || true
       - name: Start services with dynamic ports
         run: docker compose -f docker/docker-compose.yml up -d --build
         env:
@@ -166,3 +174,6 @@ jobs:
         working-directory: ${{ env.WEB_DIR }}
         env:
           E2E_BASE_URL: http://localhost:$ACTUAL_PROXY_PORT
+      - name: Cleanup Containers
+        if: always()
+        run: docker compose -f docker/docker-compose.yml down -v --remove-orphans || true
