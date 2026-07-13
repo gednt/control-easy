@@ -95,10 +95,20 @@ jobs:
           API_PORT: 0
       - name: Wait for API to be ready
         run: |
-          ACTUAL_API_PORT=$(docker compose -f docker/docker-compose.yml port api 8080 | cut -d: -f2)
-          echo "API is running on port $ACTUAL_API_PORT"
-          for attempt in {1..30}; do
-            STATUS=$(curl --silent -o /dev/null -w "%{http_code}" http://localhost:$ACTUAL_API_PORT/health || true)
+          ACTUAL_API_PORT=$(docker compose -f docker/docker-compose.yml port api 8080 | cut -d: -f2 || true)
+          if [[ ! "$ACTUAL_API_PORT" =~ ^[0-9]+$ ]]; then
+            echo "API does not have a published port"
+            docker compose -f docker/docker-compose.yml logs api
+            exit 1
+          fi
+          API_BASE_URL="http://127.0.0.1:$ACTUAL_API_PORT"
+          echo "API_BASE_URL=$API_BASE_URL" >> "$GITHUB_ENV"
+          echo "API is running at $API_BASE_URL"
+          deadline=$((SECONDS + 180))
+          attempt=0
+          while (( SECONDS < deadline )); do
+            attempt=$((attempt + 1))
+            STATUS=$(curl --connect-timeout 2 --max-time 5 --silent -o /dev/null -w "%{http_code}" "$API_BASE_URL/health" || true)
             echo "Attempt $attempt: HTTP $STATUS"
             if [[ "$STATUS" == "200" || "$STATUS" == "503" ]]; then exit 0; fi
             sleep 2
@@ -109,8 +119,7 @@ jobs:
         working-directory: ${{ env.WEB_DIR }}
       - name: Run OpenAPI Check
         run: |
-          ACTUAL_API_PORT=$(docker compose -f docker/docker-compose.yml port api 8080 | cut -d: -f2)
-          npx ng-openapi-gen --input http://localhost:$ACTUAL_API_PORT/swagger/v1/swagger.json --config ng-openapi-gen.json
+          npx ng-openapi-gen --input "$API_BASE_URL/swagger/v1/swagger.json" --config ng-openapi-gen.json
           git diff --exit-code -- src/app/api
         working-directory: ${{ env.WEB_DIR }}
       - name: Cleanup Containers
@@ -167,10 +176,23 @@ jobs:
           API_PORT: 0
       - name: Wait for API to be ready
         run: |
-          ACTUAL_API_PORT=$(docker compose -f docker/docker-compose.yml port api 8080 | cut -d: -f2)
-          echo "API is running on port $ACTUAL_API_PORT"
-          for attempt in {1..30}; do
-            STATUS=$(curl --silent -o /dev/null -w "%{http_code}" http://localhost:$ACTUAL_API_PORT/health || true)
+          ACTUAL_API_PORT=$(docker compose -f docker/docker-compose.yml port api 8080 | cut -d: -f2 || true)
+          ACTUAL_PROXY_PORT=$(docker compose -f docker/docker-compose.yml port reverse-proxy 80 | cut -d: -f2 || true)
+          if [[ ! "$ACTUAL_API_PORT" =~ ^[0-9]+$ || ! "$ACTUAL_PROXY_PORT" =~ ^[0-9]+$ ]]; then
+            echo "API or reverse proxy does not have a published port"
+            docker compose -f docker/docker-compose.yml logs
+            exit 1
+          fi
+          API_BASE_URL="http://127.0.0.1:$ACTUAL_API_PORT"
+          E2E_BASE_URL="http://127.0.0.1:$ACTUAL_PROXY_PORT"
+          echo "E2E_BASE_URL=$E2E_BASE_URL" >> "$GITHUB_ENV"
+          echo "API is running at $API_BASE_URL"
+          echo "Reverse proxy is running at $E2E_BASE_URL"
+          deadline=$((SECONDS + 180))
+          attempt=0
+          while (( SECONDS < deadline )); do
+            attempt=$((attempt + 1))
+            STATUS=$(curl --connect-timeout 2 --max-time 5 --silent -o /dev/null -w "%{http_code}" "$API_BASE_URL/health" || true)
             echo "Attempt $attempt: HTTP $STATUS"
             if [[ "$STATUS" == "200" || "$STATUS" == "503" ]]; then exit 0; fi
             sleep 2
@@ -182,13 +204,8 @@ jobs:
       - run: npx playwright install --with-deps chromium
         working-directory: ${{ env.WEB_DIR }}
       - name: Run E2E tests
-        run: |
-          ACTUAL_PROXY_PORT=$(docker compose -f docker/docker-compose.yml port reverse-proxy 80 | cut -d: -f2)
-          echo "Reverse proxy is running on port $ACTUAL_PROXY_PORT"
-          npm run e2e
+        run: npm run e2e
         working-directory: ${{ env.WEB_DIR }}
-        env:
-          E2E_BASE_URL: http://localhost:$ACTUAL_PROXY_PORT
       - name: Cleanup Containers
         if: always()
         run: docker compose -f docker/docker-compose.yml down -v --remove-orphans || true
