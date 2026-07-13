@@ -16,7 +16,6 @@ export type { CreateTenantRequest } from './models/create-tenant-request';
 export type { CreateUserRequest } from './models/create-user-request';
 export type { CreateVehicleRequest } from './models/create-vehicle-request';
 export type { CreateVisitRequest } from './models/create-visit-request';
-export type { DemoSeederService } from './models/demo-seeder-service';
 export type { LoginRequest } from './models/login-request';
 export type { RefreshRequest } from './models/refresh-request';
 export type { ResumeTenantRequest } from './models/resume-tenant-request';

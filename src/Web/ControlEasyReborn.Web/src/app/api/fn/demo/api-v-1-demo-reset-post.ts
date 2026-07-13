@@ -7,16 +7,13 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { DemoSeederService } from '../../models/demo-seeder-service';
 
 export interface ApiV1DemoResetPost$Params {
-      body: DemoSeederService
 }
 
-export function apiV1DemoResetPost(http: HttpClient, rootUrl: string, params: ApiV1DemoResetPost$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+export function apiV1DemoResetPost(http: HttpClient, rootUrl: string, params?: ApiV1DemoResetPost$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, apiV1DemoResetPost.PATH, 'post');
   if (params) {
-    rb.body(params.body, 'application/json');
   }
 
   return http.request(
