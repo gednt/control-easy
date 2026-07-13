@@ -1,14 +1,14 @@
 http:
   routers:
     api:
-      rule: "Host(`localhost`) && PathPrefix(`/api`)"
+      rule: "(Host(`localhost`) || Host(`reverse-proxy`)) && PathPrefix(`/api`)"
       entryPoints:
         - web
       service: api
       priority: 100
 
     web:
-      rule: "Host(`localhost`)"
+      rule: "Host(`localhost`) || Host(`reverse-proxy`)"
       entryPoints:
         - web
       service: web

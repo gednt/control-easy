@@ -39,7 +39,7 @@ services:
     ports:
       - "${API_PORT:-8081}:8080"
     labels:
-      - "traefik.http.routers.api.rule=Host(`localhost`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api.rule=(Host(`localhost`) || Host(`reverse-proxy`)) && PathPrefix(`/api`)"
       - "traefik.http.routers.api.entrypoints=web"
       - "traefik.http.routers.api.tls=false"
       - "traefik.http.services.api.loadbalancer.server.port=8080"
@@ -49,7 +49,7 @@ services:
       context: ..
       dockerfile: docker/web.Dockerfile
     labels:
-      - "traefik.http.routers.web.rule=Host(`localhost`)"
+      - "traefik.http.routers.web.rule=Host(`localhost`) || Host(`reverse-proxy`)"
       - "traefik.http.routers.web.entrypoints=web"
       - "traefik.http.routers.web.tls=false"
       - "traefik.http.routers.web.priority=1"
