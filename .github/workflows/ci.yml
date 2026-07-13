@@ -33,21 +33,11 @@ jobs:
         working-directory: ${{ env.WEB_DIR }}
       - name: Setup Headless Chrome
         run: |
-          if ! command -v google-chrome &>/dev/null && ! command -v chromium &>/dev/null && ! command -v chromium-browser &>/dev/null; then
-            echo "Chrome/Chromium not found. Installing..."
-            if command -v apt-get &>/dev/null; then
-              sudo apt-get update && sudo apt-get install -y chromium-browser || sudo apt-get install -y chromium
-            elif command -v apk &>/dev/null; then
-              apk add --no-cache chromium
-            fi
-          fi
-          CHROME_PATH=$(which google-chrome || which chromium || which chromium-browser || true)
-          if [ -n "$CHROME_PATH" ]; then
-            echo "CHROME_BIN=$CHROME_PATH" >> $GITHUB_ENV
-            echo "Set CHROME_BIN to $CHROME_PATH"
-          else
-            echo "Warning: Chrome/Chromium binary not found"
-          fi
+          npx playwright install chromium
+          CHROME_PATH=$(node -e "console.log(require('@playwright/test').chromium.executablePath())")
+          echo "CHROME_BIN=$CHROME_PATH" >> $GITHUB_ENV
+          echo "Set CHROME_BIN to $CHROME_PATH"
+        working-directory: ${{ env.WEB_DIR }}
       - run: npm test -- --no-watch --browsers=ChromeHeadlessNoSandbox
         working-directory: ${{ env.WEB_DIR }}
 
