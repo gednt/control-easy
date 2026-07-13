@@ -52,7 +52,7 @@ jobs:
 
       - name: Install Angular dependencies
         working-directory: src/Web/ControlEasyReborn.Web
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Install pre-commit
         run: pipx install pre-commit
