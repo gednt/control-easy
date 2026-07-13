@@ -98,7 +98,9 @@ jobs:
           ACTUAL_API_PORT=$(docker compose -f docker/docker-compose.yml port api 8080 | cut -d: -f2)
           echo "API is running on port $ACTUAL_API_PORT"
           for attempt in {1..30}; do
-            curl --fail --silent http://localhost:$ACTUAL_API_PORT/health >/dev/null && exit 0
+            STATUS=$(curl --silent -o /dev/null -w "%{http_code}" http://localhost:$ACTUAL_API_PORT/health || true)
+            echo "Attempt $attempt: HTTP $STATUS"
+            [[ "$STATUS" == "200" || "$STATUS" == "503" ]] && exit 0
             sleep 2
           done
           docker compose -f docker/docker-compose.yml logs api
@@ -168,7 +170,9 @@ jobs:
           ACTUAL_API_PORT=$(docker compose -f docker/docker-compose.yml port api 8080 | cut -d: -f2)
           echo "API is running on port $ACTUAL_API_PORT"
           for attempt in {1..30}; do
-            curl --fail --silent http://localhost:$ACTUAL_API_PORT/health >/dev/null && exit 0
+            STATUS=$(curl --silent -o /dev/null -w "%{http_code}" http://localhost:$ACTUAL_API_PORT/health || true)
+            echo "Attempt $attempt: HTTP $STATUS"
+            [[ "$STATUS" == "200" || "$STATUS" == "503" ]] && exit 0
             sleep 2
           done
           docker compose -f docker/docker-compose.yml logs
