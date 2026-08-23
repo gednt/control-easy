@@ -12,12 +12,17 @@ Gatehouse staff can reliably register and control access for residents, visitors
 
 **v1.0 Reborn MVP shipped 2026-07-13.** The active milestone delivered 32/32 requirements across 11 phases. The standard Docker Compose runtime is healthy and demo mode remains isolated to its opt-in overlay.
 
-## Next Milestone Goals
+## Current Milestone
 
-- Complete mockup visual parity and functional interaction fixes.
-- Replace dashboard placeholder data with live tenant-scoped statistics.
-- Add the vehicle editing workflow.
-- Adopt the generated OpenAPI client progressively after enriching minimal API response metadata.
+**v1.1 UI & Dashboard** (started 2026-08-23)
+
+Goal: Complete the deferred UI parity, functional fixes, dashboard live data, and vehicle editing work to finish the v1.0-era user experience surface.
+
+Target features:
+- UI Parity & Functional Fixes (Phase 9 — `UI-03`, `UI-04`): mockup visual parity + interaction fixes
+- Dashboard Live Stats & Vehicle Edit (Phase 10 continuation — `DASH-01`, `DASH-02`, `DASH-04`): live tenant-scoped dashboard statistics; vehicle editing workflow
+
+Phase numbering continues from v1.0 (phases 9 and 10 retain their original numbers). v2 items (photo/hardware Phase 12, multi-arch Phase 14) remain deferred.
 
 ## Requirements
 
