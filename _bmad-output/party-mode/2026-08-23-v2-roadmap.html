@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>v2 Roadmap Party — ControlEasy Reborn</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --text-dim: #8b949e;
+    --accent: #58a6ff;
+    --vex: #f85149;
+    --grumbal: #d29922;
+    --boundary: #db61a2;
+    --yui: #3fb950;
+    --dana: #1f6feb;
+    --wildcard: #bc8cff;
+    --level: #39c5cf;
+    --killjoy: #f0883e;
+    --splinter: #a371f7;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+    padding: 2rem 1rem;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  header h1 {
+    font-size: 2.2rem;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+  }
+  header .subtitle { color: var(--text-dim); font-size: 1.1rem; }
+  header .date { color: var(--text-dim); font-size: 0.9rem; margin-top: 0.5rem; }
+  .milestone {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  .milestone h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .milestone.v2-0 h2 { color: var(--yui); }
+  .milestone.v2-1 h2 { color: var(--vex); }
+  .milestone.fast h2 { color: var(--dana); }
+  .phase {
+    margin: 1.5rem 0;
+    padding: 1.2rem;
+    background: rgba(255,255,255,0.02);
+    border-left: 3px solid var(--border);
+    border-radius: 0 8px 8px 0;
+  }
+  .phase:nth-child(odd) { border-left-color: var(--accent); }
+  .phase h3 { font-size: 1.15rem; margin-bottom: 0.5rem; color: var(--text); }
+  .phase .meta { font-size: 0.85rem; color: var(--text-dim); margin-bottom: 0.8rem; }
+  .phase ul { list-style: none; padding-left: 0; }
+  .phase li { padding: 0.2rem 0; color: var(--text); font-size: 0.92rem; }
+  .phase li::before { content: "▸ "; color: var(--accent); }
+  .principles {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  .principles h2 { color: var(--wildcard); margin-bottom: 1rem; }
+  .principle {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    margin: 0.8rem 0;
+  }
+  .principle .icon {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+  .cast {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    justify-content: center;
+    margin: 1.5rem 0;
+  }
+  .member {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.85rem;
+  }
+  .member .icon { font-size: 1.1rem; }
+  .member .name { font-weight: 600; }
+  .member .role { color: var(--text-dim); font-size: 0.78rem; }
+  .matrix {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.85rem;
+  }
+  .matrix th, .matrix td {
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    text-align: left;
+  }
+  .matrix th { background: rgba(255,255,255,0.05); color: var(--accent); }
+  .matrix td { color: var(--text); }
+  .badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .badge.consent { background: rgba(63,185,80,0.2); color: var(--yui); }
+  .badge.override { background: rgba(210,153,34,0.2); color: var(--grumbal); }
+  .badge.gatehouse { background: rgba(31,110,235,0.2); color: var(--dana); }
+  .badge.denied { background: rgba(248,81,73,0.2); color: var(--vex); }
+  footer {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    padding: 2rem 0;
+    border-top: 1px solid var(--border);
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .milestone, .principles { animation: fadeIn 0.6s ease-out; }
+  .phase { animation: fadeIn 0.4s ease-out; animation-fill-mode: both; }
+  .phase:nth-child(1) { animation-delay: 0.1s; }
+  .phase:nth-child(2) { animation-delay: 0.2s; }
+  .phase:nth-child(3) { animation-delay: 0.3s; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>v2 Roadmap Party</h1>
+  <div class="subtitle">ControlEasy Reborn — Gatehouse Photo, Consent & Door Integration</div>
+  <div class="date">2026-08-23</div>
+  <div class="cast">
+    <div class="member"><span class="icon">🔒</span><div><div class="name">Vex</div><div class="role">Security</div></div></div>
+    <div class="member"><span class="icon">😤</span><div><div class="name">Grumbal</div><div class="role">Adversary</div></div></div>
+    <div class="member"><span class="icon">🌶️</span><div><div class="name">Boundary</div><div class="role">Edge-Case Hunter</div></div></div>
+    <div class="member"><span class="icon">🎯</span><div><div class="name">Yui</div><div class="role">Craftsman</div></div></div>
+    <div class="member"><span class="icon">🚢</span><div><div class="name">Dana</div><div class="role">Pragmatist</div></div></div>
+    <div class="member"><span class="icon">🃏</span><div><div class="name">Wildcard</div><div class="role">Option Generator</div></div></div>
+    <div class="member"><span class="icon">📏</span><div><div class="name">Level</div><div class="role">Claim Checker</div></div></div>
+    <div class="member"><span class="icon">🛑</span><div><div class="name">Killjoy</div><div class="role">Loop Stopper</div></div></div>
+    <div class="member"><span class="icon">🪵</span><div><div class="name">Splinter</div><div class="role">Consensus Challenger</div></div></div>
+  </div>
+</header>
+
+<div class="principles">
+  <h2>Design Principles</h2>
+  <div class="principle"><div class="icon" style="background:rgba(63,185,80,0.15)">🎯</div><div><strong>Logging is faster than skipping.</strong> The 3-second gatehouse workflow is the honesty enforcement. If logging takes longer than not logging, the porteiro will skip it.</div></div>
+  <div class="principle"><div class="icon" style="background:rgba(31,110,235,0.15)">📷</div><div><strong>CCTV is the external backstop.</strong> ControlEasy carries timestamps; the condominium carries footage. The syndic cross-references by <code>recorded_at</code>.</div></div>
+  <div class="principle"><div class="icon" style="background:rgba(88,166,255,0.15)">⚖️</div><div><strong>ControlEasy enables, doesn't enforce.</strong> The consent policy is the condominium's, not the software's. The software makes the policy operational.</div></div>
+  <div class="principle"><div class="icon" style="background:rgba(188,140,255,0.15)">🖼️</div><div><strong>Client-side only for image processing.</strong> No server-side compression, thumbnailing, or EXIF stripping. Browser canvas does it all.</div></div>
+  <div class="principle"><div class="icon" style="background:rgba(248,81,73,0.15)">🚪</div><div><strong>ControlEasy is a participant, not a gatekeeper.</strong> The door opens independently; the API observes and can trigger, but doesn't block physical access.</div></div>
+  <div class="principle"><div class="icon" style="background:rgba(163,113,247,0.15)">🧩</div><div><strong>No speculative abstractions.</strong> <code>IDeviceHandler</code> emerges from the second real integration, not before it.</div></div>
+  <div class="principle"><div class="icon" style="background:rgba(240,136,62,0.15)">👁️</div><div><strong>No approval workflow, no anomaly detection.</strong> v2.0 ships visibility. Let humans catch dishonesty with the tools they already have.</div></div>
+</div>
+
+<div class="milestone v2-0">
+  <h2>v2.0 — Gatehouse Photo & Consent Ledger</h2>
+  <p style="color:var(--text-dim);margin-bottom:1rem">The porteiro captures a photo of anyone entering the condominium. The condominium sets a per-category consent policy. Every entry is logged with millisecond-precision timestamps cross-referenceable with external CCTV.</p>
+
+  <div class="phase">
+    <h3>Phase 11: Photos & Consent Schema Infrastructure</h3>
+    <div class="meta">Depends on: v1.1 (Phase 10) · Requirements: PHOTO-01 · Spec: .specs/photo-capture/</div>
+    <ul>
+      <li>IStorageProvider (local + S3/MinIO)</li>
+      <li>photos table, consent_audit_log table, tenant_consent_policy table</li>
+      <li>Hard DB constraint: entered_with_consent → photo non-null</li>
+      <li>Permissions: photos.read / photos.write / photos.delete</li>
+      <li>Endpoints: POST/GET/DELETE /api/v1/photos</li>
+      <li>Append-only enforcement on consent_audit_log</li>
+    </ul>
+  </div>
+
+  <div class="phase">
+    <h3>Phase 12: Photo Capture & Display</h3>
+    <div class="meta">Depends on: Phase 11 · Requirements: PHOTO-02 · Spec: .specs/photo-capture/ · UI: yes</div>
+    <ul>
+      <li>ce-photo-capture: getUserMedia camera + file upload</li>
+      <li>Resize ≤1280px → JPEG ≤500KB (0.8 → 0.6 → floor 0.3)</li>
+      <li>EXIF strip via canvas redraw</li>
+      <li>128×128 thumbnail client-side</li>
+      <li>Upload retry: 3 attempts, exponential backoff</li>
+      <li>ce-photo display: thumbnails in tables, lightbox detail</li>
+      <li>Integration: residents, visitors, vehicles, service providers</li>
+    </ul>
+  </div>
+
+  <div class="phase">
+    <h3>Phase 13: Consent Policy & Gatehouse Workflow</h3>
+    <div class="meta">Depends on: Phase 12 · Requirements: CONSENT-01, CONSENT-02, CONSENT-03 · Spec: .specs/consent-gatehouse/ · UI: yes</div>
+    <ul>
+      <li>Per-tenant per-category consent toggle (dwellers/visitors/service-providers/vehicles)</li>
+      <li>Four entry states (see matrix below)</li>
+      <li>3-second gatehouse workflow — logging faster than skipping</li>
+      <li>Audit review UI: filter, override highlighting, CSV export</li>
+      <li>Millisecond-precision recorded_at for CCTV cross-reference</li>
+    </ul>
+  </div>
+
+  <h3 style="margin-top:1.5rem;color:var(--text);font-size:1.1rem">Entry State Matrix</h3>
+  <table class="matrix">
+    <thead>
+      <tr><th>State</th><th>Photo</th><th>Who</th><th>Reason</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="badge consent">entered_with_consent</span></td><td>Required (DB)</td><td>Porteiro</td><td>—</td><td>No photo = rejected</td></tr>
+      <tr><td><span class="badge override">entered_override</span></td><td>None</td><td>Porteiro (dwellers/visitors)</td><td>emergency / vouched</td><td>Porteiro ID logged</td></tr>
+      <tr><td><span class="badge gatehouse">gatehouse_only</span></td><td>None</td><td>Porteiro (service providers)</td><td>—</td><td>Package dropped, no entry</td></tr>
+      <tr><td><span class="badge denied">denied</span></td><td>None</td><td>Porteiro (all)</td><td>—</td><td>Consent refused</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="milestone v2-1">
+  <h2>v2.1 — Door Integration (Optional)</h2>
+  <p style="color:var(--text-dim);margin-bottom:1rem">Condominiums that opt in can integrate ControlEasy with their door relay and card/biometric readers. Gated on a real condominium with hardware.</p>
+
+  <div class="phase">
+    <h3>Phase 14: Door Relay & Unlock Commands</h3>
+    <div class="meta">Depends on: v2.0 + real hardware · Requirements: DOOR-01 · Spec: .specs/door-integration/</div>
+    <ul>
+      <li>IDoorController abstraction (vendor-specific)</li>
+      <li>POST /api/v1/devices/{deviceId}/unlock — porteiro role, HMAC-SHA256 signed</li>
+      <li>Rate-limited (1 per 3s/device), audit-logged, tamper-evident</li>
+      <li>Tenant opt-in flag (default false)</li>
+      <li>Hardware fallback — door opens without API (card reader + manual release)</li>
+      <li>Event queue with replay on reconnect</li>
+      <li>Threat model document</li>
+    </ul>
+  </div>
+
+  <div class="phase">
+    <h3>Phase 15: Reader Events & Device Health</h3>
+    <div class="meta">Depends on: Phase 14 + second integration · Requirements: DOOR-02, DOOR-03 · Spec: .specs/door-integration/</div>
+    <ul>
+      <li>IDeviceHandler — from two real integrations, not speculative</li>
+      <li>DeviceEvent normalization (vendor-agnostic)</li>
+      <li>Card match → entered_with_consent; unknown → denied</li>
+      <li>device_events table with occurred_at vs processed_at</li>
+      <li>Device health: heartbeats, offline alerts, error rate thresholds</li>
+      <li>Health dashboard UI + porteiro alert toast</li>
+    </ul>
+  </div>
+</div>
+
+<div class="milestone fast">
+  <h2>Fast-Cycle: Multi-Arch Docker/CI</h2>
+  <p style="color:var(--text-dim);margin-bottom:1rem">Pulled out of v2 milestones. Low-risk DevOps hygiene, ~1 week, no ceremony.</p>
+  <div class="phase">
+    <h3>Multi-Arch Build & CI</h3>
+    <div class="meta">Requirements: ARCH-01, ARCH-02 · Spec: .specs/1 - modernization-roadmap-arm64/</div>
+    <ul>
+      <li>docker buildx multi-arch (linux/amd64 + linux/arm64)</li>
+      <li>GitHub Actions native-runner matrix (no QEMU)</li>
+      <li>GHCR multi-arch manifest with cosign signing</li>
+      <li>DOCKER_PLATFORM opt-in env var (default: host-native)</li>
+      <li>docs/operations/arm64.md quick-start</li>
+    </ul>
+  </div>
+</div>
+
+<footer>
+  <p>v2.0 + v2.1 Roadmap Party — 2026-08-23</p>
+  <p>Party-mode design session · ControlEasy Reborn</p>
+  <p style="margin-top:0.5rem">Vex · Grumbal · Boundary · Yui · Dana · Wildcard · Level · Killjoy · Splinter</p>
+</footer>
+
+</body>
+</html>

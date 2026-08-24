@@ -1,0 +1,125 @@
+# Requirements: ControlEasy Reborn
+
+**Defined:** 2026-08-23
+**Core Value:** Gatehouse staff can reliably register and control access for residents, visitors, and vehicles through a fast, tenant-isolated web UI backed by a secure multi-tenant API.
+
+## v1.1 Requirements
+
+Requirements for the v1.1 "UI & Dashboard" milestone. These continue the REQ-IDs reserved as deferred-to-v1.1 in the v1.0 archive (`UI-03`, `UI-04`, `DASH-01`, `DASH-02`, `DASH-04`) and decompose them into atomic, testable sub-requirements traced to the existing spec folders. Each maps to a roadmap phase.
+
+### UI — Visual Parity & Functional Fixes
+
+- [ ] **UI-03**: Mockup visual parity — app shell, login, residents, showcase, dashboard, and feature pages match `mockup/` + `docs/penpot/` at 375/768/1440px in light/dark themes
+  - [ ] **UI-03a**: Shared `ce-icon` component backed by Lucide replaces Unicode glyphs across sidebar, topbar, login, and residents pages
+  - [ ] **UI-03b**: Mobile drawer slides in with dark backdrop below 640px; topbar hamburger toggles it
+  - [ ] **UI-03c**: Topbar parity — breadcrumbs, debounced global search, notifications bell, theme toggle, avatar-driven profile menu
+  - [ ] **UI-03d**: Login and change-password pages use `ce-input`, `ce-checkbox`, `ce-button` (no duplicated component CSS)
+  - [ ] **UI-03e**: Residents page parity — stat tiles, status tabs, block/sort filters, sortable table, pagination, row action menu, add/edit/deactivate modals, recent-activity card
+  - [ ] **UI-03f**: All feature pages (visits, vehicles, apartments, service-providers, administration, condominiums) import `ce-*` components; duplicated CSS removed
+  - [ ] **UI-03g**: Dashboard stat grid and showcase page align with mockup (no variant/size drift)
+  - [ ] **UI-03h**: Playwright visual regression snapshots for `/login`, `/residents`, `/` (dashboard) at light/dark × 375/1440
+- [ ] **UI-04**: Mockup functional fixes — every interactive component in `mockup/` behaves correctly
+  - [ ] **UI-04a**: Modals and dropdowns hidden by default; open/close with backdrop, Escape, outside click; first-field focus on open
+  - [ ] **UI-04b**: Topbar search and residents search filter table client-side (case-insensitive substring); pagination footer updates to "Showing X–Y of Z"
+  - [ ] **UI-04c**: "All / Active / Pending / Overdue" status tabs filter the table and update count badges
+  - [ ] **UI-04d**: "Sort" dropdown re-sorts the table (Apartment, Last visit, etc.)
+  - [ ] **UI-04e**: Pagination navigation — page 2/3 shows rows 11–20 / 21–30, active highlight moves, Prev/Next enable/disable
+  - [ ] **UI-04f**: Login form — submit spinner with `aria-busy`, demo creds `test@test.com`/`test123` land on `app.html`, <6-char password validation, `fail@x.com` inline 401 error, `ratelimit@x.com` "Too many attempts" with 15s lockout, "multi" emails show tenant picker
+  - [ ] **UI-04g**: Password eye icon toggles input type and swaps icon
+  - [ ] **UI-04h**: "Use a different account" returns to empty login form (email cleared if "Remember me" unchecked)
+  - [ ] **UI-04i**: "Forgotten password" link shows toast; success/warning/error toast buttons auto-dismiss after 5s
+  - [ ] **UI-04j**: `index.html` dashboard preview regains `mb-8` margin; `app.html` "Início" breadcrumb links to `index.html`
+
+### DASH — Dashboard & Vehicle Edit
+
+- [ ] **DASH-01**: `GET /api/v1/dashboard/stats` endpoint returns aggregate counts (total/active residents, total/active vehicles, total/occupied apartments, open/today visits) and a recent-visits list; tenant-scoped; authorized
+- [ ] **DASH-02**: Dashboard page UI — stat tiles (Active Residents, Active Vehicles, Occupied Apartments, Open Visits) linking to feature pages, recent-visits table, loading and error states, using `ce-*` design-system components
+- [ ] **DASH-04**: Vehicle edit UI — `update()` and `get()` methods in `VehiclesApiService`, edit modal mirroring residents pattern, edit/deactivate action buttons in table rows, vehicle-type dropdown on create and edit, `Vehicles.Write` permission checks
+
+## v2.0 Requirements — Gatehouse Photo & Consent Ledger
+
+Requirements for the v2.0 milestone. Photo capture is browser-based (camera + upload), all image processing is client-side. Consent is a per-tenant per-category policy. ControlEasy is a voluntary ledger backed by external CCTV. No hardware framework, no MQTT, no WebRTC. Supersedes the retired `.specs/3 - photo-capture-hardware-integration/` spec.
+
+### Photo Capture & Storage
+
+- [ ] **PHOTO-01**: Storage infrastructure & API — `IStorageProvider` (local + S3/MinIO), `photos` table, `photos.read`/`photos.write`/`photos.delete` permissions, upload/retrieve/soft-delete endpoints, env-var config
+- [ ] **PHOTO-02**: Browser capture & compression — `ce-photo-capture` component (`getUserMedia` + file upload), resize ≤1280px → JPEG ≤500KB, EXIF strip, 128×128 thumbnail client-side, upload retry (3× backoff), `ce-photo` display component, integration into resident/visitor/vehicle/service-provider pages
+
+### Consent Policy & Gatehouse Workflow
+
+- [ ] **CONSENT-01**: Consent policy config — per-tenant per-category toggle (dwellers/visitors/service-providers/vehicles × photo_required), `tenant_consent_policy` table, editable by tenant admin, no rules engine
+- [ ] **CONSENT-02**: Gatehouse entry workflow — four entry states (`entered_with_consent` / `entered_override` / `gatehouse_only` / `denied`), `consent_audit_log` table (append-only, millisecond timestamps), hard DB constraint (consent entry = photo non-null), override reason codes (hardcoded: emergency/vouched), 3-second workflow target
+- [ ] **CONSENT-03**: Audit review & export — filter by date/category/state/porteiro, override highlighting, CSV export with millisecond timestamps, `recorded_at` cross-referenceable with external CCTV
+
+## v2.1 Requirements — Door Integration (Optional)
+
+Condominiums that opt in can integrate ControlEasy with their door relay and card/biometric readers. The API is a participant, not a gatekeeper — the door opens independently. Gated on a real condominium with hardware. No speculative abstractions — `IDeviceHandler` emerges from the second real integration.
+
+### Door Relay
+
+- [ ] **DOOR-01**: Door relay & unlock commands — `IDoorController` abstraction, `POST /api/v1/devices/{deviceId}/unlock` (porteiro-role, HMAC-SHA256 signed, rate-limited, audit-logged), `devices` table, tenant opt-in flag, hardware fallback (door opens without API), event queue with replay, threat model document
+
+### Reader Events & Device Health
+
+- [ ] **DOOR-02**: Reader events & entry log integration — `IDeviceHandler` abstraction (from two real integrations), `DeviceEvent` normalization, card match → `entered_with_consent`, unknown card → `denied`, `device_events` table, event replay on reconnect
+- [ ] **DOOR-03**: Device health monitoring — `device_heartbeats` table, alert thresholds (offline_after_seconds, error_rate_threshold), health dashboard UI, offline alert toast in porteiro UI
+
+## Fast-Cycle Requirements (No Milestone)
+
+### Platform
+
+- **ARCH-01**: Multi-arch Docker builds (linux/amd64, linux/arm64)
+- **ARCH-02**: GHCR multi-arch manifest and cosign signing pipeline
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| WPF/web coexistence smoke tests | WPF not in repo; cannot run on macOS dev |
+| WPF project removal | Lives outside ControlEasyReborn.sln |
+| Legacy data migration | Separate data-migration spec |
+| Production cutover checklist | Separate DevOps spec |
+| Mobile-native apps | Responsive web / PWA sufficient for v1 |
+| Billing / subscriptions | External system |
+| Cross-tenant analytics BI | Separate product |
+| Photo capture & hardware framework (old spec) | Retired 2026-08-23 — superseded by v2.0 photo-capture + consent-gatehouse specs |
+| Camera/NVR/WebRTC/MQTT hardware platform | Out of scope — cameras belong to the condominium; ControlEasy carries timestamps only |
+| Biometric template storage & encryption | Out of scope for v2.0/v2.1 — no biometrics; card readers only |
+| AI-powered facial recognition / ALPR | Future spec — framework enables it, feature deferred |
+| Anomaly detection on audit log | v2.1+ if data shows it's needed |
+| Second-person approval workflow for overrides | v2.1+ if data shows it's needed |
+| Custom consent reason codes per condominium | Future spec — hardcoded enum in v2.0 |
+
+## Traceability
+
+Populated during roadmap creation. Each v1.1 requirement maps to exactly one phase.
+
+| Requirement | Phase | Spec | Status |
+|-------------|-------|------|--------|
+| UI-03 (and UI-03a–h) | Phase 9 | `mockup-visual-parity` | Pending |
+| UI-04 (and UI-04a–j) | Phase 9 | `2-mockup-functional-fixes` | Pending |
+| DASH-01 | Phase 10 | `dashboard` | Pending |
+| DASH-02 | Phase 10 | `dashboard` | Pending |
+| DASH-04 | Phase 10 | `vehicle-edit` | Pending |
+| PHOTO-01 | Phase 11 | `photo-capture` | Pending |
+| PHOTO-02 | Phase 12 | `photo-capture` | Pending |
+| CONSENT-01 | Phase 13 | `consent-gatehouse` | Pending |
+| CONSENT-02 | Phase 13 | `consent-gatehouse` | Pending |
+| CONSENT-03 | Phase 13 | `consent-gatehouse` | Pending |
+| DOOR-01 | Phase 14 | `door-integration` | Pending (gated on hardware) |
+| DOOR-02 | Phase 15 | `door-integration` | Pending (gated on Phase 14) |
+| DOOR-03 | Phase 15 | `door-integration` | Pending (gated on Phase 14) |
+| ARCH-01 | Fast-cycle | `1 - modernization-roadmap-arm64` | Pending |
+| ARCH-02 | Fast-cycle | `1 - modernization-roadmap-arm64` | Pending |
+
+**Coverage:**
+- v1.1 requirements: 5 top-level (22 atomic sub-requirements)
+- v2.0 requirements: 5 top-level (PHOTO-01, PHOTO-02, CONSENT-01, CONSENT-02, CONSENT-03)
+- v2.1 requirements: 3 top-level (DOOR-01, DOOR-02, DOOR-03)
+- Fast-cycle: 2 (ARCH-01, ARCH-02)
+- Mapped to phases: 15/15
+- Unmapped: 0
+
+---
+*Requirements defined: 2026-08-23*
+*Last updated: 2026-08-23 — v2.0 + v2.1 requirements added from party-mode design session*
