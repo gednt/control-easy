@@ -12,11 +12,12 @@
 > **Binding on every agent (main or sub-agent) that writes, deletes,
 > or moves any file in this repository.**
 
-### 0.1 Worktree check (mandatory before any code change)
+### 0.1 Worktree check (mandatory before any file change)
 
-Before writing, editing, or deleting **any** source file, an agent
-MUST verify it is on a feature branch inside a git worktree — **not**
-on `main` or `master`.
+Before writing, editing, deleting, or moving **any** file in this
+repository — source code, specs, planning docs, AGENTS.md itself,
+anything — an agent MUST verify it is on a feature branch inside a
+git worktree — **not** on `main` or `master`.
 
 **Step 1 — Check the branch:**
 ```bash
@@ -65,10 +66,13 @@ Proceeding as requested.
 ### 0.2 Scope of the gate
 
 - **Applies to:** speckit-implement, openspec-apply-change,
-  bmad-quick-dev, bmad-dev-story, bmad-dev-auto, and any ad-hoc file
-  edits touching `src/`, `tests/`, or `docker/`.
-- **Does NOT apply to:** read-only work, research, planning,
-  spec-writing, or documentation-only tasks.
+  bmad-quick-dev, bmad-dev-story, bmad-dev-auto, and **any** file
+  edit — source code (`src/`, `tests/`, `docker/`), specs (`.specs/`),
+  planning docs (`.planning/`), documentation (`docs/`, `AGENTS.md`),
+  or any other file in the repository.
+- **Does NOT apply to:** read-only work and research only. The moment
+  any file is written, edited, deleted, or moved — regardless of
+  whether it is code or documentation — the gate applies.
 - **Sub-agents inherit the gate** and MUST run the check independently.
 
 ### 0.3 Override

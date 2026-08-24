@@ -36,19 +36,40 @@ Requirements for the v1.1 "UI & Dashboard" milestone. These continue the REQ-IDs
 - [ ] **DASH-02**: Dashboard page UI — stat tiles (Active Residents, Active Vehicles, Occupied Apartments, Open Visits) linking to feature pages, recent-visits table, loading and error states, using `ce-*` design-system components
 - [ ] **DASH-04**: Vehicle edit UI — `update()` and `get()` methods in `VehiclesApiService`, edit modal mirroring residents pattern, edit/deactivate action buttons in table rows, vehicle-type dropdown on create and edit, `Vehicles.Write` permission checks
 
-## v2 Requirements
+## v2.0 Requirements — Gatehouse Photo & Consent Ledger
 
-Deferred to a future milestone. Tracked in `.specs/` but not in the v1.1 execution path.
+Requirements for the v2.0 milestone. Photo capture is browser-based (camera + upload), all image processing is client-side. Consent is a per-tenant per-category policy. ControlEasy is a voluntary ledger backed by external CCTV. No hardware framework, no MQTT, no WebRTC. Supersedes the retired `.specs/3 - photo-capture-hardware-integration/` spec.
 
-### Photo & Hardware
+### Photo Capture & Storage
 
-- **PHOTO-01**: Photos module (capture, storage, thumbnails)
-- **PHOTO-02**: Pluggable hardware framework (biometrics, cameras, intercoms)
+- [ ] **PHOTO-01**: Storage infrastructure & API — `IStorageProvider` (local + S3/MinIO), `photos` table, `photos.read`/`photos.write`/`photos.delete` permissions, upload/retrieve/soft-delete endpoints, env-var config
+- [ ] **PHOTO-02**: Browser capture & compression — `ce-photo-capture` component (`getUserMedia` + file upload), resize ≤1280px → JPEG ≤500KB, EXIF strip, 128×128 thumbnail client-side, upload retry (3× backoff), `ce-photo` display component, integration into resident/visitor/vehicle/service-provider pages
+
+### Consent Policy & Gatehouse Workflow
+
+- [ ] **CONSENT-01**: Consent policy config — per-tenant per-category toggle (dwellers/visitors/service-providers/vehicles × photo_required), `tenant_consent_policy` table, editable by tenant admin, no rules engine
+- [ ] **CONSENT-02**: Gatehouse entry workflow — four entry states (`entered_with_consent` / `entered_override` / `gatehouse_only` / `denied`), `consent_audit_log` table (append-only, millisecond timestamps), hard DB constraint (consent entry = photo non-null), override reason codes (hardcoded: emergency/vouched), 3-second workflow target
+- [ ] **CONSENT-03**: Audit review & export — filter by date/category/state/porteiro, override highlighting, CSV export with millisecond timestamps, `recorded_at` cross-referenceable with external CCTV
+
+## v2.1 Requirements — Door Integration (Optional)
+
+Condominiums that opt in can integrate ControlEasy with their door relay and card/biometric readers. The API is a participant, not a gatekeeper — the door opens independently. Gated on a real condominium with hardware. No speculative abstractions — `IDeviceHandler` emerges from the second real integration.
+
+### Door Relay
+
+- [ ] **DOOR-01**: Door relay & unlock commands — `IDoorController` abstraction, `POST /api/v1/devices/{deviceId}/unlock` (porteiro-role, HMAC-SHA256 signed, rate-limited, audit-logged), `devices` table, tenant opt-in flag, hardware fallback (door opens without API), event queue with replay, threat model document
+
+### Reader Events & Device Health
+
+- [ ] **DOOR-02**: Reader events & entry log integration — `IDeviceHandler` abstraction (from two real integrations), `DeviceEvent` normalization, card match → `entered_with_consent`, unknown card → `denied`, `device_events` table, event replay on reconnect
+- [ ] **DOOR-03**: Device health monitoring — `device_heartbeats` table, alert thresholds (offline_after_seconds, error_rate_threshold), health dashboard UI, offline alert toast in porteiro UI
+
+## Fast-Cycle Requirements (No Milestone)
 
 ### Platform
 
-- **ARCH-01**: Multi-arch Docker builds (linux/arm64, windows/arm64)
-- **ARCH-02**: GHCR multi-arch manifest and signing pipeline
+- **ARCH-01**: Multi-arch Docker builds (linux/amd64, linux/arm64)
+- **ARCH-02**: GHCR multi-arch manifest and cosign signing pipeline
 
 ## Out of Scope
 
@@ -61,8 +82,13 @@ Deferred to a future milestone. Tracked in `.specs/` but not in the v1.1 executi
 | Mobile-native apps | Responsive web / PWA sufficient for v1 |
 | Billing / subscriptions | External system |
 | Cross-tenant analytics BI | Separate product |
-| Photo capture & hardware (v2) | Deferred to Phase 12 — separate milestone |
-| Multi-arch Docker/CI (v2) | Deferred to Phase 14 — separate milestone |
+| Photo capture & hardware framework (old spec) | Retired 2026-08-23 — superseded by v2.0 photo-capture + consent-gatehouse specs |
+| Camera/NVR/WebRTC/MQTT hardware platform | Out of scope — cameras belong to the condominium; ControlEasy carries timestamps only |
+| Biometric template storage & encryption | Out of scope for v2.0/v2.1 — no biometrics; card readers only |
+| AI-powered facial recognition / ALPR | Future spec — framework enables it, feature deferred |
+| Anomaly detection on audit log | v2.1+ if data shows it's needed |
+| Second-person approval workflow for overrides | v2.1+ if data shows it's needed |
+| Custom consent reason codes per condominium | Future spec — hardcoded enum in v2.0 |
 
 ## Traceability
 
@@ -75,12 +101,25 @@ Populated during roadmap creation. Each v1.1 requirement maps to exactly one pha
 | DASH-01 | Phase 10 | `dashboard` | Pending |
 | DASH-02 | Phase 10 | `dashboard` | Pending |
 | DASH-04 | Phase 10 | `vehicle-edit` | Pending |
+| PHOTO-01 | Phase 11 | `photo-capture` | Pending |
+| PHOTO-02 | Phase 12 | `photo-capture` | Pending |
+| CONSENT-01 | Phase 13 | `consent-gatehouse` | Pending |
+| CONSENT-02 | Phase 13 | `consent-gatehouse` | Pending |
+| CONSENT-03 | Phase 13 | `consent-gatehouse` | Pending |
+| DOOR-01 | Phase 14 | `door-integration` | Pending (gated on hardware) |
+| DOOR-02 | Phase 15 | `door-integration` | Pending (gated on Phase 14) |
+| DOOR-03 | Phase 15 | `door-integration` | Pending (gated on Phase 14) |
+| ARCH-01 | Fast-cycle | `1 - modernization-roadmap-arm64` | Pending |
+| ARCH-02 | Fast-cycle | `1 - modernization-roadmap-arm64` | Pending |
 
 **Coverage:**
 - v1.1 requirements: 5 top-level (22 atomic sub-requirements)
-- Mapped to phases: 5/5 ✓
+- v2.0 requirements: 5 top-level (PHOTO-01, PHOTO-02, CONSENT-01, CONSENT-02, CONSENT-03)
+- v2.1 requirements: 3 top-level (DOOR-01, DOOR-02, DOOR-03)
+- Fast-cycle: 2 (ARCH-01, ARCH-02)
+- Mapped to phases: 15/15
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-08-23*
-*Last updated: 2026-08-23 after v1.1 milestone definition*
+*Last updated: 2026-08-23 — v2.0 + v2.1 requirements added from party-mode design session*

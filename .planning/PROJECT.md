@@ -14,15 +14,23 @@ Gatehouse staff can reliably register and control access for residents, visitors
 
 ## Current Milestone
 
-**v1.1 UI & Dashboard** (started 2026-08-23)
+**v1.1 UI & Dashboard** (started 2026-08-23) — in progress
 
-Goal: Complete the deferred UI parity, functional fixes, dashboard live data, and vehicle editing work to finish the v1.0-era user experience surface.
+**v2.0 Gatehouse Photo & Consent Ledger** (defined 2026-08-23) — next milestone
+
+**v2.1 Door Integration** (defined 2026-08-23) — gated on real condominium hardware
+
+Goal: Complete the deferred UI parity, functional fixes, dashboard live data, and vehicle editing work (v1.1), then ship browser-based photo capture with per-tenant consent policy and gatehouse entry logging (v2.0), then optional door/card-reader integration for condominiums that opt in (v2.1).
 
 Target features:
 - UI Parity & Functional Fixes (Phase 9 — `UI-03`, `UI-04`): mockup visual parity + interaction fixes
 - Dashboard Live Stats & Vehicle Edit (Phase 10 continuation — `DASH-01`, `DASH-02`, `DASH-04`): live tenant-scoped dashboard statistics; vehicle editing workflow
+- Photo Capture & Storage (Phase 11–12 — `PHOTO-01`, `PHOTO-02`): browser camera + upload, client-side compression, S3/MinIO storage, photos on resident/visitor/vehicle/service-provider records
+- Consent Policy & Gatehouse Workflow (Phase 13 — `CONSENT-01`, `CONSENT-02`, `CONSENT-03`): per-tenant per-category consent policy, four entry states, 3-second gatehouse workflow, append-only audit log, CSV export for CCTV cross-reference
+- Door Relay & Unlock Commands (Phase 14 — `DOOR-01`): optional, gated on real hardware, HMAC-signed unlock, hardware fallback
+- Reader Events & Device Health (Phase 15 — `DOOR-02`, `DOOR-03`): card reader event ingestion, enforced ledger, device health monitoring
 
-Phase numbering continues from v1.0 (phases 9 and 10 retain their original numbers). v2 items (photo/hardware Phase 12, multi-arch Phase 14) remain deferred.
+Phase numbering continues from v1.1 (Phase 10). Old v1.0 placeholder phases (12, 14) are superseded by v2.0/v2.1 design. Multi-arch Docker/CI is a fast-cycle task, not a milestone.
 
 ## Requirements
 
@@ -44,6 +52,7 @@ Phase numbering continues from v1.0 (phases 9 and 10 retain their original numbe
 - ✓ Occupied-apartments dashboard count regression fixed with tenant-isolation coverage — `.specs/occupied-apartments-bug/`
 - ✓ Demo mode one-command seeded evaluation stack — `.specs/4 - demo-mode/`
 - ✓ Continuous engineering baseline (CI, generated OpenAPI client, architecture and token contracts) — `.specs/1 - modernization-roadmap/` C.1–C.7
+- ✓ Photo capture & hardware integration spec retired and superseded — `.specs/_retired/3 - photo-capture-hardware-integration/` → `.specs/photo-capture/` + `.specs/consent-gatehouse/` + `.specs/door-integration/`
 
 ### Active
 
@@ -51,8 +60,10 @@ Phase numbering continues from v1.0 (phases 9 and 10 retain their original numbe
 - [ ] Vehicle edit UI (v1.1) — `.specs/vehicle-edit/`
 - [ ] Mockup visual parity (v1.1) — `.specs/mockup-visual-parity/`
 - [ ] Mockup functional fixes (v1.1) — `.specs/2-mockup-functional-fixes/`
-- [ ] Photo capture and hardware integration (v2) — `.specs/3 - photo-capture-hardware-integration/`
-- [ ] Multi-arch Docker/CI (v2) — `.specs/1 - modernization-roadmap-arm64/`
+- [ ] Photo capture & storage (v2.0) — `.specs/photo-capture/`
+- [ ] Consent policy & gatehouse workflow (v2.0) — `.specs/consent-gatehouse/`
+- [ ] Door integration (v2.1, gated on hardware) — `.specs/door-integration/`
+- [ ] Multi-arch Docker/CI (fast-cycle) — `.specs/1 - modernization-roadmap-arm64/`
 
 ### Out of Scope
 
@@ -89,6 +100,10 @@ Known concerns from codebase map: vendored DBTools_SQL (migration to NuGet plann
 | Multi-tenant shared schema + JWT `tenant_id` | Host many condominiums on one deployment | ✓ Good — TenantFilterInterceptor wired |
 | Angular 18 + Tailwind v4 design system | Modern SPA, mockup parity target | ⚠️ Revisit — formal spec incomplete; fix-design-system in progress |
 | Spec-driven development via `.specs/` | AGENTS.md mandates spec-first workflow | ✓ Good — source of truth for roadmap |
+| v2.0 photo capture: browser-only, client-side compression | No hardware framework; cameras belong to condominium | ✓ Good — party-mode design session 2026-08-23 |
+| v2.0 consent: per-tenant per-category policy, no rules engine | ControlEasy enables, doesn't enforce; CCTV is backstop | ✓ Good — party-mode design session 2026-08-23 |
+| v2.1 door: participant, not gatekeeper | Door opens independently; API observes + triggers, doesn't block | ✓ Good — hardware fallback required |
+| `IDeviceHandler` emerges from 2nd integration, not speculative | Avoid premature abstraction | ✓ Good — party-mode design session 2026-08-23 |
 
 ## Evolution
 
@@ -108,4 +123,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-12 after completing and verifying the active v1.0 scope*
+*Last updated: 2026-08-23 — v2.0 + v2.1 milestones defined from party-mode design session*
