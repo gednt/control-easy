@@ -70,16 +70,16 @@ Populated during roadmap creation. Each v1.1 requirement maps to exactly one pha
 
 | Requirement | Phase | Spec | Status |
 |-------------|-------|------|--------|
-| UI-03 (and UI-03a–h) | TBD | `mockup-visual-parity` | Pending |
-| UI-04 (and UI-04a–j) | TBD | `2-mockup-functional-fixes` | Pending |
-| DASH-01 | TBD | `dashboard` | Pending |
-| DASH-02 | TBD | `dashboard` | Pending |
-| DASH-04 | TBD | `vehicle-edit` | Pending |
+| UI-03 (and UI-03a–h) | Phase 9 | `mockup-visual-parity` | Pending |
+| UI-04 (and UI-04a–j) | Phase 9 | `2-mockup-functional-fixes` | Pending |
+| DASH-01 | Phase 10 | `dashboard` | Pending |
+| DASH-02 | Phase 10 | `dashboard` | Pending |
+| DASH-04 | Phase 10 | `vehicle-edit` | Pending |
 
 **Coverage:**
 - v1.1 requirements: 5 top-level (22 atomic sub-requirements)
-- Mapped to phases: 0
-- Unmapped: 5 ⚠️ (resolved by roadmap)
+- Mapped to phases: 5/5 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-08-23*

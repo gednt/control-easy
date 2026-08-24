@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: UI & Dashboard
 status: planning
-last_updated: "2026-08-23T23:54:20.682Z"
+last_updated: "2026-08-23T23:59:00.000Z"
 last_activity: 2026-08-23
 progress:
-  total_phases: 0
+  total_phases: 2
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,20 +20,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-24)
 
 **Core value:** Gatehouse staff can reliably register and control access through a fast, tenant-isolated web UI.
-**Current focus:** Planning v1.1 UI & Dashboard
+**Current focus:** v1.1 UI & Dashboard — roadmap defined, ready for planning
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Not started (roadmap defined)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-08-23 — Milestone v1.1 started
+Status: Planning
+Last activity: 2026-08-23 — v1.1 roadmap created (Phase 9 + Phase 10)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 11
+- Total plans completed: 11 (v1.0)
 - Average duration: —
 - Total execution time: —
 
@@ -44,6 +44,8 @@ Last activity: 2026-08-23 — Milestone v1.1 started
 - DBTools migration targets [NuGet DBTools 1.4.3](https://www.nuget.org/packages/DBTools) — replaces vendored `src/lib/DBTools_SQL/`
 - Phase 7 inserted before design system work; phases 8–14 renumbered
 - MySqlConnector stays pinned as optional MySQL provider per NuGet package docs
+- v1.1 phase numbering continues from v1.0 — Phase 9 (UI parity) and Phase 10 (dashboard + vehicle edit) retain their original numbers from the v1.0 archive
+- Phase 10 backend (DASH-01) has no hard dependency on Phase 9; DASH-02 UI benefits from Phase 9 `ce-*` adoption — phases may run in parallel
 
 ### Blockers/Concerns
 
@@ -60,10 +62,10 @@ Last activity: 2026-08-23 — Milestone v1.1 started
 
 ## Session Continuity
 
-Last session: 2026-07-13
-Stopped at: v1.0 archived; ready to define fresh v1.1 requirements
+Last session: 2026-08-23
+Stopped at: v1.1 roadmap defined (Phase 9 + Phase 10)
 Resume file: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Plan the first phase with `/gsd-plan-phase 9`
