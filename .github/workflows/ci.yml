@@ -179,7 +179,7 @@ jobs:
         working-directory: ${{ env.WEB_DIR }}
       - name: Run OpenAPI drift check
         run: |
-          npx ng-openapi-gen --input ../swagger.json --config ng-openapi-gen.json
+          npx ng-openapi-gen --input ../../swagger.json --config ng-openapi-gen.json
           git diff --exit-code -- src/app/api
         working-directory: ${{ env.WEB_DIR }}
 
