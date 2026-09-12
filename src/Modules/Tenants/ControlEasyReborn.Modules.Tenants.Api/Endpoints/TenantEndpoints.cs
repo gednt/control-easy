@@ -89,7 +89,37 @@ public static class TenantEndpoints
             RevokeTenantAdminHandler handler,
             CancellationToken ct) =>
         {
-            await handler.HandleAsync(userId, ct);
+            await handler.HandleAsync(id, userId, ct);
+            return Results.NoContent();
+        });
+
+        group.MapPost("/{id:guid}/admins/{userId:guid}/suspend", async (
+            Guid id,
+            Guid userId,
+            SuspendTenantAdminHandler handler,
+            CancellationToken ct) =>
+        {
+            await handler.HandleAsync(id, userId, ct);
+            return Results.NoContent();
+        });
+
+        group.MapPost("/{id:guid}/admins/{userId:guid}/resume", async (
+            Guid id,
+            Guid userId,
+            ResumeTenantAdminHandler handler,
+            CancellationToken ct) =>
+        {
+            await handler.HandleAsync(id, userId, ct);
+            return Results.NoContent();
+        });
+
+        group.MapDelete("/{id:guid}/admins/{userId:guid}", async (
+            Guid id,
+            Guid userId,
+            DeleteTenantAdminHandler handler,
+            CancellationToken ct) =>
+        {
+            await handler.HandleAsync(id, userId, ct);
             return Results.NoContent();
         });
 
@@ -121,6 +151,47 @@ public static class TenantEndpoints
         {
             var response = await handler.HandleAsync(id, request, ct);
             return Results.Created($"/api/v1/tenants/{id}/porteiros/{response.UserId}", response);
+        });
+
+        group.MapPut("/{id:guid}/porteiros/{userId:guid}", async (
+            Guid id,
+            Guid userId,
+            [FromBody] UpdatePorteiroRequest request,
+            UpdateTenantPorteiroHandler handler,
+            CancellationToken ct) =>
+        {
+            var response = await handler.HandleAsync(id, userId, request, ct);
+            return Results.Ok(response);
+        });
+
+        group.MapPost("/{id:guid}/porteiros/{userId:guid}/suspend", async (
+            Guid id,
+            Guid userId,
+            SuspendTenantPorteiroHandler handler,
+            CancellationToken ct) =>
+        {
+            await handler.HandleAsync(id, userId, ct);
+            return Results.NoContent();
+        });
+
+        group.MapPost("/{id:guid}/porteiros/{userId:guid}/resume", async (
+            Guid id,
+            Guid userId,
+            ResumeTenantPorteiroHandler handler,
+            CancellationToken ct) =>
+        {
+            await handler.HandleAsync(id, userId, ct);
+            return Results.NoContent();
+        });
+
+        group.MapDelete("/{id:guid}/porteiros/{userId:guid}", async (
+            Guid id,
+            Guid userId,
+            DeleteTenantPorteiroHandler handler,
+            CancellationToken ct) =>
+        {
+            await handler.HandleAsync(id, userId, ct);
+            return Results.NoContent();
         });
 
         return app;

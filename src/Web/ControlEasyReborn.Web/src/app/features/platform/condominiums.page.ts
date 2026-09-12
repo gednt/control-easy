@@ -124,37 +124,30 @@ const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?$/;
                 }
               </div>
 
-              <label class="ce-checkbox">
-                <input type="checkbox" formControlName="createAdmin" />
-                <span class="ce-checkbox-box"></span>
-                <span>Create first tenant administrator</span>
-              </label>
-
-              @if (createForm.get('createAdmin')?.value) {
-                <div class="admin-fields">
-                  <div class="ce-input-group">
-                    <label class="ce-input-label" for="admin-email">Admin email</label>
-                    <div class="ce-input-wrapper" [class.has-error]="createForm.get('adminEmail')?.invalid && createForm.get('adminEmail')?.touched">
-                      <input id="admin-email" class="ce-input" type="email" formControlName="adminEmail" />
-                    </div>
-                  </div>
-                  <div class="ce-input-group">
-                    <label class="ce-input-label" for="admin-display-name">Admin display name</label>
-                    <div class="ce-input-wrapper" [class.has-error]="createForm.get('adminDisplayName')?.invalid && createForm.get('adminDisplayName')?.touched">
-                      <input id="admin-display-name" class="ce-input" formControlName="adminDisplayName" />
-                    </div>
-                  </div>
-                  <div class="ce-input-group">
-                    <label class="ce-input-label" for="admin-password">Temporary password</label>
-                    <div class="ce-input-wrapper" [class.has-error]="createForm.get('adminPassword')?.invalid && createForm.get('adminPassword')?.touched">
-                      <input id="admin-password" class="ce-input" type="password" formControlName="adminPassword" />
-                    </div>
-                    @if (createForm.get('adminPassword')?.invalid && createForm.get('adminPassword')?.touched) {
-                      <div class="ce-input-error">Password must be at least 8 characters</div>
-                    }
+              <div class="admin-fields">
+                <p class="admin-fields-title">First administrator</p>
+                <div class="ce-input-group">
+                  <label class="ce-input-label" for="admin-email">Admin email</label>
+                  <div class="ce-input-wrapper" [class.has-error]="createForm.get('adminEmail')?.invalid && createForm.get('adminEmail')?.touched">
+                    <input id="admin-email" class="ce-input" type="email" formControlName="adminEmail" />
                   </div>
                 </div>
-              }
+                <div class="ce-input-group">
+                  <label class="ce-input-label" for="admin-display-name">Admin display name</label>
+                  <div class="ce-input-wrapper" [class.has-error]="createForm.get('adminDisplayName')?.invalid && createForm.get('adminDisplayName')?.touched">
+                    <input id="admin-display-name" class="ce-input" formControlName="adminDisplayName" />
+                  </div>
+                </div>
+                <div class="ce-input-group">
+                  <label class="ce-input-label" for="admin-password">Temporary password</label>
+                  <div class="ce-input-wrapper" [class.has-error]="createForm.get('adminPassword')?.invalid && createForm.get('adminPassword')?.touched">
+                    <input id="admin-password" class="ce-input" type="password" formControlName="adminPassword" />
+                  </div>
+                  @if (createForm.get('adminPassword')?.invalid && createForm.get('adminPassword')?.touched) {
+                    <div class="ce-input-error">Password must be at least 8 characters</div>
+                  }
+                </div>
+              </div>
             </form>
           </div>
           <div class="ce-modal-footer">
@@ -193,7 +186,7 @@ const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?$/;
                   <h4>Administrators</h4>
                 </div>
                 @if (admins().length === 0) {
-                  <p class="manage-empty">No administrators registered for this condominium.</p>
+                  <p class="manage-empty">No administrators registered for this condominium. Add the first one below.</p>
                 } @else {
                   <div class="manage-table-wrap">
                     <table class="manage-table" aria-label="Administrators">
@@ -201,6 +194,7 @@ const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?$/;
                         <tr>
                           <th>Email</th>
                           <th>Display name</th>
+                          <th>Status</th>
                           <th></th>
                         </tr>
                       </thead>
@@ -208,7 +202,7 @@ const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?$/;
                         @for (admin of admins(); track admin.userId) {
                           <tr>
                             @if (editingAdminId() === admin.userId) {
-                              <td colspan="3">
+                              <td colspan="4">
                                 <form class="inline-edit-form" [formGroup]="adminEditForm" (ngSubmit)="saveAdminEdit(admin)">
                                   <div class="inline-edit-fields">
                                     <input class="ce-input" type="email" formControlName="email" placeholder="Email" />
@@ -228,7 +222,39 @@ const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?$/;
                               <td>{{ admin.email }}</td>
                               <td>{{ admin.displayName }}</td>
                               <td>
-                                <button class="ce-button variant-ghost size-sm" (click)="startAdminEdit(admin)">Edit</button>
+                                <span class="ce-badge size-sm"
+                                      [class.tone-success]="admin.active"
+                                      [class.tone-neutral]="!admin.active">
+                                  {{ admin.active ? 'Active' : 'Suspended' }}
+                                </span>
+                              </td>
+                              <td>
+                                <div class="action-cell">
+                                  <button class="ce-button variant-ghost size-sm" (click)="startAdminEdit(admin)">Edit</button>
+                                  @if (admin.active) {
+                                    <button class="ce-button variant-ghost size-sm"
+                                            (click)="onSuspendAdmin(admin)"
+                                            [disabled]="actingAdminId() === admin.userId">
+                                      Suspend
+                                    </button>
+                                  } @else {
+                                    <button class="ce-button variant-ghost size-sm"
+                                            (click)="onResumeAdmin(admin)"
+                                            [disabled]="actingAdminId() === admin.userId">
+                                      Resume
+                                    </button>
+                                  }
+                                  <button class="ce-button variant-ghost size-sm"
+                                          (click)="onRevokeAdmin(admin)"
+                                          [disabled]="actingAdminId() === admin.userId">
+                                    Revoke
+                                  </button>
+                                  <button class="ce-button variant-ghost size-sm danger-action"
+                                          (click)="onDeleteAdmin(admin)"
+                                          [disabled]="actingAdminId() === admin.userId">
+                                    Delete
+                                  </button>
+                                </div>
                               </td>
                             }
                           </tr>
@@ -237,6 +263,38 @@ const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?$/;
                     </table>
                   </div>
                 }
+
+                <form class="porteiro-form" [formGroup]="adminCreateForm" (ngSubmit)="onCreateAdmin()">
+                  <p class="porteiro-form-title">Add administrator</p>
+                  <div class="porteiro-form-grid">
+                    <div class="ce-input-group">
+                      <label class="ce-input-label" for="admin-create-email">Email</label>
+                      <div class="ce-input-wrapper" [class.has-error]="adminCreateForm.get('email')?.invalid && adminCreateForm.get('email')?.touched">
+                        <input id="admin-create-email" class="ce-input" type="email" formControlName="email" />
+                      </div>
+                    </div>
+                    <div class="ce-input-group">
+                      <label class="ce-input-label" for="admin-create-display-name">Display name</label>
+                      <div class="ce-input-wrapper" [class.has-error]="adminCreateForm.get('displayName')?.invalid && adminCreateForm.get('displayName')?.touched">
+                        <input id="admin-create-display-name" class="ce-input" formControlName="displayName" />
+                      </div>
+                    </div>
+                    <div class="ce-input-group">
+                      <label class="ce-input-label" for="admin-create-password">Temporary password</label>
+                      <div class="ce-input-wrapper" [class.has-error]="adminCreateForm.get('password')?.invalid && adminCreateForm.get('password')?.touched">
+                        <input id="admin-create-password" class="ce-input" type="password" formControlName="password" />
+                      </div>
+                      @if (adminCreateForm.get('password')?.invalid && adminCreateForm.get('password')?.touched) {
+                        <div class="ce-input-error">Password must be at least 8 characters</div>
+                      }
+                    </div>
+                  </div>
+                  <button type="submit" class="ce-button variant-primary size-sm"
+                          [disabled]="adminCreateForm.invalid || creatingAdmin()">
+                    @if (creatingAdmin()) { <span class="ce-spinner tone-current size-sm"></span> }
+                    Add administrator
+                  </button>
+                </form>
               </section>
 
               <section class="manage-section">
@@ -251,20 +309,63 @@ const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?$/;
                           <th>Email</th>
                           <th>Display name</th>
                           <th>Status</th>
+                          <th></th>
                         </tr>
                       </thead>
                       <tbody>
                         @for (porteiro of porteiros(); track porteiro.userId) {
                           <tr>
-                            <td>{{ porteiro.email }}</td>
-                            <td>{{ porteiro.displayName }}</td>
-                            <td>
-                              <span class="ce-badge size-sm"
-                                    [class.tone-success]="porteiro.active"
-                                    [class.tone-neutral]="!porteiro.active">
-                                {{ porteiro.active ? 'Active' : 'Inactive' }}
-                              </span>
-                            </td>
+                            @if (editingPorteiroId() === porteiro.userId) {
+                              <td colspan="4">
+                                <form class="inline-edit-form" [formGroup]="porteiroEditForm" (ngSubmit)="savePorteiroEdit(porteiro)">
+                                  <div class="inline-edit-fields">
+                                    <input class="ce-input" type="email" formControlName="email" placeholder="Email" />
+                                    <input class="ce-input" formControlName="displayName" placeholder="Display name" />
+                                  </div>
+                                  <div class="inline-edit-actions">
+                                    <button type="button" class="ce-button variant-ghost size-sm" (click)="cancelPorteiroEdit()">Cancel</button>
+                                    <button type="submit" class="ce-button variant-primary size-sm"
+                                            [disabled]="porteiroEditForm.invalid || savingPorteiro()">
+                                      @if (savingPorteiro()) { <span class="ce-spinner tone-current size-sm"></span> }
+                                      Save
+                                    </button>
+                                  </div>
+                                </form>
+                              </td>
+                            } @else {
+                              <td>{{ porteiro.email }}</td>
+                              <td>{{ porteiro.displayName }}</td>
+                              <td>
+                                <span class="ce-badge size-sm"
+                                      [class.tone-success]="porteiro.active"
+                                      [class.tone-neutral]="!porteiro.active">
+                                  {{ porteiro.active ? 'Active' : 'Suspended' }}
+                                </span>
+                              </td>
+                              <td>
+                                <div class="action-cell">
+                                  <button class="ce-button variant-ghost size-sm" (click)="startPorteiroEdit(porteiro)">Edit</button>
+                                  @if (porteiro.active) {
+                                    <button class="ce-button variant-ghost size-sm"
+                                            (click)="onSuspendPorteiro(porteiro)"
+                                            [disabled]="actingPorteiroId() === porteiro.userId">
+                                      Suspend
+                                    </button>
+                                  } @else {
+                                    <button class="ce-button variant-ghost size-sm"
+                                            (click)="onResumePorteiro(porteiro)"
+                                            [disabled]="actingPorteiroId() === porteiro.userId">
+                                      Resume
+                                    </button>
+                                  }
+                                  <button class="ce-button variant-ghost size-sm danger-action"
+                                          (click)="onDeletePorteiro(porteiro)"
+                                          [disabled]="actingPorteiroId() === porteiro.userId">
+                                    Delete
+                                  </button>
+                                </div>
+                              </td>
+                            }
                           </tr>
                         }
                       </tbody>
@@ -386,6 +487,8 @@ const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?$/;
     }
     .ce-checkbox input:checked + .ce-checkbox-box { background: var(--color-primary); border-color: var(--color-primary); }
     .admin-fields { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-3); border: 1px dashed var(--color-border); border-radius: var(--radius-lg); }
+    .admin-fields-title { font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); margin: 0; }
+    .danger-action { color: var(--color-danger); border-color: var(--color-danger-light); }
     .form-error-banner {
       margin-bottom: var(--space-4); padding: var(--space-3); border-radius: var(--radius-lg);
       background: var(--color-danger-light); color: var(--color-danger); font-size: var(--font-size-sm);
@@ -432,6 +535,11 @@ export class CondominiumsPage {
   porteiros = signal<PorteiroResponse[]>([]);
   editingAdminId = signal<string | null>(null);
   savingAdmin = signal(false);
+  actingAdminId = signal<string | null>(null);
+  creatingAdmin = signal(false);
+  editingPorteiroId = signal<string | null>(null);
+  savingPorteiro = signal(false);
+  actingPorteiroId = signal<string | null>(null);
   creatingPorteiro = signal(false);
   pageError = signal<string | null>(null);
   createError = signal<string | null>(null);
@@ -439,13 +547,23 @@ export class CondominiumsPage {
   createForm = this.fb.group({
     displayName: ['', [Validators.required, Validators.maxLength(120)]],
     slug: ['', [Validators.required, Validators.pattern(SLUG_PATTERN)]],
-    createAdmin: [false],
-    adminEmail: [''],
-    adminDisplayName: [''],
-    adminPassword: [''],
+    adminEmail: ['', [Validators.required, Validators.email]],
+    adminDisplayName: ['', [Validators.required]],
+    adminPassword: ['', [Validators.required, Validators.minLength(8)]],
   });
 
   adminEditForm = this.fb.group({
+    email: ['', [Validators.required, Validators.email]],
+    displayName: ['', [Validators.required, Validators.maxLength(200)]],
+  });
+
+  adminCreateForm = this.fb.group({
+    email: ['', [Validators.required, Validators.email]],
+    displayName: ['', [Validators.required, Validators.maxLength(200)]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
+  });
+
+  porteiroEditForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     displayName: ['', [Validators.required, Validators.maxLength(200)]],
   });
@@ -457,24 +575,6 @@ export class CondominiumsPage {
   });
 
   constructor() {
-    this.createForm.get('createAdmin')?.valueChanges.subscribe((enabled) => {
-      const email = this.createForm.get('adminEmail');
-      const displayName = this.createForm.get('adminDisplayName');
-      const password = this.createForm.get('adminPassword');
-      if (enabled) {
-        email?.setValidators([Validators.required, Validators.email]);
-        displayName?.setValidators([Validators.required]);
-        password?.setValidators([Validators.required, Validators.minLength(8)]);
-      } else {
-        email?.clearValidators();
-        displayName?.clearValidators();
-        password?.clearValidators();
-      }
-      email?.updateValueAndValidity();
-      displayName?.updateValueAndValidity();
-      password?.updateValueAndValidity();
-    });
-
     this.load();
   }
 
@@ -502,7 +602,7 @@ export class CondominiumsPage {
   }
 
   openCreateModal(): void {
-    this.createForm.reset({ createAdmin: false });
+    this.createForm.reset();
     this.createError.set(null);
     this.createModalOpen.set(true);
   }
@@ -515,6 +615,13 @@ export class CondominiumsPage {
     this.manageTenant.set(tenant);
     this.manageError.set(null);
     this.editingAdminId.set(null);
+    this.editingPorteiroId.set(null);
+    this.actingAdminId.set(null);
+    this.actingPorteiroId.set(null);
+    this.savingAdmin.set(false);
+    this.savingPorteiro.set(false);
+    this.creatingAdmin.set(false);
+    this.adminCreateForm.reset();
     this.porteiroForm.reset();
     this.manageModalOpen.set(true);
     this.loadManageData(tenant.id);
@@ -526,6 +633,12 @@ export class CondominiumsPage {
     this.admins.set([]);
     this.porteiros.set([]);
     this.editingAdminId.set(null);
+    this.editingPorteiroId.set(null);
+    this.actingAdminId.set(null);
+    this.actingPorteiroId.set(null);
+    this.savingAdmin.set(false);
+    this.savingPorteiro.set(false);
+    this.creatingAdmin.set(false);
   }
 
   loadManageData(tenantId: string): void {
@@ -603,6 +716,108 @@ export class CondominiumsPage {
     });
   }
 
+  onCreateAdmin(): void {
+    if (this.adminCreateForm.invalid) return;
+    const tenant = this.manageTenant();
+    if (!tenant) return;
+
+    this.creatingAdmin.set(true);
+    this.manageError.set(null);
+    const v = this.adminCreateForm.value;
+
+    this.api.createAdmin(tenant.id, {
+      email: v.email!.trim(),
+      displayName: v.displayName!.trim(),
+      password: v.password!,
+    }).subscribe({
+      next: (created) => {
+        this.admins.update((list) => [...list, created]);
+        this.adminCreateForm.reset();
+        this.creatingAdmin.set(false);
+      },
+      error: (err) => {
+        this.creatingAdmin.set(false);
+        this.manageError.set(getApiErrorMessage(err, 'Failed to create administrator'));
+      },
+    });
+  }
+
+  onSuspendAdmin(admin: TenantAdminResponse): void {
+    const tenant = this.manageTenant();
+    if (!tenant) return;
+
+    this.actingAdminId.set(admin.userId);
+    this.manageError.set(null);
+    this.api.suspendAdmin(tenant.id, admin.userId).subscribe({
+      next: () => {
+        this.admins.update((list) =>
+          list.map((a) => (a.userId === admin.userId ? { ...a, active: false } : a)));
+        this.actingAdminId.set(null);
+      },
+      error: (err) => {
+        this.actingAdminId.set(null);
+        this.manageError.set(getApiErrorMessage(err, 'Failed to suspend administrator'));
+      },
+    });
+  }
+
+  onResumeAdmin(admin: TenantAdminResponse): void {
+    const tenant = this.manageTenant();
+    if (!tenant) return;
+
+    this.actingAdminId.set(admin.userId);
+    this.manageError.set(null);
+    this.api.resumeAdmin(tenant.id, admin.userId).subscribe({
+      next: () => {
+        this.admins.update((list) =>
+          list.map((a) => (a.userId === admin.userId ? { ...a, active: true } : a)));
+        this.actingAdminId.set(null);
+      },
+      error: (err) => {
+        this.actingAdminId.set(null);
+        this.manageError.set(getApiErrorMessage(err, 'Failed to resume administrator'));
+      },
+    });
+  }
+
+  onRevokeAdmin(admin: TenantAdminResponse): void {
+    const tenant = this.manageTenant();
+    if (!tenant) return;
+    if (!confirm(`Revoke administrator '${admin.email}'? They will lose the administrator role and their access immediately.`)) return;
+
+    this.actingAdminId.set(admin.userId);
+    this.manageError.set(null);
+    this.api.revokeAdmin(tenant.id, admin.userId).subscribe({
+      next: () => {
+        this.admins.update((list) => list.filter((a) => a.userId !== admin.userId));
+        this.actingAdminId.set(null);
+      },
+      error: (err) => {
+        this.actingAdminId.set(null);
+        this.manageError.set(getApiErrorMessage(err, 'Failed to revoke administrator'));
+      },
+    });
+  }
+
+  onDeleteAdmin(admin: TenantAdminResponse): void {
+    const tenant = this.manageTenant();
+    if (!tenant) return;
+    if (!confirm(`Delete administrator '${admin.email}' permanently? This removes their account, profile, and sessions. This cannot be undone.`)) return;
+
+    this.actingAdminId.set(admin.userId);
+    this.manageError.set(null);
+    this.api.deleteAdmin(tenant.id, admin.userId).subscribe({
+      next: () => {
+        this.admins.update((list) => list.filter((a) => a.userId !== admin.userId));
+        this.actingAdminId.set(null);
+      },
+      error: (err) => {
+        this.actingAdminId.set(null);
+        this.manageError.set(getApiErrorMessage(err, 'Failed to delete administrator'));
+      },
+    });
+  }
+
   onCreatePorteiro(): void {
     if (this.porteiroForm.invalid) return;
     const tenant = this.manageTenant();
@@ -629,6 +844,101 @@ export class CondominiumsPage {
     });
   }
 
+  startPorteiroEdit(porteiro: PorteiroResponse): void {
+    this.editingPorteiroId.set(porteiro.userId);
+    this.porteiroEditForm.reset({
+      email: porteiro.email,
+      displayName: porteiro.displayName,
+    });
+  }
+
+  cancelPorteiroEdit(): void {
+    this.editingPorteiroId.set(null);
+  }
+
+  savePorteiroEdit(porteiro: PorteiroResponse): void {
+    if (this.porteiroEditForm.invalid) return;
+    const tenant = this.manageTenant();
+    if (!tenant) return;
+
+    this.savingPorteiro.set(true);
+    this.manageError.set(null);
+    const v = this.porteiroEditForm.value;
+
+    this.api.updatePorteiro(tenant.id, porteiro.userId, {
+      email: v.email!.trim(),
+      displayName: v.displayName!.trim(),
+    }).subscribe({
+      next: (updated) => {
+        this.porteiros.update((list) =>
+          list.map((p) => (p.userId === updated.userId ? updated : p)));
+        this.savingPorteiro.set(false);
+        this.editingPorteiroId.set(null);
+      },
+      error: (err) => {
+        this.savingPorteiro.set(false);
+        this.manageError.set(getApiErrorMessage(err, 'Failed to update porteiro'));
+      },
+    });
+  }
+
+  onSuspendPorteiro(porteiro: PorteiroResponse): void {
+    const tenant = this.manageTenant();
+    if (!tenant) return;
+
+    this.actingPorteiroId.set(porteiro.userId);
+    this.manageError.set(null);
+    this.api.suspendPorteiro(tenant.id, porteiro.userId).subscribe({
+      next: () => {
+        this.porteiros.update((list) =>
+          list.map((p) => (p.userId === porteiro.userId ? { ...p, active: false } : p)));
+        this.actingPorteiroId.set(null);
+      },
+      error: (err) => {
+        this.actingPorteiroId.set(null);
+        this.manageError.set(getApiErrorMessage(err, 'Failed to suspend porteiro'));
+      },
+    });
+  }
+
+  onResumePorteiro(porteiro: PorteiroResponse): void {
+    const tenant = this.manageTenant();
+    if (!tenant) return;
+
+    this.actingPorteiroId.set(porteiro.userId);
+    this.manageError.set(null);
+    this.api.resumePorteiro(tenant.id, porteiro.userId).subscribe({
+      next: () => {
+        this.porteiros.update((list) =>
+          list.map((p) => (p.userId === porteiro.userId ? { ...p, active: true } : p)));
+        this.actingPorteiroId.set(null);
+      },
+      error: (err) => {
+        this.actingPorteiroId.set(null);
+        this.manageError.set(getApiErrorMessage(err, 'Failed to resume porteiro'));
+      },
+    });
+  }
+
+  onDeletePorteiro(porteiro: PorteiroResponse): void {
+    const tenant = this.manageTenant();
+    if (!tenant) return;
+    if (!confirm(`Delete porteiro '${porteiro.email}' permanently? This removes their account, profile, and sessions. This cannot be undone.`)) return;
+
+    this.actingPorteiroId.set(porteiro.userId);
+    this.manageError.set(null);
+    this.api.deletePorteiro(tenant.id, porteiro.userId).subscribe({
+      next: () => {
+        this.porteiros.update((list) => list.filter((p) => p.userId !== porteiro.userId));
+        this.actingPorteiroId.set(null);
+      },
+      error: (err) => {
+        this.actingPorteiroId.set(null);
+        this.manageError.set(getApiErrorMessage(err, 'Failed to delete porteiro'));
+      },
+    });
+  }
+
   onCreate(): void {
     if (this.createForm.invalid) return;
     this.creating.set(true);
@@ -640,13 +950,6 @@ export class CondominiumsPage {
       displayName: v.displayName!.trim(),
     }).subscribe({
       next: (tenant) => {
-        if (!v.createAdmin) {
-          this.creating.set(false);
-          this.closeCreateModal();
-          this.load();
-          return;
-        }
-
         this.api.createAdmin(tenant.id, {
           email: v.adminEmail!.trim(),
           displayName: v.adminDisplayName!.trim(),

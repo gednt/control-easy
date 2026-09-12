@@ -32,15 +32,23 @@ public static class TenantsModuleServiceCollectionExtensions
         services.AddScoped<CreateTenantAdminHandler>();
         services.AddScoped<ListTenantAdminsHandler>();
         services.AddScoped<RevokeTenantAdminHandler>();
+        services.AddScoped<SuspendTenantAdminHandler>();
+        services.AddScoped<ResumeTenantAdminHandler>();
+        services.AddScoped<DeleteTenantAdminHandler>();
         services.AddScoped<UpdateTenantAdminHandler>();
         services.AddScoped<CreatePorteiroHandler>();
         services.AddScoped<ListPorteirosHandler>();
+        services.AddScoped<UpdateTenantPorteiroHandler>();
+        services.AddScoped<SuspendTenantPorteiroHandler>();
+        services.AddScoped<ResumeTenantPorteiroHandler>();
+        services.AddScoped<DeleteTenantPorteiroHandler>();
         services.AddScoped<CreateTenantBackupHandler>();
 
         services.AddScoped<IValidator<CreateTenantRequest>, CreateTenantRequestValidator>();
         services.AddScoped<IValidator<CreateTenantAdminRequest>, CreateTenantAdminRequestValidator>();
         services.AddScoped<IValidator<UpdateTenantAdminRequest>, UpdateTenantAdminRequestValidator>();
         services.AddScoped<IValidator<CreatePorteiroRequest>, CreatePorteiroRequestValidator>();
+        services.AddScoped<IValidator<UpdatePorteiroRequest>, UpdatePorteiroRequestValidator>();
 
         return services;
     }

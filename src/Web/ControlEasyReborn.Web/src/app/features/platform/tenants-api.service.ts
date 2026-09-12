@@ -41,6 +41,11 @@ export interface CreatePorteiroRequest {
   password: string;
 }
 
+export interface UpdatePorteiroRequest {
+  email: string;
+  displayName: string;
+}
+
 export interface PorteiroResponse {
   userId: string;
   profileId: string;
@@ -84,11 +89,43 @@ export class TenantsApiService {
     return this.http.put<TenantAdminResponse>(`${this.baseUrl}/${tenantId}/admins/${userId}`, request);
   }
 
+  revokeAdmin(tenantId: string, userId: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/${tenantId}/admins/${userId}/revoke`, {});
+  }
+
+  suspendAdmin(tenantId: string, userId: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/${tenantId}/admins/${userId}/suspend`, {});
+  }
+
+  resumeAdmin(tenantId: string, userId: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/${tenantId}/admins/${userId}/resume`, {});
+  }
+
+  deleteAdmin(tenantId: string, userId: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${tenantId}/admins/${userId}`);
+  }
+
   listPorteiros(tenantId: string): Observable<PorteiroResponse[]> {
     return this.http.get<PorteiroResponse[]>(`${this.baseUrl}/${tenantId}/porteiros`);
   }
 
   createPorteiro(tenantId: string, request: CreatePorteiroRequest): Observable<PorteiroResponse> {
     return this.http.post<PorteiroResponse>(`${this.baseUrl}/${tenantId}/porteiros`, request);
+  }
+
+  updatePorteiro(tenantId: string, userId: string, request: UpdatePorteiroRequest): Observable<PorteiroResponse> {
+    return this.http.put<PorteiroResponse>(`${this.baseUrl}/${tenantId}/porteiros/${userId}`, request);
+  }
+
+  suspendPorteiro(tenantId: string, userId: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/${tenantId}/porteiros/${userId}/suspend`, {});
+  }
+
+  resumePorteiro(tenantId: string, userId: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/${tenantId}/porteiros/${userId}/resume`, {});
+  }
+
+  deletePorteiro(tenantId: string, userId: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${tenantId}/porteiros/${userId}`);
   }
 }

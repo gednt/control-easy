@@ -39,6 +39,12 @@ public sealed class CreateTenantAdminHandler
             throw new ControlEasyReborn.Modules.Tenants.Application.Errors.NotFoundException("Tenant " + tenantId + " was not found.");
         }
 
+        if (await _adminRepo.EmailExistsAsync(request.Email.Trim(), null, ct))
+        {
+            throw new ControlEasyReborn.Modules.Tenants.Application.Errors.ConflictException(
+                "A user with email '" + request.Email.Trim() + "' already exists.");
+        }
+
         var passwordHash = _passwordHasher.Hash(request.Password);
         return await _adminRepo.CreateAdminAsync(tenantId, request.Email, request.DisplayName, passwordHash, ct);
     }

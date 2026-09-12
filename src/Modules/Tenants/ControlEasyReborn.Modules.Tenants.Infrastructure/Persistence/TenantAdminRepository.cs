@@ -179,6 +179,151 @@ public sealed class TenantAdminRepository : ITenantAdminRepository
         return result;
     }
 
+    public async Task SetAdminActiveAsync(Guid tenantId, Guid userId, bool active, CancellationToken ct)
+    {
+        var rows = await _db.SelectAsync(
+            fields: SelectFields,
+            table: TableName,
+            whereClause: "Id = @param0 AND TenantId = @param1 AND Roles LIKE '%TenantAdmin%'",
+            parameters: new object[] { userId.ToString(), tenantId.ToString() },
+            ct: ct);
+
+        if (rows is null || rows.Rows.Count == 0)
+            throw new InvalidOperationException($"Tenant admin {userId} was not found for tenant {tenantId}.");
+
+        var now = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+        const int fieldCount = 2;
+        await _db.UpdateAsync(
+            new[] { "Active", "UpdatedAtUtc" },
+            TableName,
+            new[] { active ? "1" : "0", now },
+            $"Id = @param{fieldCount}",
+            new object[] { userId.ToString() },
+            ct: ct);
+
+        if (!active)
+        {
+            await DeactivateAttendantProfilesAsync(userId, ct);
+            await RevokeRefreshTokensAsync(userId, ct);
+        }
+    }
+
+    public async Task DeleteAdminAsync(Guid tenantId, Guid userId, CancellationToken ct)
+    {
+        var rows = await _db.SelectAsync(
+            fields: SelectFields,
+            table: TableName,
+            whereClause: "Id = @param0 AND TenantId = @param1 AND Roles LIKE '%TenantAdmin%'",
+            parameters: new object[] { userId.ToString(), tenantId.ToString() },
+            ct: ct);
+
+        if (rows is null || rows.Rows.Count == 0)
+            throw new InvalidOperationException($"Tenant admin {userId} was not found for tenant {tenantId}.");
+
+        await _db.DeleteAsync("AttendantProfiles", "UserId = @param0 AND TenantId = @param1", new object[] { userId.ToString(), tenantId.ToString() }, ct);
+        await _db.DeleteAsync("RefreshTokens", "UserId = @param0", new object[] { userId.ToString() }, ct);
+        await _db.DeleteAsync(TableName, "Id = @param0", new object[] { userId.ToString() }, ct);
+    }
+
+    public async Task UpdatePorteiroAsync(Guid tenantId, Guid userId, string email, string displayName, CancellationToken ct)
+    {
+        var rows = await _db.SelectAsync(
+            fields: SelectFields,
+            table: TableName,
+            whereClause: "Id = @param0 AND TenantId = @param1 AND Roles = @param2",
+            parameters: new object[] { userId.ToString(), tenantId.ToString(), PorteiroDefaults.Role },
+            ct: ct);
+
+        if (rows is null || rows.Rows.Count == 0)
+            throw new InvalidOperationException($"Porteiro {userId} was not found for tenant {tenantId}.");
+
+        var now = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+        const int fieldCount = 3;
+        await _db.UpdateAsync(
+            new[] { "Email", "DisplayName", "UpdatedAtUtc" },
+            TableName,
+            new[] { email, displayName, now },
+            $"Id = @param{fieldCount}",
+            new object[] { userId.ToString() },
+            ct: ct);
+
+        await _db.UpdateAsync(
+            new[] { "DisplayName", "UpdatedAtUtc" },
+            "AttendantProfiles",
+            new[] { displayName, now },
+            "TenantId = @param2 AND UserId = @param3",
+            new object[] { tenantId.ToString(), userId.ToString() },
+            ct: ct);
+    }
+
+    public async Task SetPorteiroActiveAsync(Guid tenantId, Guid userId, bool active, CancellationToken ct)
+    {
+        var rows = await _db.SelectAsync(
+            fields: SelectFields,
+            table: TableName,
+            whereClause: "Id = @param0 AND TenantId = @param1 AND Roles = @param2",
+            parameters: new object[] { userId.ToString(), tenantId.ToString(), PorteiroDefaults.Role },
+            ct: ct);
+
+        if (rows is null || rows.Rows.Count == 0)
+            throw new InvalidOperationException($"Porteiro {userId} was not found for tenant {tenantId}.");
+
+        var now = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+        const int fieldCount = 2;
+        await _db.UpdateAsync(
+            new[] { "Active", "UpdatedAtUtc" },
+            TableName,
+            new[] { active ? "1" : "0", now },
+            $"Id = @param{fieldCount}",
+            new object[] { userId.ToString() },
+            ct: ct);
+
+        if (!active)
+        {
+            await DeactivateAttendantProfilesAsync(userId, ct);
+            await RevokeRefreshTokensAsync(userId, ct);
+        }
+    }
+
+    public async Task DeletePorteiroAsync(Guid tenantId, Guid userId, CancellationToken ct)
+    {
+        var rows = await _db.SelectAsync(
+            fields: SelectFields,
+            table: TableName,
+            whereClause: "Id = @param0 AND TenantId = @param1 AND Roles = @param2",
+            parameters: new object[] { userId.ToString(), tenantId.ToString(), PorteiroDefaults.Role },
+            ct: ct);
+
+        if (rows is null || rows.Rows.Count == 0)
+            throw new InvalidOperationException($"Porteiro {userId} was not found for tenant {tenantId}.");
+
+        await _db.DeleteAsync("AttendantProfiles", "UserId = @param0 AND TenantId = @param1", new object[] { userId.ToString(), tenantId.ToString() }, ct);
+        await _db.DeleteAsync("RefreshTokens", "UserId = @param0", new object[] { userId.ToString() }, ct);
+        await _db.DeleteAsync(TableName, "Id = @param0", new object[] { userId.ToString() }, ct);
+    }
+
+    private async Task DeactivateAttendantProfilesAsync(Guid userId, CancellationToken ct)
+    {
+        await _db.UpdateAsync(
+            new[] { "Active", "UpdatedAtUtc" },
+            "AttendantProfiles",
+            new[] { "0", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") },
+            "UserId = @param2 AND Active = 1",
+            new object[] { userId.ToString() },
+            ct: ct);
+    }
+
+    private async Task RevokeRefreshTokensAsync(Guid userId, CancellationToken ct)
+    {
+        await _db.UpdateAsync(
+            new[] { "RevokedAtUtc" },
+            "RefreshTokens",
+            new[] { DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") },
+            "UserId = @param1 AND RevokedAtUtc IS NULL",
+            new object[] { userId.ToString() },
+            ct: ct);
+    }
+
     public async Task<bool> EmailExistsAsync(string email, Guid? exceptUserId, CancellationToken ct)
     {
         var rows = await _db.SelectAsync(
@@ -251,5 +396,8 @@ public sealed class TenantAdminRepository : ITenantAdminRepository
             $"Id = @param{fieldCount}",
             new object[] { userId.ToString() },
             ct: ct);
+
+        await DeactivateAttendantProfilesAsync(userId, ct);
+        await RevokeRefreshTokensAsync(userId, ct);
     }
 }
