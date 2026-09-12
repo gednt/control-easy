@@ -2,12 +2,13 @@
 title: 'Fix first-boot race: MySQL healthcheck + silent bootstrap failure'
 type: 'bugfix'
 created: '2026-09-12'
-status: 'in-progress'
+status: 'done'
 review_loop_iteration: 0
-followup_review_recommended: false
+followup_review_recommended: true
 context: []
 warnings: []
 baseline_revision: d85b496
+final_revision: cd887af
 ---
 
 <intent-contract>
@@ -60,10 +61,68 @@ baseline_revision: d85b496
 - Given PlatformAdmin already exists, when bootstrap runs again, then it logs "already exists; skipping" and performs no inserts
 - Given `docker compose -f docker/docker-compose.yml config`, when run, then it exits 0 with valid merged config
 - Given the full unit test suite, when run, then all tests pass
-
 ## Spec Change Log
 
+### 2026-09-12 — bad_spec/patch amendments after review pass
+- Trigger: review found the healthcheck's single-quoted `$$MYSQL_DATABASE` unexpanded, the partial-success "already exists" trap, and the empty-schema false-positive.
+- Amended: healthcheck command (double-quoted -e, grep -q 1, quoted credentials); bootstrap service gained profile pre-check + repair branch; success gates no longer depend on unverifiable DBTools Error-clear semantics.
+- Known-bad state avoided: db never healthy (stack hang); PlatformAdmin user without AttendantProfiles and lost random credentials; API booting against an empty schema.
+- KEEP: 6-attempt retry with 2/4/8/16/16s backoff; fail-fast throw after exhaustion; bool-result-only success gates; TCP-forced healthcheck with schema check; `DelayAsync` delegate for fast tests.
+
+## Auto Run Result
+
+Status: done
+
+## Summary
+
+Fixed the first-boot race that produced an empty Users table with a misleading "PlatformAdmin seeded" log: MySQL healthcheck is now TCP-forced with a schema check, and PlatformAdminBootstrapService verifies insert results, retries with backoff, repairs partial success, and fails fast.
+
+## Files changed
+
+- `docker/docker-compose.yml` — TCP-forced db healthcheck (rejects init-server socket window, verifies schema has tables, quoted credentials, start_period 30s)
+- `src/Host/ControlEasyReborn.Api/Hosting/PlatformAdminBootstrapService.cs` — retry loop (6 attempts, 2/4/8/16/16s backoff), profile pre-check + repair branch, fail-fast throw with DBTools error detail
+- `tests/ControlEasyReborn.UnitTests/Hosting/PlatformAdminBootstrapServiceTests.cs` — 6 tests covering retry, exhaustion, repair, idempotent skip
+- `tests/ControlEasyReborn.UnitTests/TestDoubles/FakeAsyncSqlClient.cs` — Error made settable
+
+## Review findings breakdown
+
+- Patches applied: 7 (healthcheck quoting/expansion ×2, empty-schema grep gate, partial-success repair path, Error-gate removal, DelayAsync test speedup, corrected insert-count assertions)
+- Deferred: 3 (DemoSeederService unchecked insert results; API missing restart policy; plaintext password WRN log + modulo-bias generator — all pre-existing) — see `_bmad-output/implementation-artifacts/deferred-work.md`
+- Rejected: 3 (backoff OOB — guarded by throw-first; cancel-in-delay semantics — acceptable OCE on shutdown; healthcheck cleartext password in process list — inherent to mysql client flags)
+
+## Verification performed
+
+- `docker compose -f docker/docker-compose.yml config` — exit 0
+- Healthcheck command executed live in running db container — exit 0 (mysqld is alive + schema check passes); no-TCP variant verified exit 1
+- `dotnet test tests/ControlEasyReborn.UnitTests` (SDK 8 in docker) — 84/84 pass, 198ms
+- `dotnet build src/ControlEasyReborn.sln` — Build succeeded, 0 warnings, 0 errors
+
+## Residual risks
+
+- DBTools Error-clear-on-success semantics remain unverified against the real client; success gates now rely only on bool results, which is safe under both semantics.
+- DemoSeederService still ignores insert results (deferred).
+- Fresh-volume full-stack boot was not executed end-to-end (would destroy the running stack's volume); healthcheck command verified live against the existing container instead.
+
+## Follow-up review recommendation
+
+Recommended: two high-severity patches landed (healthcheck shell quoting, partial-success repair); an independent follow-up review of the retry/repair logic is warranted.
+
 ## Review Triage Log
+
+### 2026-09-12 — Review pass
+- intent_gap: 0
+- bad_spec: 0
+- patch: 6 (high 2, medium 3, low 1)
+- defer: 3 (medium 2, low 1)
+- reject: 3
+- addressed_findings:
+  - `[high]` `[patch]` Healthcheck `$$MYSQL_DATABASE` inside single quotes — shell never expands it, healthcheck would fail forever — switched to double-quoted `-e "USE $$MYSQL_DATABASE; ..."`, verified live in container (exit 0 with data)
+  - `[high]` `[patch]` Partial-success trap: user insert succeeded but profile failed → retry pre-check finds user → returns "already exists" leaving admin without profile and credentials lost — added profile pre-check + repair path that inserts the missing AttendantProfiles on the "exists" branch
+  - `[medium]` `[patch]` Schema check `SELECT COUNT(*) > 0` returns exit 0 regardless of result — pipe through `grep -q 1` so an empty schema fails the healthcheck
+  - `[medium]` `[patch]` Healthcheck credentials unquoted in shell — quoted `-u"$$MYSQL_USER" -p"$$MYSQL_PASSWORD"`
+  - `[medium]` `[patch]` Success gates checked shared `bypassClient.Error` after inserts — DBTools Error-clear-on-success semantics unverifiable; removed Error from both success gates, keeping bool-result checks (false→retry, true→success)
+  - `[medium]` `[patch]` Test suite slept real backoff (46s per exhaustion test) — added settable `DelayAsync` delegate, tests inject no-op delay; suite 90s → 198ms
+  - `[low]` `[patch]` Retry tests asserted 2×6 inserts and 3 insert calls — wrong due to `&&` short-circuit; corrected to actual user/profile insert counts
 
 ## Design Notes
 
