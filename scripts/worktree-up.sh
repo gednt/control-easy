@@ -11,7 +11,8 @@
 #   1. Detects the current worktree branch (or uses --branch).
 #   2. Computes the worktree index, project name, Traefik hostname, and port.
 #   3. Generates docker/.env.worktree.<slug> with COMPOSE_PROJECT_NAME,
-#      TRAEFIK_HOST, TRAEFIK_PORT, MYSQL_VOLUME_NAME, JWT_SIGNING_KEY.
+#      TRAEFIK_HOST, TRAEFIK_PORT, TRAEFIK_HTTPS_PORT, MYSQL_VOLUME_NAME,
+#      JWT_SIGNING_KEY.
 #   4. Registers the ce-<slug>.localhost hostname via scripts/lib/resolver.sh.
 #   5. Generates docker/docker-compose.worktree.<slug>.yml from the template.
 #   6. Runs: docker compose -p ce-<slug> -f docker-compose.yml
@@ -92,6 +93,7 @@ SLUG="$(ce_branch_to_slug "$CE_BRANCH")"
 PROJECT="$(ce_project_name "$CE_BRANCH")"
 HOSTNAME="$(ce_traefik_hostname "$CE_BRANCH")"
 PORT="$(ce_allocate_port "$CE_BRANCH")"
+HTTPS_PORT=$(( PORT + 1 ))
 VOLUME="$(ce_mysql_volume_name "$CE_BRANCH")"
 ENV_FILE="$(ce_env_file "$CE_BRANCH")"
 OVERRIDE_FILE="$(ce_override_file "$CE_BRANCH")"
@@ -101,6 +103,7 @@ ce_log "Branch:        $CE_BRANCH"
 ce_log "Project:       $PROJECT"
 ce_log "Hostname:      $HOSTNAME"
 ce_log "Port:          $PORT"
+ce_log "HTTPS port:    $HTTPS_PORT"
 ce_log "Volume:        $VOLUME"
 ce_log "Env file:      $ENV_FILE"
 ce_log "Override file: $OVERRIDE_FILE"
@@ -124,6 +127,7 @@ cat > "$ENV_FILE" <<EOF
 COMPOSE_PROJECT_NAME=$PROJECT
 TRAEFIK_HOST=$HOSTNAME
 TRAEFIK_PORT=$PORT
+TRAEFIK_HTTPS_PORT=$HTTPS_PORT
 MYSQL_VOLUME_NAME=$VOLUME
 JWT_SIGNING_KEY=$JWT_KEY
 EOF
@@ -147,7 +151,9 @@ ce_log "Generating $OVERRIDE_FILE from $TEMPLATE_FILE"
 COMPOSE_PROJECT_NAME="$PROJECT" \
 TRAEFIK_HOST="$HOSTNAME" \
 TRAEFIK_PORT="$PORT" \
+TRAEFIK_HTTPS_PORT="$HTTPS_PORT" \
 MYSQL_VOLUME_NAME="$VOLUME" \
+JWT_SIGNING_KEY="$JWT_KEY" \
 envsubst < "$TEMPLATE_FILE" > "$OVERRIDE_FILE"
 
 # ---------------------------------------------------------------------------
@@ -162,6 +168,7 @@ fi
 if [[ "$CE_NO_BUILD" == "true" ]]; then
   ce_log "Skipping build (--no-build)"
   docker compose -p "$PROJECT" \
+    --env-file "$ENV_FILE" \
     -f "$COMPOSE_FILE_BASE" \
     -f "$OVERRIDE_FILE" \
     up -d
@@ -169,6 +176,7 @@ else
   ce_log "Building and bringing up the stack"
   COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 \
   docker compose -p "$PROJECT" \
+    --env-file "$ENV_FILE" \
     -f "$COMPOSE_FILE_BASE" \
     -f "$OVERRIDE_FILE" \
     up -d --build
@@ -179,10 +187,10 @@ fi
 # ---------------------------------------------------------------------------
 ce_log "Stack is up."
 echo
-echo "  Web:      http://$HOSTNAME:$PORT/"
-echo "  API:      http://$HOSTNAME:$PORT/api/v1/health"
-echo "  Swagger:  http://$HOSTNAME:$PORT/swagger"
-echo "  Traefik:  http://$HOSTNAME:$PORT:8082/  (dashboard)"
+echo "  Web:      http://$HOSTNAME:$PORT/   (redirects to HTTPS)"
+echo "  Web HTTPS: https://$HOSTNAME:$HTTPS_PORT/  (self-signed cert)"
+echo "  API:      https://$HOSTNAME:$HTTPS_PORT/api/v1/health"
+echo "  Swagger:  https://$HOSTNAME:$HTTPS_PORT/swagger"
 echo
 echo "  Logs:     docker compose -p $PROJECT logs -f api"
 echo "  Tear down: scripts/worktree-down.sh --branch $CE_BRANCH"

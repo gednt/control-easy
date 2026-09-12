@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const baseUrl = process.env['E2E_BASE_URL'] ?? 'http://localhost:8080';
+const baseUrl = process.env['E2E_BASE_URL'] ?? 'https://localhost:8443';
 
 test.describe('PlatformAdmin condominium registration', () => {
   test('platform admin registers a new condominium', async ({ page }) => {

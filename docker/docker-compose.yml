@@ -6,15 +6,25 @@ services:
       - --providers.file.directory=/etc/traefik/dynamic
       - --providers.file.watch=true
       - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      # Listen on the published HTTPS port so redirect Location headers are
+      # reachable from the browser (e.g. https://localhost:8443/...).
+      - --entrypoints.websecure.address=:${REVERSE_PROXY_HTTPS_PORT:-8443}
+      # Required in Traefik v3: without entrypoint-level TLS the HTTP router
+      # layer on websecure stays disabled and every request 404s.
+      - --entrypoints.websecure.http.tls=true
       - --api.insecure=true
     ports:
-      - "${REVERSE_PROXY_PORT:-8080}:80"
-      - "${REVERSE_PROXY_HTTPS_PORT:-8443}:443"
+      # Bound to loopback for dev: the stack is meant to be reached via
+      # localhost / *.localhost only. Change for hosted deployments.
+      - "127.0.0.1:${REVERSE_PROXY_PORT:-8080}:80"
+      - "127.0.0.1:${REVERSE_PROXY_HTTPS_PORT:-8443}:${REVERSE_PROXY_HTTPS_PORT:-8443}"
       - "${REVERSE_PROXY_API_PORT:-8082}:8080"
     volumes:
       - ./reverse-proxy/traefik.yml:/etc/traefik/static.yml:ro
       - ./reverse-proxy/dynamic.yml:/etc/traefik/dynamic/dynamic.yml:ro
+      - ./reverse-proxy/certs:/etc/traefik/certs:ro
       - traefik-data:/letsencrypt
 
   api:
@@ -43,9 +53,6 @@ services:
     volumes:
       - photos-data:/storage/photos
     labels:
-      - "traefik.http.routers.api.rule=(Host(`localhost`) || Host(`reverse-proxy`)) && PathPrefix(`/api`)"
-      - "traefik.http.routers.api.entrypoints=web"
-      - "traefik.http.routers.api.tls=false"
       - "traefik.http.services.api.loadbalancer.server.port=8080"
 
   web:
@@ -53,10 +60,6 @@ services:
       context: ..
       dockerfile: docker/web.Dockerfile
     labels:
-      - "traefik.http.routers.web.rule=Host(`localhost`) || Host(`reverse-proxy`)"
-      - "traefik.http.routers.web.entrypoints=web"
-      - "traefik.http.routers.web.tls=false"
-      - "traefik.http.routers.web.priority=1"
       - "traefik.http.services.web.loadbalancer.server.port=8080"
 
   db:
@@ -79,15 +82,13 @@ services:
   adminer:
     image: adminer:4
     labels:
-      - "traefik.http.routers.adminer.rule=Host(`localhost`) && PathPrefix(`/db`)"
-      - "traefik.http.routers.adminer.entrypoints=web"
-      - "traefik.http.routers.adminer.tls=false"
       - "traefik.http.services.adminer.loadbalancer.server.port=8080"
 
   seq:
     image: datalust/seq:latest
     environment:
       ACCEPT_EULA: Y
+      SEQ_FIRSTRUN_NOAUTHENTICATION: "true"
     volumes:
       - seq-data:/data
 

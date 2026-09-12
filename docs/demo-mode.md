@@ -10,12 +10,12 @@ From the repository root:
 docker compose -f docker/docker-compose.yml -f docker/docker-compose.demo.yml up -d --build
 ```
 
-Open [http://localhost:8080](http://localhost:8080) and sign in with any persona below (password **`demo123`** for all).
+Open [https://localhost:8443](https://localhost:8443) (accept the self-signed certificate warning) and sign in with any persona below (password **`demo123`** for all).
 
 Verify demo mode is active:
 
 ```bash
-curl -s http://localhost:8080/api/v1/demo/info
+curl -sk https://localhost:8443/api/v1/demo/info
 # → {"enabled":true,"seedVersion":1,"tenants":[...]}
 ```
 
@@ -76,7 +76,7 @@ docker compose -f docker/docker-compose.yml -f docker/docker-compose.demo.yml up
 Restores demo tenant data without dropping the volume:
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/demo/reset \
+curl -k -X POST https://localhost:8443/api/v1/demo/reset \
   -H "Authorization: Bearer <platform-admin-jwt>"
 ```
 

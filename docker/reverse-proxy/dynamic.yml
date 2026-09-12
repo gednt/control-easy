@@ -1,23 +1,33 @@
+tls:
+  certificates:
+    - certFile: /etc/traefik/certs/local.crt
+      keyFile: /etc/traefik/certs/local.key
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /etc/traefik/certs/local.crt
+        keyFile: /etc/traefik/certs/local.key
+
 http:
   routers:
     api:
-      rule: "(Host(`localhost`) || Host(`reverse-proxy`)) && PathPrefix(`/api`)"
+      rule: "(Host(`localhost`) || Host(`127.0.0.1`) || Host(`reverse-proxy`) || HostRegexp(`^[a-z0-9-]+\\.localhost$`)) && PathPrefix(`/api`)"
       entryPoints:
-        - web
+        - websecure
       service: api
       priority: 100
 
     web:
-      rule: "Host(`localhost`) || Host(`reverse-proxy`)"
+      rule: "Host(`localhost`) || Host(`127.0.0.1`) || Host(`reverse-proxy`) || HostRegexp(`^[a-z0-9-]+\\.localhost$`)"
       entryPoints:
-        - web
+        - websecure
       service: web
       priority: 1
 
     adminer:
-      rule: "Host(`localhost`) && PathPrefix(`/db`)"
+      rule: "(Host(`localhost`) || Host(`127.0.0.1`) || HostRegexp(`^[a-z0-9-]+\\.localhost$`)) && PathPrefix(`/db`)"
       entryPoints:
-        - web
+        - websecure
       service: adminer
       priority: 50
 

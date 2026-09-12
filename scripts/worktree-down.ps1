@@ -59,7 +59,11 @@ switch ($project) {
 Write-CeLog "Tearing down compose project $project (containers, networks, volumes)"
 $composeBase = "docker/docker-compose.yml"
 if (Test-Path $override) {
-    docker compose -p $project -f $composeBase -f $override down -v
+    if (Test-Path $envFile) {
+        docker compose -p $project --env-file $envFile -f $composeBase -f $override down -v
+    } else {
+        docker compose -p $project -f $composeBase -f $override down -v
+    }
 } else {
     docker compose -p $project -f $composeBase down -v
 }

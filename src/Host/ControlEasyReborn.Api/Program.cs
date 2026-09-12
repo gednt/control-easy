@@ -141,7 +141,7 @@ try
     {
         options.AddPolicy("AngularDev", policy =>
         {
-            policy.WithOrigins("http://localhost:4200", "http://localhost:8080")
+            policy.WithOrigins("http://localhost:4200", "https://localhost:8443")
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();
@@ -166,6 +166,7 @@ try
     app.UseAuthorization();
 
     app.MapHealthChecks("/health");
+    app.MapHealthChecks("/api/v1/health");
     app.MapDemoEndpoints();
     app.MapBootstrapEndpoints();
     app.MapFeatureEndpoints();

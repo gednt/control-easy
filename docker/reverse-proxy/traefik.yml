@@ -4,8 +4,15 @@ api:
 entryPoints:
   web:
     address: ":80"
-  websecure:
-    address: ":443"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  # websecure is declared on the compose command line with the *published*
+  # HTTPS port (REVERSE_PROXY_HTTPS_PORT) so that redirect Location headers
+  # point browsers at a reachable port. Flags override this file anyway;
+  # it is intentionally not declared here.
 
 providers:
   file:

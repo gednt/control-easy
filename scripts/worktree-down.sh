@@ -115,10 +115,18 @@ esac
 ce_log "Tearing down compose project $PROJECT (containers, networks, volumes)"
 COMPOSE_FILE_BASE="docker/docker-compose.yml"
 if [[ -f "$OVERRIDE_FILE" ]]; then
-  docker compose -p "$PROJECT" \
-    -f "$COMPOSE_FILE_BASE" \
-    -f "$OVERRIDE_FILE" \
-    down -v
+  if [[ -f "$ENV_FILE" ]]; then
+    docker compose -p "$PROJECT" \
+      --env-file "$ENV_FILE" \
+      -f "$COMPOSE_FILE_BASE" \
+      -f "$OVERRIDE_FILE" \
+      down -v
+  else
+    docker compose -p "$PROJECT" \
+      -f "$COMPOSE_FILE_BASE" \
+      -f "$OVERRIDE_FILE" \
+      down -v
+  fi
 else
   # Override file may have been removed manually; tear down with just the base.
   docker compose -p "$PROJECT" \

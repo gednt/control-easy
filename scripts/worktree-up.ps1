@@ -37,6 +37,7 @@ $slug    = ConvertTo-CeSlug $Branch
 $project = Get-CeProjectName $Branch
 $host_   = Get-CeTraefikHostname $Branch
 $port    = Get-CeAllocatedPort $Branch
+$httpsPort = $port + 1
 $volume  = Get-CeMysqlVolumeName $Branch
 $envFile = Get-CeEnvFile $Branch
 $override= Get-CeOverrideFile $Branch
@@ -46,6 +47,7 @@ Write-CeLog "Branch:        $Branch"
 Write-CeLog "Project:       $project"
 Write-CeLog "Hostname:      $host_"
 Write-CeLog "Port:          $port"
+Write-CeLog "HTTPS port:    $httpsPort"
 Write-CeLog "Volume:        $volume"
 Write-CeLog "Env file:      $envFile"
 Write-CeLog "Override file: $override"
@@ -62,6 +64,7 @@ $envContent = @"
 COMPOSE_PROJECT_NAME=$project
 TRAEFIK_HOST=$host_
 TRAEFIK_PORT=$port
+TRAEFIK_HTTPS_PORT=$httpsPort
 MYSQL_VOLUME_NAME=$volume
 JWT_SIGNING_KEY=$jwtKey
 "@
@@ -81,12 +84,14 @@ $tpl = Get-Content $template -Raw
 $env:COMPOSE_PROJECT_NAME = $project
 $env:TRAEFIK_HOST = $host_
 $env:TRAEFIK_PORT = "$port"
+$env:TRAEFIK_HTTPS_PORT = "$httpsPort"
 $env:MYSQL_VOLUME_NAME = $volume
 $env:JWT_SIGNING_KEY = $jwtKey
 $rendered = $tpl `
     -replace '\$\{COMPOSE_PROJECT_NAME\}', $project `
     -replace '\$\{TRAEFIK_HOST\}', $host_ `
     -replace '\$\{TRAEFIK_PORT\}', "$port" `
+    -replace '\$\{TRAEFIK_HTTPS_PORT\}', "$httpsPort" `
     -replace '\$\{MYSQL_VOLUME_NAME\}', $volume `
     -replace '\$\{JWT_SIGNING_KEY\}', $jwtKey
 Set-Content -Path $override -Value $rendered -NoNewline -Encoding utf8
@@ -98,21 +103,22 @@ if (-not (Test-Path $composeBase)) { Invoke-CeDie "Base compose file not found: 
 
 if ($NoBuild) {
     Write-CeLog "Skipping build (-NoBuild)"
-    docker compose -p $project -f $composeBase -f $override up -d
+    docker compose -p $project --env-file $envFile -f $composeBase -f $override up -d
 } else {
     Write-CeLog "Building and bringing up the stack"
     $env:COMPOSE_DOCKER_CLI_BUILD = '1'
     $env:DOCKER_BUILDKIT = '1'
-    docker compose -p $project -f $composeBase -f $override up -d --build
+    docker compose -p $project --env-file $envFile -f $composeBase -f $override up -d --build
 }
 if ($LASTEXITCODE -ne 0) { Invoke-CeDie "docker compose up failed" }
 
 # Step 7: Print URLs
 Write-CeLog "Stack is up."
 Write-Host ""
-Write-Host "  Web:      http://$($host_):$port/"
-Write-Host "  API:      http://$($host_):$port/api/v1/health"
-Write-Host "  Swagger:  http://$($host_):$port/swagger"
+Write-Host "  Web:      http://$($host_):$port/   (redirects to HTTPS)"
+Write-Host "  Web HTTPS: https://$($host_):$httpsPort/  (self-signed cert)"
+Write-Host "  API:      https://$($host_):$httpsPort/api/v1/health"
+Write-Host "  Swagger:  https://$($host_):$httpsPort/swagger"
 Write-Host ""
 Write-Host "  Logs:     docker compose -p $project logs -f api"
 Write-Host "  Tear down: .\scripts\worktree-down.ps1 -Branch $Branch"

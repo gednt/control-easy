@@ -274,6 +274,7 @@ $RECYCLE.BIN/
 # -------- Secrets (defense in depth — never commit) --------
 *.pem
 *.key
+!docker/reverse-proxy/certs/local.key
 *.pfx
 *.p12
 secrets/

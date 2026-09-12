@@ -10,7 +10,9 @@ export default defineConfig({
   retries: process.env['CI'] ? 2 : 0,
   reporter: 'list',
   use: {
-    baseURL: process.env['E2E_BASE_URL'] ?? 'http://localhost:8080',
+    baseURL: process.env['E2E_BASE_URL'] ?? 'https://localhost:8443',
+    // Dev stack serves a self-signed certificate (see docker/reverse-proxy/certs).
+    ignoreHTTPSErrors: true,
     trace: 'on-first-retry',
   },
   snapshotDir: './tests/visual/__snapshots__',
