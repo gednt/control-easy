@@ -8,7 +8,7 @@
 #
 # Conventions (see .specs/devcontainers/design.md):
 #   - Branch name:                feat/<spec-id>-<short-slug>
-#   - Worktree path:              ..\ControlEasy.<branch-with-slashes>
+#   - Worktree path:              <repo-root>\.worktrees\<branch-with-slashes>
 #   - Compose project name:       ce-<branch-with-slashes-as-hyphens>
 #   - Traefik hostname:           ce-<branch-with-slashes-as-hyphens>.localhost
 #   - Published host port:        18080 + (worktree-index * 10)
@@ -18,7 +18,7 @@
 $script:CE_BASE_PORT = 18080
 $script:CE_PORT_STEP = 10
 $script:CE_HOST_SUFFIX = ".localhost"
-$script:CE_WORKTREE_PREFIX = "ControlEasy."
+$script:CE_WORKTREE_DIR = ".worktrees"
 $script:CE_PROJECT_PREFIX = "ce-"
 $script:CE_VOLUME_SUFFIX = "-mysql-data"
 
@@ -61,8 +61,7 @@ function Get-CeMysqlVolumeName {
 function Get-CeWorktreeDir {
     param([Parameter(Mandatory)][string]$Branch)
     $repoRoot = (git rev-parse --show-toplevel)
-    $parent = Split-Path -Parent $repoRoot
-    return (Join-Path $parent ($script:CE_WORKTREE_PREFIX + $Branch))
+    return (Join-Path $repoRoot (Join-Path $script:CE_WORKTREE_DIR (ConvertTo-CeSlug $Branch)))
 }
 
 function Get-CeWorktreeIndex {
@@ -74,7 +73,7 @@ function Get-CeWorktreeIndex {
     foreach ($line in $list -split "`n") {
         if ($line -match '^worktree ') {
             $index++
-            if ($line -like "*$($script:CE_WORKTREE_PREFIX)$slug*") {
+            if ($line -like "*$($script:CE_WORKTREE_DIR)/$slug*") {
                 return ($index - 1)
             }
         }

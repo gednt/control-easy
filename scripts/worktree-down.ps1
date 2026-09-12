@@ -5,7 +5,7 @@
     Reverses scripts/worktree-up.ps1:
       1. docker compose -p ce-<slug> down -v
       2. Remove the ce-<slug>.localhost hostname from the resolver.
-      3. git worktree remove --force ..\ControlEasy.<branch> (unless -KeepWorktree)
+      3. git worktree remove --force .worktrees\<branch-with-slashes> (unless -KeepWorktree)
     Idempotent: re-running on a torn-down worktree exits 0 with "already down".
 .PARAMETER Branch
     Use this branch (default: current branch).

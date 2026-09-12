@@ -109,6 +109,7 @@ Containers: the compose file is `docker/docker-compose.yml`. The project-name co
 
 Hard rules an agent must not violate, beyond what the workflows enforce.
 
+- **Docker-only development.** All build, run, test, lint, and dependency-restore work happens **inside Docker containers** (canonical: `docker compose -f docker/docker-compose.yml`, Makefile targets, or the devcontainer). Agents MUST NOT install anything on the host machine: no .NET SDKs, no Node.js, no global tools, and no project dependencies (`dotnet restore`, `npm install`, `dotnet tool install`, `pip`, etc. on the host). `dotnet` / `npm` / `ng` commands are only valid inside the containers (e.g., `docker compose exec`, `docker run`, or the devcontainer). If a container is missing a tool or dependency, fix the Dockerfile / compose setup — never the host.
 - **No EF Core.** DBTools (`Linq<TModel>`, `IAsyncSqlClient`) is the only data-access library. LINQ-first; raw SQL only for stored procs (ADR 0002).
 - **No MediatR.** Handlers are registered as scoped services directly.
 - **No MVC controllers.** Minimal API endpoint classes only.
@@ -120,14 +121,16 @@ Hard rules an agent must not violate, beyond what the workflows enforce.
 - **spec-kit** is the per-feature specification system. Specs live in `.specs/<feature>/`. Configuration and constitutional memory in `.specify/`. spec-kit owns `.specs/` and `.specify/` and updates `STATE.md` + `PROJECT.md` when state changes.
 - **Three workflow systems, non-overlapping responsibility:** GSD owns `.planning/`, spec-kit owns `.specs/` and `.specify/`, OpenSpec is opt-in at user discretion (only the user creates `openspec/changes/<id>/`).
 
-### Git worktree rule (recommended for adoption)
+### Git worktree rule (mandatory)
 
-- **All Git work happens in a worktree.** When an agent (AI or human) is making a change, never commit, branch, push, or merge on `main`. The only permitted operation on `main` is fast-forwarding `main` to a feature branch's tip after a human has reviewed and approved the change. Create a dedicated Git worktree at `../ControlEasy.<branch-with-slashes-as-hyphens>` on a branch `feat/<slug>` or `fix/<slug>`, where `<slug>` is a semantic, lowercase, hyphen-separated name describing the change.
+- **The main tree stays pristine.** The main checkout (`<repo-root>` on its default branch) is read-only for agents until work is committed: no file edits, no generated artifacts, no build/test outputs, no formatting, no `.gitignore` churn, and no commits. Before starting any work, an agent MUST first create a worktree (see below) and do all reading, editing, building, and testing inside it. Read-only commands (`git status`, `git log`, `git diff`, grep/search) are the only operations permitted on the main checkout.
+- **All Git work happens in a worktree.** When an agent (AI or human) is making a change, never commit, branch, push, or merge on `main`. The only permitted operation on `main` is fast-forwarding `main` to a feature branch's tip after a human has reviewed and approved the change. Create a dedicated Git worktree under `<repo-root>/.worktrees/` on a branch `feat/<slug>` or `fix/<slug>`, where `<slug>` is a semantic, lowercase, hyphen-separated name describing the change.
+- **Worktrees live inside the repo, under `.worktrees/`.** Never create worktrees as siblings of the repo (e.g., `../ControlEasy.<branch>`) or anywhere outside `<repo-root>/.worktrees/`. Ensure `.worktrees/` is listed in `.gitignore` so worktree contents are never tracked. The canonical path is `<repo-root>/.worktrees/<branch-with-slashes-as-hyphens>` (e.g., `.worktrees/feat-dashboard-live-stats`).
 - **The agent reports done; the human merges on `main`.** The agent commits, branches, and pushes inside the worktree, then stops. The agent MUST NOT run `git merge` on `main` for any reason. The only exception: the human explicitly says, in the current turn, "merge on main."
 - **Pre-flight check before creating a worktree.** Use only read-only Git commands to confirm that the branch does not already exist and that the worktree path is not already in use. If either exists, abort and pick a different slug.
 - **One task, one worktree, one branch.** Do not reuse a slug, a branch, or a worktree path between concurrent tasks.
-- **Canonical command.** `git worktree add "../ControlEasy.$(echo $BRANCH | tr / -)" -b "$BRANCH"` is the canonical way to create the worktree.
-- **Clean up after merge.** After a change merges to `main` and is verified, remove only the worktree you created: `git worktree remove <path>`. Do not touch unrelated worktrees, branches, or paths.
+- **Canonical command.** `git worktree add ".worktrees/$(echo $BRANCH | tr / -)" -b "$BRANCH"` (run from the repo root) is the canonical way to create the worktree.
+- **Clean up after merge.** After a change merges to `main` and is verified, remove only the worktree you created: `git worktree remove .worktrees/<branch-with-slashes-as-hyphens>`. Do not touch unrelated worktrees, branches, or paths.
 - **No force-push, no rewriting shared history.** Do not rewrite commits that have been pushed or that other worktrees share. Local-only history rewrites (interactive rebase before push) are allowed when no one else depends on the branch.
 
 #### Worktree naming convention
@@ -135,7 +138,7 @@ Hard rules an agent must not violate, beyond what the workflows enforce.
 | Item | Pattern | Example |
 |---|---|---|
 | Branch | `feat/<spec-id>-<slug>` or `fix/<spec-id>-<slug>` | `feat/dashboard-live-stats` |
-| Worktree path | `../ControlEasy.<branch-with-slashes>` | `../ControlEasy.feat-dashboard-live-stats` |
+| Worktree path | `.worktrees/<branch-with-slashes-as-hyphens>` | `.worktrees/feat-dashboard-live-stats` |
 | Compose project | `ce-<branch-hyphens>` | `ce-feat-dashboard-live-stats` |
 | Traefik host | `ce-<branch>.localhost` | `ce-feat-dashboard-live-stats.localhost` |
 | Host port | `18080 + (worktree-index x 10)` | `18090` |

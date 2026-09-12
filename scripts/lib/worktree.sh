@@ -10,7 +10,7 @@
 #
 # Conventions (see .specs/devcontainers/design.md):
 #   - Branch name:                feat/<spec-id>-<short-slug>
-#   - Worktree path:              ../ControlEasy.<branch-with-slashes>
+#   - Worktree path:              <repo-root>/.worktrees/<branch-with-slashes>
 #   - Compose project name:       ce-<branch-with-slashes-as-hyphens>
 #   - Traefik hostname:           ce-<branch-with-slashes-as-hyphens>.localhost
 #   - Published host port:        18080 + (worktree-index * 10)
@@ -26,7 +26,7 @@ set -euo pipefail
 readonly CE_BASE_PORT=18080
 readonly CE_PORT_STEP=10
 readonly CE_HOST_SUFFIX=".localhost"
-readonly CE_WORKTREE_PREFIX="ControlEasy."
+readonly CE_WORKTREE_DIR=".worktrees"
 readonly CE_PROJECT_PREFIX="ce-"
 readonly CE_VOLUME_SUFFIX="-mysql-data"
 readonly CE_TRAEFIK_PORT_NAME="traefik"  # service name in docker-compose.yml
@@ -93,15 +93,13 @@ ce_mysql_volume_name() {
     "$CE_VOLUME_SUFFIX"
 }
 
-# Worktree directory name (sibling of the main checkout):
-#   ../ControlEasy.<branch-with-slashes>
+# Worktree directory (inside the repo, gitignored):
+#   <repo-root>/.worktrees/<branch-with-slashes>
 ce_worktree_dir() {
   local branch="$1"
   local repo_root
   repo_root="$(git rev-parse --show-toplevel)"
-  local parent
-  parent="$(dirname "$repo_root")"
-  printf '%s/%s%s' "$parent" "$CE_WORKTREE_PREFIX" "$branch"
+  printf '%s/%s/%s' "$repo_root" "$CE_WORKTREE_DIR" "$(ce_branch_to_slug "$branch")"
 }
 
 # Allocate a port for this worktree based on the worktree index (the
@@ -134,7 +132,7 @@ ce_worktree_index() {
   while IFS= read -r line; do
     if [[ "$line" == "worktree "* ]]; then
       ((index++)) || true
-      if [[ "$line" == *"$CE_WORKTREE_PREFIX$slug"* ]]; then
+      if [[ "$line" == *"$CE_WORKTREE_DIR/$slug"* ]]; then
         found=1
         # The main checkout is index 1 (git worktree list's first entry).
         # Worktrees start at index 2, so we subtract 1.

@@ -10,7 +10,7 @@
 # This script reverses scripts/worktree-up.sh:
 #   1. docker compose -p ce-<slug> down -v  (removes containers, networks, volumes)
 #   2. Remove the ce-<slug>.localhost hostname via scripts/lib/resolver.sh.
-#   3. git worktree remove --force ../ControlEasy.<branch>  (unless --keep-worktree)
+#   3. git worktree remove --force .worktrees/<branch-with-slashes>  (unless --keep-worktree)
 #
 # Idempotent: re-running on a torn-down worktree exits 0 with "already down".
 #
