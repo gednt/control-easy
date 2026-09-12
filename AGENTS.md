@@ -1,3 +1,5 @@
+<!-- agents-template-schema 1 -->
+
 # AGENTS.md — ControlEasy Reborn
 
 > **Authoritative project guide.** Binding runtime document for every
@@ -7,176 +9,128 @@
 
 ---
 
-## 0. ⛔ AGENT PRE-FLIGHT GATE — READ BEFORE ANYTHING ELSE
+## Reader contract (minimal)
 
-> **Binding on every agent (main or sub-agent) that writes, deletes,
-> or moves any file in this repository.**
+An agent reading `AGENTS.md` alone (without `AGENTS-SPEC.md`) MUST:
 
-### 0.1 Worktree check (mandatory before any file change)
-
-Before writing, editing, deleting, or moving **any** file in this
-repository — source code, specs, planning docs, AGENTS.md itself,
-anything — an agent MUST verify it is on a feature branch inside a
-git worktree — **not** on `main` or `master`.
-
-**Step 1 — Check the branch:**
-```bash
-git rev-parse --abbrev-ref HEAD
-```
-
-**Step 2 — If the output is `main` or `master`, create a worktree
-automatically.** Do not touch any file until the worktree exists.
-
-1. Derive a branch name from the task context (e.g. `feat/<slug>` or
-   `fix/<slug>`). If the task context is ambiguous, ask the user for
-   the branch name before proceeding.
-2. Compute the worktree path and create it:
-   ```bash
-   # BRANCH = feat/<slug>  (slashes kept in branch name)
-   # PATH   = ../ControlEasy.<branch-with-slashes-as-hyphens>
-   BRANCH="feat/<slug>"
-   WTPATH="../ControlEasy.$(echo $BRANCH | tr / -)"
-   git worktree add "$WTPATH" -b "$BRANCH"
-   ```
-3. All subsequent file edits MUST target the new worktree path, not
-   the main checkout. Announce to the user:
-   ```
-   ✅ Worktree created: <WTPATH>  (branch: <BRANCH>)
-   Working from the worktree for all file changes.
-   ```
-
-**Step 3 — If on a feature branch**, confirm a worktree entry exists:
-```bash
-git worktree list
-```
-If the current directory appears in the output (any line other than
-the main checkout path), the check passes. If the feature branch is
-checked out directly in the main clone (not a dedicated worktree),
-emit this warning — the agent may create a proper worktree with
-`git worktree add` if stronger isolation is needed, but need not halt:
-
-```
-⚠ WORKTREE WARNING
-
-Branch '<branch-name>' is checked out in the main clone, not a
-dedicated worktree. Isolation is reduced.
-Proceeding as requested.
-```
-
-### 0.2 Scope of the gate
-
-- **Applies to:** speckit-implement, openspec-apply-change,
-  bmad-quick-dev, bmad-dev-story, bmad-dev-auto, and **any** file
-  edit — source code (`src/`, `tests/`, `docker/`), specs (`.specs/`),
-  planning docs (`.planning/`), documentation (`docs/`, `AGENTS.md`),
-  or any other file in the repository.
-- **Does NOT apply to:** read-only work and research only. The moment
-  any file is written, edited, deleted, or moved — regardless of
-  whether it is code or documentation — the gate applies.
-- **Sub-agents inherit the gate** and MUST run the check independently.
-
-### 0.3 Override
-
-User may waive for a single session by saying "I know I'm on main,
-proceed anyway." Agent records the waiver in the task completion note
-but does not persist it here.
+1. Treat sections without an `<!-- owner:... -->` comment as **project-owned**: their content is binding for this repository and the agent obeys it.
+2. Treat sections marked `<!-- owner:<workflow> -->` as **workflow-owned**: the agent obeys the *non-empty* blocks for workflows it knows it is running. Empty blocks (between `<!-- owner:<workflow> -->` and `<!-- /owner -->` with no content) are inert.
+3. Honor a freshness stamp (`<!-- verified YYYY-MM-DD against <sha> -->` or `<!-- approved YYYY-MM-DD -->`) on workflow blocks as a cache-invalidation signal. Orientation sections do not carry stamps.
+4. Treat the `## Skill overlays` list as a set of pointers to sibling files. The agent reads those sibling files directly; it does not assume any overlay owns anything in `AGENTS.md`.
+5. Treat the schema header (`<!-- agents-template-schema 1 -->`) as the version this file conforms to. Unknown section names do not error; the agent ignores them.
 
 ---
 
-## 1. Project overview
+## Project
 
-**ControlEasy Reborn** — condominium access-control web platform
-(residents, visitors, vehicles, service providers, apartments, portaria).
+ControlEasy Reborn is a condominium access-control web platform for managing residents, visitors, vehicles, service providers, apartments, and gatehouse ("portaria") operations. Built for condominium administrators, portaria staff, and residents.
 
-**Target architecture:** ASP.NET Core 8 modular monolith + Angular 18
-SPA + MySQL 8 + Docker Compose + JWT bearer. Nine feature modules
-(Residents, Visits, Vehicles, ServiceProviders, Apartments, Security,
-Tenants, Reports, Administration), each with Clean Architecture
-(Domain → Application → Infrastructure → Api).
+**Target architecture:** ASP.NET Core 8 modular monolith + Angular 18 SPA + MySQL 8 + Docker Compose + JWT bearer. Nine feature modules (Residents, Visits, Vehicles, ServiceProviders, Apartments, Security, Tenants, Reports, Administration), each with Clean Architecture (Domain, Application, Infrastructure, Api).
 
 ---
 
-## 2. Workflow tooling (GSD · spec-kit · OpenSpec)
+## Repo anatomy
 
-Three systems, non-overlapping responsibility (constitution Principle VI):
+Orientation for the top-level layout so an agent can find things without guesswork.
 
-| System | Home | Owner | Writes to | Reads from |
-|---|---|---|---|---|
-| **GSD** | `.planning/` | `.agents/skills/gsd-*` | `.planning/` (roadmap, STATE, milestone archive) | `.specs/`, `openspec/` |
-| **spec-kit** | `.specs/`, `.specify/` | `.agents/skills/speckit-*` | `.specs/<feature>/`, `.specify/`; updates `STATE.md` + `PROJECT.md` when state changes | `.planning/` |
-| **OpenSpec** | `openspec/` | `.agent/skills/openspec-*` | `openspec/changes/<id>/`; syncs spec-kit `tasks.md` during `/opsx:apply` | `.planning/`, `.specs/` |
+- `src/` — ASP.NET Core 8 solution, Angular 18 SPA, shared building blocks, and nine feature modules. Tracked source.
+  - `src/Host/ControlEasyReborn.Api/` — API host (minimal API endpoints, DI registration).
+  - `src/Web/ControlEasyReborn.Web/` — Angular 18 SPA (standalone components, signals).
+  - `src/BuildingBlocks/` — shared cross-cutting code (auth, error handling, middleware).
+  - `src/Modules/<Feature>/{Domain,Application,Infrastructure,Api}/` — nine feature modules.
+  - `src/Directory.Build.props`, `src/Directory.Packages.props` — central build properties and package versioning.
+  - `src/ControlEasyReborn.sln` — the solution file.
+- `tests/` — xUnit test projects. Tracked source.
+  - `tests/ControlEasyReborn.UnitTests/` — unit tests.
+  - `tests/ControlEasyReborn.IntegrationTests/` — integration tests (Testcontainers.MySql).
+  - `tests/ControlEasyReborn.ArchitectureTests/` — NetArchTest architecture rules.
+  - `tests/a11y/`, `tests/visual/` — accessibility and visual regression tests.
+- `docker/` — Docker Compose files, Dockerfiles, MySQL init scripts. Tracked source.
+  - `docker/docker-compose.yml` — main stack (api, web, db, reverse-proxy, adminer, seq).
+  - `docker/docker-compose.demo.yml` — demo overlay (pre-populated data, fixed credentials; never in production).
+  - `docker/docker-compose.worktree.template.yml` — per-worktree override template.
+- `.planning/` — GSD-core workflow directory. Roadmap, state, phases, milestones. Workflow-owned.
+- `.specs/` — spec-kit per-feature specifications (requirements / design / tasks). Workflow-owned (spec-kit).
+- `.specify/` — spec-kit configuration and memory (constitution). Workflow-owned (spec-kit).
+- `openspec/` — OpenSpec change-tracking (opt-in). Workflow-owned.
+- `_bmad/` — BMAD workflow configuration and skills. Workflow-owned.
+- `_bmad-output/` — BMAD planning artifacts. Workflow-owned.
+- `agents-init/` — agents-template onboarding skill (canonical SKILL.md). Overlay-owned.
+- `docs/` — operator and developer documentation. Tracked source.
+- `scripts/` — worktree management and utility scripts. Tracked source.
+- `mockup/` — UI mockup reference files. Tracked source.
+- `Makefile` — convenience targets (up, down, test, build, restore, clean).
+- `global.json` — .NET SDK version pinning.
+- `AGENTS-TEMPLATE.md`, `AGENTS-SPEC.md` — agents-template schema artifacts (read before editing this file).
 
-**OpenSpec is opt-in.** Only the user decides to create an
-`openspec/changes/<id>/` folder. Most changes are spec-kit only.
+Rules of thumb:
 
-**Auto-tool selection (no explicit invocation required).** Agents MUST
-read the user's intent and automatically invoke the right tool —
-the user does not need to name BMAD, GSD, spec-kit, or OpenSpec
-explicitly. Use this decision table:
-
-| User intent | Tool to invoke |
-|---|---|
-| Implement a feature, bug fix, or refactor | **spec-kit** → `speckit-specify` → `speckit-plan` → `speckit-tasks` → `speckit-implement` |
-| Review, analyse, or quality-check code | **BMAD** → `bmad-code-review` / `bmad-review-adversarial-general` / `bmad-review-edge-case-hunter` |
-| Plan phases, update roadmap, transition milestones | **GSD** → appropriate `gsd-*` skill |
-| Propose or implement a structured change with delta-specs | **OpenSpec** → `openspec-propose` / `openspec-apply-change` (user opt-in only) |
-| Write or update documentation | **BMAD** → `bmad-agent-tech-writer` |
-| Design UX / UI | **BMAD** → `bmad-ux` / `bmad-agent-ux-designer` |
-| Architecture decision | **BMAD** → `bmad-architecture` or `bmad-agent-architect` |
-
-When the intent is ambiguous, pick the most likely tool and announce
-the choice: *"I'll use spec-kit to implement this — let me know if
-you meant something else."* Do not wait for the user to spell out
-the skill name.
-
-**Sub-agents** may cross tool seams but MUST write only to their own
-tool's directory. Sub-agents run the worktree gate independently.
-
-**Concurrency budget:** max 3 sub-agents in flight per level (1 main +
-3 subs). Exceeding the budget requires an explicit rationale recorded
-in `proposal.md`, `design.md`, or `tasks.md` for the wave in question.
-See `docs/agent-flow-cheatsheet.md` for lifecycle diagrams and command tables.
+- Generated output (`bin/`, `obj/`, `node_modules/`, `dist/`) is gitignored; do not document it.
+- Configuration files at the repo root are project-owned; do not put policy or conventions in them.
 
 ---
 
-## 3. Target stack
+## Build, test, and development commands
 
-| Layer | Choice | Hard constraints |
-|---|---|---|
-| Frontend | Angular 18+ SPA, standalone, signals, TS strict | DTOs from OpenAPI (`ng-openapi-gen`); no shared domain models |
-| Backend | ASP.NET Core 8, C# 12, minimal API endpoints | No MVC controllers; no MediatR; no EF Core |
-| Data access | DBTools 1.4.3 (`Linq<TModel>`, `IAsyncSqlClient`) | LINQ-first; raw SQL only for stored procs; no EF Core (ADR 0002) |
-| Database | MySQL 8, provider-agnostic | No hard-coded credentials — env vars / Docker secrets |
-| Auth | JWT bearer + BCrypt (cost ≥ 11) | Secrets never in `App.config` |
-| Runtime | Docker Compose: `api`, `web`, `db`, `reverse-proxy`, `adminer`, `seq` | Multi-stage Dockerfiles; Compose v2 |
-| Mapping | Mapster or AutoMapper | |
-| Validation | FluentValidation | |
-| Testing | xUnit + FluentAssertions + NSubstitute + Testcontainers.MySql + Playwright | Karma + Jasmine for Angular unit |
-| Error handling | `ProblemDetails` (RFC 7807); Serilog → Console(JSON) + Seq | Domain exceptions: `NotFoundException`, `ValidationException`, `ConflictException` |
+Canonical commands an agent should run. The project uses Docker Compose for the full stack and .NET / npm for individual layers.
 
-**Coding conventions:** `PascalCase` types/methods, `_camelCase` private
-fields, `ALL_CAPS` const, file-scoped namespaces, `sealed` classes by
-default, nullable enabled, warnings as errors. REST routes: kebab-case,
-plural nouns (`/api/v1/residents`). Module layout:
-`Modules/<Feature>/{Domain,Application,Infrastructure,Api}/`. All
-tenant-scoped reads/writes via `ITenantAwareLinqFactory`. Full
-conventions: `.planning/codebase/CONVENTIONS.md`.
+### Build
+
+- `dotnet build src/ControlEasyReborn.sln` — build the entire .NET solution.
+- `cd src/Web/ControlEasyReborn.Web && npm run build` — build the Angular SPA (runs `ng-openapi-gen` first via `prebuild`).
+- `docker compose -f docker/docker-compose.yml build` — build all container images.
+
+### Test
+
+- `dotnet test tests/ControlEasyReborn.UnitTests` — unit tests (xUnit + FluentAssertions + NSubstitute).
+- `dotnet test tests/ControlEasyReborn.IntegrationTests` — integration tests (Testcontainers.MySql).
+- `dotnet test tests/ControlEasyReborn.ArchitectureTests` — architecture rules (NetArchTest.Rules).
+- `cd src/Web/ControlEasyReborn.Web && npm test -- --no-watch --browsers=ChromeHeadless` — Angular unit tests (Karma + Jasmine).
+- `cd src/Web/ControlEasyReborn.Web && npm run e2e` — Playwright E2E tests. Set `E2E_BASE_URL=https://ce-<branch>.localhost:<port>`.
+
+### Lint / format
+
+- `cd src/Web/ControlEasyReborn.Web && npm run lint` — ESLint (`@angular-eslint/recommended`).
+- `cd src/Web/ControlEasyReborn.Web && npm run format` — Prettier (single quotes, 120 cols).
+- `cd src/Web/ControlEasyReborn.Web && npm run openapi-check` — verify OpenAPI-generated types are up to date.
+
+### Local development
+
+- `docker compose -f docker/docker-compose.yml up -d --build` — full stack (canonical first boot).
+- `docker compose -f docker/docker-compose.yml -f docker/docker-compose.demo.yml up -d --build` — demo mode overlay.
+- `cd src/Web/ControlEasyReborn.Web && npm start` — Angular dev server only.
+- `make up` / `make down` / `make test` / `make build` — Makefile convenience targets.
+
+Containers: the compose file is `docker/docker-compose.yml`. The project-name convention is `ce-<branch-hyphens>` (e.g., `ce-feat-dashboard-live-stats`). Worktree compose overrides use `docker/docker-compose.worktree.template.yml`. See `docs/dev-setup.md` for the full devcontainer + worktree guide.
 
 ---
 
-## 4. Local development
+## Policy
 
-Canonical mode: **devcontainer + per-feature worktree** (DooD — Docker-
-out-of-Docker). Full setup guide: `docs/dev-setup.md`.
+Hard rules an agent must not violate, beyond what the workflows enforce.
 
-| Mode | When to use |
-|---|---|
-| **D — Devcontainer + worktree** (canonical) | All new work. Open repo in VS Code / Cursor / JetBrains Gateway |
-| A — Full Docker on host | Devcontainer unavailable (plain terminal) |
-| B — Hybrid (host tooling + Docker DB) | Fast inner loops |
-| C — Demo overlay | `docker-compose.demo.yml` over A or D; **never in production** |
+- **No EF Core.** DBTools (`Linq<TModel>`, `IAsyncSqlClient`) is the only data-access library. LINQ-first; raw SQL only for stored procs (ADR 0002).
+- **No MediatR.** Handlers are registered as scoped services directly.
+- **No MVC controllers.** Minimal API endpoint classes only.
+- **All tenant-scoped reads/writes via `ITenantAwareLinqFactory`.** No cross-tenant data access.
+- **Secrets never in `App.config`.** Use environment variables or Docker secrets.
+- **BCrypt cost >= 11** for password hashing.
+- **`ProblemDetails` (RFC 7807)** for all error responses. Domain exceptions: `NotFoundException`, `ValidationException`, `ConflictException`.
+- **Serilog** structured logging to Console (JSON) + Seq.
+- **spec-kit** is the per-feature specification system. Specs live in `.specs/<feature>/`. Configuration and constitutional memory in `.specify/`. spec-kit owns `.specs/` and `.specify/` and updates `STATE.md` + `PROJECT.md` when state changes.
+- **Three workflow systems, non-overlapping responsibility:** GSD owns `.planning/`, spec-kit owns `.specs/` and `.specify/`, OpenSpec is opt-in at user discretion (only the user creates `openspec/changes/<id>/`).
 
-**Worktree naming convention:**
+### Git worktree rule (recommended for adoption)
+
+- **All Git work happens in a worktree.** When an agent (AI or human) is making a change, never commit, branch, push, or merge on `main`. The only permitted operation on `main` is fast-forwarding `main` to a feature branch's tip after a human has reviewed and approved the change. Create a dedicated Git worktree at `../ControlEasy.<branch-with-slashes-as-hyphens>` on a branch `feat/<slug>` or `fix/<slug>`, where `<slug>` is a semantic, lowercase, hyphen-separated name describing the change.
+- **The agent reports done; the human merges on `main`.** The agent commits, branches, and pushes inside the worktree, then stops. The agent MUST NOT run `git merge` on `main` for any reason. The only exception: the human explicitly says, in the current turn, "merge on main."
+- **Pre-flight check before creating a worktree.** Use only read-only Git commands to confirm that the branch does not already exist and that the worktree path is not already in use. If either exists, abort and pick a different slug.
+- **One task, one worktree, one branch.** Do not reuse a slug, a branch, or a worktree path between concurrent tasks.
+- **Canonical command.** `git worktree add "../ControlEasy.$(echo $BRANCH | tr / -)" -b "$BRANCH"` is the canonical way to create the worktree.
+- **Clean up after merge.** After a change merges to `main` and is verified, remove only the worktree you created: `git worktree remove <path>`. Do not touch unrelated worktrees, branches, or paths.
+- **No force-push, no rewriting shared history.** Do not rewrite commits that have been pushed or that other worktrees share. Local-only history rewrites (interactive rebase before push) are allowed when no one else depends on the branch.
+
+#### Worktree naming convention
 
 | Item | Pattern | Example |
 |---|---|---|
@@ -184,156 +138,90 @@ out-of-Docker). Full setup guide: `docs/dev-setup.md`.
 | Worktree path | `../ControlEasy.<branch-with-slashes>` | `../ControlEasy.feat-dashboard-live-stats` |
 | Compose project | `ce-<branch-hyphens>` | `ce-feat-dashboard-live-stats` |
 | Traefik host | `ce-<branch>.localhost` | `ce-feat-dashboard-live-stats.localhost` |
-| Host port | `18080 + (worktree-index × 10)` | `18090` |
+| Host port | `18080 + (worktree-index x 10)` | `18090` |
 | DB volume | `ce-<branch>-mysql-data` | `ce-feat-dashboard-live-stats-mysql-data` |
 
-Scripts: `scripts/worktree-up.ps1` / `.sh` (create),
-`scripts/worktree-down.ps1` / `.sh` (tear down).
+Scripts: `scripts/worktree-up.ps1` / `.sh` (create), `scripts/worktree-down.ps1` / `.sh` (tear down).
 
 ---
 
-## 5. Post-task verification
+## Workflow blocks
 
-After **every implementation task**, rebuild and verify before marking
-done. Do **not** run `dotnet` on the host — use the devcontainer shell.
+Each block below is owned by one workflow. The block is **inert** when empty — an agent that does not run that workflow ignores it. Workflows may replace the contents of their own block on refresh. Workflows MUST NOT modify another workflow's block.
 
-```bash
-# Standard (main checkout or worktree — substitute project name for worktrees)
-PROJ="ce-$(git rev-parse --abbrev-ref HEAD | tr / -)"
-docker compose -p "$PROJ" -f docker/docker-compose.yml build api web
-docker compose -p "$PROJ" -f docker/docker-compose.yml up -d --force-recreate api web
-dotnet test tests/ControlEasyReborn.UnitTests
-dotnet test tests/ControlEasyReborn.IntegrationTests
-dotnet test tests/ControlEasyReborn.ArchitectureTests
+### BMAD
 
-# Demo overlay (tasks touching .specs/4 - demo-mode/ only)
-docker compose -p "$PROJ" -f docker/docker-compose.yml -f docker/docker-compose.demo.yml build api web
+<!-- owner:bmad -->
+<!-- BMAD's project-context skill writes its durable context here. Delete this block if the project does not use BMAD. -->
+<!-- /owner -->
 
-# Schema/seed change — reset volumes first
-docker compose -p "$PROJ" -f docker/docker-compose.yml down -v
-docker compose -p "$PROJ" -f docker/docker-compose.yml up -d --build
-```
+### GSD-core
 
-A task is **not closed** until the rebuilt stack starts healthy and all
-three test projects pass.
+<!-- owner:gsd -->
+<!-- GSD's onboarding skill writes its state slice here. Delete this block if the project does not use GSD-core. -->
+<!-- /owner -->
 
-### 5.1 Pre-commit adversarial review (mandatory before any `git commit`)
+### openspec
 
-**No agent may run `git commit` until both gates below pass in order.**
+<!-- owner:openspec -->
+<!-- openspec's onboarding writes its change-proposal pointer here. Delete this block if the project does not use openspec. -->
+<!-- /owner -->
 
-**Gate 1 — Build + tests green** (see commands above).
+### Other workflows
 
-**Gate 2 — Adversarial review subagent.** After Gate 1 passes, invoke
-one of the following skills as a subagent against the diff/change set:
-
-| Situation | Skill to invoke as subagent |
-|---|---|
-| General feature or fix | `bmad-code-review` |
-| Security-sensitive change, auth, data access | `bmad-review-adversarial-general` |
-| Algorithm-heavy or branching logic | `bmad-review-edge-case-hunter` |
-
-The subagent reviews the code and returns a findings report. The
-implementing agent MUST:
-
-1. **Block on any `CRITICAL` or `HIGH` finding** — fix it, re-run
-   Gate 1, and re-invoke the review subagent before committing.
-2. **Annotate `MEDIUM` findings** in the commit message or a
-   follow-up task in `tasks.md` — they do not block commit.
-3. **Log `LOW` / informational findings** in `tasks.md` as tech-debt
-   items — they do not block commit.
-
-Only after the review subagent returns with zero `CRITICAL`/`HIGH`
-blockers may the agent run `git commit`.
+Add a new `<!-- owner:<workflow> -->` block here when adopting a new workflow. Document the block in `AGENTS-SPEC.md` (see Extension protocol).
 
 ---
 
-## 6. Spec structure (per feature)
+## Skill overlays
 
-```text
-.specs/
-└── <feature-or-bug-fix>/
-    ├── requirements.md   # User stories UC[n]
-    ├── design.md         # Feature design (use for features)
-    ├── bugfix.md         # Bug analysis (use for bug fixes)
-    ├── review.md         # Branch review findings
-    ├── analysis.md       # General code analysis
-    ├── docplan.md        # New documentation plan
-    ├── docchange.md      # Existing documentation update plan
-    └── tasks.md          # Implementation checklist + Task Dependency Graph
-```
+Skill overlays do not own any block in `AGENTS.md`. They are **sibling files** that the agent reads directly when needed.
 
-`tasks.md` always includes a dependency graph (`{ "waves": [...] }`).
-Tasks in the same wave are parallel; a wave starts only when all tasks
-in the prior wave are complete.
+- **agents-template** — `AGENTS-TEMPLATE.md` (canonical template), `AGENTS-SPEC.md` (reader contract spec), `agents-init/SKILL.md` (onboarding skill). Read template + spec before editing this file; run `agents-init` to scaffold or refresh `AGENTS.md`.
 
-Artifacts are produced by: GSD skills (`gsd-*`), BMAD skills
-(`bmad-*`), spec-kit skills (`speckit-*`). OpenSpec opt-in: only the
-user creates `openspec/changes/<id>/` — no agent does this
-autonomously.
+If a project stops using an overlay, remove its line. Do not leave stale pointers.
 
 ---
 
-## 7. Documentation source-of-truth map
+## Language conventions
 
-| Topic | Canonical home |
-|---|---|
-| Project overview | This file § 1 + `.planning/PROJECT.md` |
-| Architecture | This file § 3 + `.planning/codebase/ARCHITECTURE.md` |
-| Modules | `.planning/codebase/STRUCTURE.md` |
-| Local dev / worktrees | `docs/dev-setup.md` |
-| Post-task verification | This file § 5 |
-| Spec structure | This file § 6 |
-| Workflow tooling / lifecycle | This file § 2 + `docs/agent-flow-cheatsheet.md` |
-| Codebase maps | `.planning/codebase/*.md` |
-| Per-feature spec | `.specs/<feature>/{requirements,design,tasks,...}.md` |
-| Constitution | `.specify/memory/constitution.md` |
-| Roadmap / requirements / state | `.planning/{ROADMAP,REQUIREMENTS,STATE}.md` |
-| ADRs | `GSD STATE.md` (decision + rationale); `docs/architecture/decisions/` (historical) |
-| Design system | `docs/design-system/`, `.specs/2 - visual-design-system/` |
-| Operator docs | `docs/getting-started.md`, `docs/demo-mode.md` |
+### C#
 
-**Do not** update legacy `docs/` files. Update the canonical home
-listed above. Legacy files carry redirect notes; retirement is gated
-on `/gsd-complete-milestone`.
+- File-scoped namespaces.
+- `sealed` classes by default.
+- `PascalCase` types and methods; `_camelCase` private fields; `ALL_CAPS` constants.
+- Nullable enabled (`<Nullable>enable</Nullable>`).
+- Warnings as errors (`<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`).
+- Central package versioning (`Directory.Packages.props`).
+- REST routes: kebab-case, plural nouns (`/api/v1/residents`).
+- Module layout: `Modules/<Feature>/{Domain,Application,Infrastructure,Api}/`.
 
----
+### Angular / TypeScript
 
-## 8. Build / Run / Test (quick reference)
-
-```bash
-# Stack
-docker compose -f docker/docker-compose.yml up -d --build
-
-# .NET
-dotnet build src/ControlEasyReborn.sln
-dotnet test  src/ControlEasyReborn.sln
-dotnet test tests/ControlEasyReborn.UnitTests --filter "FullyQualifiedName~CreateApartmentHandler"
-
-# Angular
-cd src/Web/ControlEasyReborn.Web
-npm test -- --no-watch --browsers=ChromeHeadless
-
-# Playwright E2E
-npm run e2e:install  # one-time
-E2E_BASE_URL=https://ce-<branch>.localhost:<port> npm run e2e
-```
+- Standalone components (`standalone: true`).
+- `OnPush` change detection.
+- Signals API for reactive state.
+- `ce-` component prefix; kebab-case selectors.
+- ESLint `@angular-eslint/recommended`; Prettier single quotes + 120 cols.
+- TypeScript strict mode.
+- DTOs generated from OpenAPI via `ng-openapi-gen`; no shared domain models between frontend and backend.
 
 ---
 
-## 9. Style guardrails (enforced)
+## Conventions that differ from defaults
 
-- **C#:** file-scoped namespaces, `sealed` classes, `_camelCase` private
-  fields, `PascalCase` types/methods, nullable enabled, warnings as errors.
-- **Angular:** `standalone: true`, `OnPush`, signals API, `ce-` prefix,
-  kebab-case selectors, ESLint `@angular-eslect/recommended`, Prettier
-  single quotes + 120 cols.
-- **No MVC controllers.** Minimal API endpoint classes only.
-- **No EF Core.** DBTools only (ADR 0002).
-- **No MediatR.** Handlers registered as scoped services directly.
-- **All tenant-scoped reads/writes via `ITenantAwareLinqFactory`.**
+- **Stack:** ASP.NET Core 8 (C# 12, minimal API endpoints) + Angular 18 SPA + MySQL 8 + Docker Compose + JWT bearer.
+- **Data access:** DBTools 1.4.3 (`Linq<TModel>`, `IAsyncSqlClient`). No EF Core (ADR 0002). LINQ-first; raw SQL only for stored procs.
+- **Mapping:** Mapster.
+- **Validation:** FluentValidation.
+- **Testing:** xUnit + FluentAssertions + NSubstitute + Testcontainers.MySql + Playwright. Karma + Jasmine for Angular unit tests.
+- **Runtime:** Docker Compose services: `api`, `web`, `db`, `reverse-proxy`, `adminer`, `seq`. Multi-stage Dockerfiles. Compose v2.
+- **Error handling:** `ProblemDetails` (RFC 7807); Serilog to Console (JSON) + Seq. Domain exceptions: `NotFoundException`, `ValidationException`, `ConflictException`.
+- **Auto-tool selection:** Agents read the user's intent and automatically invoke the right tool (spec-kit for implementation, BMAD for review/analysis, GSD for phase planning, OpenSpec for structured delta-specs at user opt-in). See `docs/agent-flow-cheatsheet.md` for lifecycle diagrams.
+- **Concurrency budget:** Max 3 sub-agents in flight per level (1 main + 3 subs). Exceeding requires explicit rationale in the wave's `proposal.md`, `design.md`, or `tasks.md`.
+- **Post-task verification:** After every implementation task, rebuild and verify: `docker compose -p "$PROJ" -f docker/docker-compose.yml build api web && up -d --force-recreate api web`, then run all three test projects. A task is not closed until the rebuilt stack starts healthy and all tests pass.
+- **Pre-commit adversarial review:** No agent may `git commit` until (1) build + tests are green and (2) an adversarial review subagent returns zero CRITICAL/HIGH findings. See existing AGENTS.md archive for full gate procedure.
 
 ---
 
-*Constitutional authority: `.specify/memory/constitution.md` v1.3.0.
-GSD owns `.planning/`. spec-kit owns `.specs/` and `.specify/`.
-OpenSpec is opt-in at the user's discretion.*
+<!-- agents-template-schema 1 -->
