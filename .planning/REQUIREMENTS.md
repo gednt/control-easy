@@ -9,21 +9,21 @@ Requirements for the v1.1 "UI & Dashboard" milestone. These continue the REQ-IDs
 
 ### UI — Visual Parity & Functional Fixes
 
-- [ ] **UI-03**: Mockup visual parity — app shell, login, residents, showcase, dashboard, and feature pages match `mockup/` + `docs/penpot/` at 375/768/1440px in light/dark themes
+- [~] **UI-03**: Mockup visual parity — app shell, login, residents, showcase, dashboard, and feature pages match `mockup/` + `docs/penpot/` at 375/768/1440px in light/dark themes
   - [ ] **UI-03a**: Shared `ce-icon` component backed by Lucide replaces Unicode glyphs across sidebar, topbar, login, and residents pages
   - [ ] **UI-03b**: Mobile drawer slides in with dark backdrop below 640px; topbar hamburger toggles it
   - [ ] **UI-03c**: Topbar parity — breadcrumbs, debounced global search, notifications bell, theme toggle, avatar-driven profile menu
   - [ ] **UI-03d**: Login and change-password pages use `ce-input`, `ce-checkbox`, `ce-button` (no duplicated component CSS)
-  - [ ] **UI-03e**: Residents page parity — stat tiles, status tabs, block/sort filters, sortable table, pagination, row action menu, add/edit/deactivate modals, recent-activity card
+  - [x] **UI-03e**: Residents page parity — stat tiles, status tabs, block/sort filters, sortable table, pagination, row action menu, add/edit/deactivate modals, recent-activity card *(commit `0976037`)*
   - [ ] **UI-03f**: All feature pages (visits, vehicles, apartments, service-providers, administration, condominiums) import `ce-*` components; duplicated CSS removed
   - [ ] **UI-03g**: Dashboard stat grid and showcase page align with mockup (no variant/size drift)
   - [ ] **UI-03h**: Playwright visual regression snapshots for `/login`, `/residents`, `/` (dashboard) at light/dark × 375/1440
-- [ ] **UI-04**: Mockup functional fixes — every interactive component in `mockup/` behaves correctly
-  - [ ] **UI-04a**: Modals and dropdowns hidden by default; open/close with backdrop, Escape, outside click; first-field focus on open
-  - [ ] **UI-04b**: Topbar search and residents search filter table client-side (case-insensitive substring); pagination footer updates to "Showing X–Y of Z"
-  - [ ] **UI-04c**: "All / Active / Pending / Overdue" status tabs filter the table and update count badges
-  - [ ] **UI-04d**: "Sort" dropdown re-sorts the table (Apartment, Last visit, etc.)
-  - [ ] **UI-04e**: Pagination navigation — page 2/3 shows rows 11–20 / 21–30, active highlight moves, Prev/Next enable/disable
+- [~] **UI-04**: Mockup functional fixes — every interactive component in `mockup/` behaves correctly
+  - [~] **UI-04a**: Modals and dropdowns hidden by default; open/close with backdrop, Escape, outside click; first-field focus on open *(residents page shipped; other pages unverified)*
+  - [x] **UI-04b**: Topbar search and residents search filter table client-side (case-insensitive substring); pagination footer updates to "Showing X–Y of Z" *(residents page, commit `0976037`)*
+  - [x] **UI-04c**: "All / Active / Pending / Overdue" status tabs filter the table and update count badges *(residents page, commit `0976037`)*
+  - [x] **UI-04d**: "Sort" dropdown re-sorts the table (Apartment, Last visit, etc.) *(residents page, commit `0976037`)*
+  - [x] **UI-04e**: Pagination navigation — page 2/3 shows rows 11–20 / 21–30, active highlight moves, Prev/Next enable/disable *(residents page, commit `0976037`)*
   - [ ] **UI-04f**: Login form — submit spinner with `aria-busy`, demo creds `test@test.com`/`test123` land on `app.html`, <6-char password validation, `fail@x.com` inline 401 error, `ratelimit@x.com` "Too many attempts" with 15s lockout, "multi" emails show tenant picker
   - [ ] **UI-04g**: Password eye icon toggles input type and swaps icon
   - [ ] **UI-04h**: "Use a different account" returns to empty login form (email cleared if "Remember me" unchecked)
@@ -32,9 +32,9 @@ Requirements for the v1.1 "UI & Dashboard" milestone. These continue the REQ-IDs
 
 ### DASH — Dashboard & Vehicle Edit
 
-- [ ] **DASH-01**: `GET /api/v1/dashboard/stats` endpoint returns aggregate counts (total/active residents, total/active vehicles, total/occupied apartments, open/today visits) and a recent-visits list; tenant-scoped; authorized
-- [ ] **DASH-02**: Dashboard page UI — stat tiles (Active Residents, Active Vehicles, Occupied Apartments, Open Visits) linking to feature pages, recent-visits table, loading and error states, using `ce-*` design-system components
-- [ ] **DASH-04**: Vehicle edit UI — `update()` and `get()` methods in `VehiclesApiService`, edit modal mirroring residents pattern, edit/deactivate action buttons in table rows, vehicle-type dropdown on create and edit, `Vehicles.Write` permission checks
+- [x] **DASH-01**: `GET /api/v1/dashboard/stats` endpoint returns aggregate counts (total/active residents, total/active vehicles, total/occupied apartments, open/today visits) and a recent-visits list; tenant-scoped; authorized
+- [x] **DASH-02**: Dashboard page UI — stat tiles (Active Residents, Active Vehicles, Occupied Apartments, Open Visits) linking to feature pages, recent-visits table, loading and error states, using `ce-*` design-system components
+- [x] **DASH-04**: Vehicle edit UI — `update()` and `get()` methods in `VehiclesApiService`, edit modal mirroring residents pattern, edit/deactivate action buttons in table rows, vehicle-type dropdown on create and edit, `Vehicles.Write` permission checks
 
 ## v2.0 Requirements — Gatehouse Photo & Consent Ledger
 
@@ -42,14 +42,14 @@ Requirements for the v2.0 milestone. Photo capture is browser-based (camera + up
 
 ### Photo Capture & Storage
 
-- [ ] **PHOTO-01**: Storage infrastructure & API — `IStorageProvider` (local + S3/MinIO), `photos` table, `photos.read`/`photos.write`/`photos.delete` permissions, upload/retrieve/soft-delete endpoints, env-var config
+- [x] **PHOTO-01**: Storage infrastructure & API — `IStorageProvider` (local + S3/MinIO), `photos` table, `photos.read`/`photos.write`/`photos.delete` permissions, upload/retrieve/soft-delete endpoints, env-var config *(commit `d895c01`)*
 - [ ] **PHOTO-02**: Browser capture & compression — `ce-photo-capture` component (`getUserMedia` + file upload), resize ≤1280px → JPEG ≤500KB, EXIF strip, 128×128 thumbnail client-side, upload retry (3× backoff), `ce-photo` display component, integration into resident/visitor/vehicle/service-provider pages
 
 ### Consent Policy & Gatehouse Workflow
 
-- [ ] **CONSENT-01**: Consent policy config — per-tenant per-category toggle (dwellers/visitors/service-providers/vehicles × photo_required), `tenant_consent_policy` table, editable by tenant admin, no rules engine
-- [ ] **CONSENT-02**: Gatehouse entry workflow — four entry states (`entered_with_consent` / `entered_override` / `gatehouse_only` / `denied`), `consent_audit_log` table (append-only, millisecond timestamps), hard DB constraint (consent entry = photo non-null), override reason codes (hardcoded: emergency/vouched), 3-second workflow target
-- [ ] **CONSENT-03**: Audit review & export — filter by date/category/state/porteiro, override highlighting, CSV export with millisecond timestamps, `recorded_at` cross-referenceable with external CCTV
+- [x] **CONSENT-01**: Consent policy config — per-tenant per-category toggle (dwellers/visitors/service-providers/vehicles × photo_required), `tenant_consent_policy` table, editable by tenant admin, no rules engine *(commit `d895c01`)*
+- [x] **CONSENT-02**: Gatehouse entry workflow — four entry states (`entered_with_consent` / `entered_override` / `gatehouse_only` / `denied`), `consent_audit_log` table (append-only, millisecond timestamps), hard DB constraint (consent entry = photo non-null), override reason codes (hardcoded: emergency/vouched), 3-second workflow target *(backend shipped, commit `d895c01`; UI not started)*
+- [~] **CONSENT-03**: Audit review & export — filter by date/category/state/porteiro, override highlighting, CSV export with millisecond timestamps, `recorded_at` cross-referenceable with external CCTV *(backend shipped: `GET /api/v1/entry-log/export` CSV + list filters; UI not started, commit `d895c01`)*
 
 ## v2.1 Requirements — Door Integration (Optional)
 
@@ -96,16 +96,16 @@ Populated during roadmap creation. Each v1.1 requirement maps to exactly one pha
 
 | Requirement | Phase | Spec | Status |
 |-------------|-------|------|--------|
-| UI-03 (and UI-03a–h) | Phase 9 | `mockup-visual-parity` | Pending |
-| UI-04 (and UI-04a–j) | Phase 9 | `2-mockup-functional-fixes` | Pending |
-| DASH-01 | Phase 10 | `dashboard` | Pending |
-| DASH-02 | Phase 10 | `dashboard` | Pending |
-| DASH-04 | Phase 10 | `vehicle-edit` | Pending |
-| PHOTO-01 | Phase 11 | `photo-capture` | Pending |
+| UI-03 (and UI-03a–h) | Phase 9 | `mockup-visual-parity` | Partial (UI-03e done; others pending) |
+| UI-04 (and UI-04a–j) | Phase 9 | `2-mockup-functional-fixes` | Partial (UI-04b–e done; others pending) |
+| DASH-01 | Phase 10 | `dashboard` | ✅ Done |
+| DASH-02 | Phase 10 | `dashboard` | ✅ Done |
+| DASH-04 | Phase 10 | `vehicle-edit` | ✅ Done |
+| PHOTO-01 | Phase 11 | `photo-capture` | ✅ Done (commit `d895c01`) |
 | PHOTO-02 | Phase 12 | `photo-capture` | Pending |
-| CONSENT-01 | Phase 13 | `consent-gatehouse` | Pending |
-| CONSENT-02 | Phase 13 | `consent-gatehouse` | Pending |
-| CONSENT-03 | Phase 13 | `consent-gatehouse` | Pending |
+| CONSENT-01 | Phase 13 | `consent-gatehouse` | ✅ Done (backend, commit `d895c01`) |
+| CONSENT-02 | Phase 13 | `consent-gatehouse` | ✅ Backend done; UI pending |
+| CONSENT-03 | Phase 13 | `consent-gatehouse` | Partial (backend done; UI pending) |
 | DOOR-01 | Phase 14 | `door-integration` | Pending (gated on hardware) |
 | DOOR-02 | Phase 15 | `door-integration` | Pending (gated on Phase 14) |
 | DOOR-03 | Phase 15 | `door-integration` | Pending (gated on Phase 14) |
@@ -113,13 +113,22 @@ Populated during roadmap creation. Each v1.1 requirement maps to exactly one pha
 | ARCH-02 | Fast-cycle | `1 - modernization-roadmap-arm64` | Pending |
 
 **Coverage:**
-- v1.1 requirements: 5 top-level (22 atomic sub-requirements)
-- v2.0 requirements: 5 top-level (PHOTO-01, PHOTO-02, CONSENT-01, CONSENT-02, CONSENT-03)
-- v2.1 requirements: 3 top-level (DOOR-01, DOOR-02, DOOR-03)
-- Fast-cycle: 2 (ARCH-01, ARCH-02)
+- v1.1 requirements: 5 top-level (22 atomic sub-requirements) — 3 done (DASH-01/02/04), 2 partial (UI-03, UI-04)
+- v2.0 requirements: 5 top-level (PHOTO-01, PHOTO-02, CONSENT-01, CONSENT-02, CONSENT-03) — 3 done + 1 partial (CONSENT-03 backend done, UI pending) + 1 pending (PHOTO-02)
+- v2.1 requirements: 3 top-level (DOOR-01, DOOR-02, DOOR-03) — all pending (gated on hardware)
+- Fast-cycle: 2 (ARCH-01, ARCH-02) — pending
 - Mapped to phases: 15/15
 - Unmapped: 0
 
+## Unplanned Shipped Work (Post-v1.0)
+
+The following work was shipped after v1.0 without being tracked in the requirements:
+
+- **TENANT-STAFF-01**: Full staff lifecycle management for condominiums — admin form in Manage modal, admin actions (edit/suspend/resume/revoke/delete), porteiro actions (edit/suspend/resume/delete), first-admin requirement on tenant registration, last-admin guard, duplicate email rejection, endpoint hardening, 13 new unit tests *(commit `55377a0`, 2026-09-12)*
+- **BOOTSTRAP-FIX-01**: First-boot DB race and silent seed failure fix *(commit `cd887af`)*
+- **TRAEFIK-TLS-01**: HTTPS/TLS and HTTP redirection configured in Traefik reverse-proxy *(commit `ada7116`)*
+- **WORKTREE-FIX-01**: Worktree scripts support `.worktrees/` layout and fix template port binding *(commit `9278cc1`)*
+
 ---
 *Requirements defined: 2026-08-23*
-*Last updated: 2026-08-23 — v2.0 + v2.1 requirements added from party-mode design session*
+*Last updated: 2026-09-12 — audited against codebase; DASH-01/02/04, PHOTO-01, CONSENT-01/02 marked done; UI-03/04 marked partial; unplanned shipped work added*

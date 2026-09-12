@@ -12,21 +12,28 @@ Gatehouse staff can reliably register and control access for residents, visitors
 
 **v1.0 Reborn MVP shipped 2026-07-13.** The active milestone delivered 32/32 requirements across 11 phases. The standard Docker Compose runtime is healthy and demo mode remains isolated to its opt-in overlay.
 
+**Post-v1.0 work shipped 2026-09-12:**
+- v1.1 Phase 10 (dashboard + vehicle edit) shipped without GSD artifacts
+- v1.1 Phase 9 (residents page rebuild) partially shipped without GSD artifacts
+- v2.0 Phase 11 (Photos & Consent Schema) shipped — full Photos module, storage abstraction, consent audit log, append-only triggers, 118 unit + 73 integration tests
+- v2.0 Phase 13 backend (consent policy + entry log + CSV export) shipped in same commit
+- Unplanned: tenant staff lifecycle management, bootstrap race fix, Traefik TLS, worktree script fixes
+
 ## Current Milestone
 
-**v1.1 UI & Dashboard** (started 2026-08-23) — in progress
+**v1.1 UI & Dashboard** (started 2026-08-23) — partially shipped (Phase 10 done, Phase 9 partial)
 
-**v2.0 Gatehouse Photo & Consent Ledger** (defined 2026-08-23) — next milestone
+**v2.0 Gatehouse Photo & Consent Ledger** (defined 2026-08-23) — in progress (Phase 11 done, Phase 13 backend done, Phase 12 not started)
 
 **v2.1 Door Integration** (defined 2026-08-23) — gated on real condominium hardware
 
-Goal: Complete the deferred UI parity, functional fixes, dashboard live data, and vehicle editing work (v1.1), then ship browser-based photo capture with per-tenant consent policy and gatehouse entry logging (v2.0), then optional door/card-reader integration for condominiums that opt in (v2.1).
+Goal: Complete the remaining UI parity work (v1.1 Phase 9 — other feature pages), then ship browser-based photo capture UI (v2.0 Phase 12) and consent gatehouse workflow UI (v2.0 Phase 13), then optional door/card-reader integration for condominiums that opt in (v2.1).
 
 Target features:
-- UI Parity & Functional Fixes (Phase 9 — `UI-03`, `UI-04`): mockup visual parity + interaction fixes
-- Dashboard Live Stats & Vehicle Edit (Phase 10 continuation — `DASH-01`, `DASH-02`, `DASH-04`): live tenant-scoped dashboard statistics; vehicle editing workflow
-- Photo Capture & Storage (Phase 11–12 — `PHOTO-01`, `PHOTO-02`): browser camera + upload, client-side compression, S3/MinIO storage, photos on resident/visitor/vehicle/service-provider records
-- Consent Policy & Gatehouse Workflow (Phase 13 — `CONSENT-01`, `CONSENT-02`, `CONSENT-03`): per-tenant per-category consent policy, four entry states, 3-second gatehouse workflow, append-only audit log, CSV export for CCTV cross-reference
+- UI Parity & Functional Fixes (Phase 9 — `UI-03`, `UI-04`): mockup visual parity + interaction fixes — **residents page done, other pages pending**
+- Dashboard Live Stats & Vehicle Edit (Phase 10 — `DASH-01`, `DASH-02`, `DASH-04`): live tenant-scoped dashboard statistics; vehicle editing workflow — **shipped**
+- Photo Capture & Storage (Phase 11–12 — `PHOTO-01`, `PHOTO-02`): browser camera + upload, client-side compression, S3/MinIO storage, photos on resident/visitor/vehicle/service-provider records — **Phase 11 shipped, Phase 12 pending**
+- Consent Policy & Gatehouse Workflow (Phase 13 — `CONSENT-01`, `CONSENT-02`, `CONSENT-03`): per-tenant per-category consent policy, four entry states, 3-second gatehouse workflow, append-only audit log, CSV export for CCTV cross-reference — **backend shipped, UI pending**
 - Door Relay & Unlock Commands (Phase 14 — `DOOR-01`): optional, gated on real hardware, HMAC-signed unlock, hardware fallback
 - Reader Events & Device Health (Phase 15 — `DOOR-02`, `DOOR-03`): card reader event ingestion, enforced ledger, device health monitoring
 
@@ -53,15 +60,19 @@ Phase numbering continues from v1.1 (Phase 10). Old v1.0 placeholder phases (12,
 - ✓ Demo mode one-command seeded evaluation stack — `.specs/4 - demo-mode/`
 - ✓ Continuous engineering baseline (CI, generated OpenAPI client, architecture and token contracts) — `.specs/1 - modernization-roadmap/` C.1–C.7
 - ✓ Photo capture & hardware integration spec retired and superseded — `.specs/_retired/3 - photo-capture-hardware-integration/` → `.specs/photo-capture/` + `.specs/consent-gatehouse/` + `.specs/door-integration/`
+- ✓ Dashboard live stats endpoint and UI (DASH-01, DASH-02) — Phase 10, shipped 2026-09-12
+- ✓ Vehicle edit UI (DASH-04) — Phase 10, shipped 2026-09-12
+- ✓ Photo storage infrastructure & API (PHOTO-01) — Phase 11, commit `d895c01`
+- ✓ Consent policy config (CONSENT-01) — Phase 13 backend, commit `d895c01`
+- ✓ Gatehouse entry workflow backend (CONSENT-02) — Phase 13 backend, commit `d895c01`
+- ✓ Tenant staff lifecycle management (unplanned) — commit `55377a0`
 
 ### Active
 
-- [ ] Dashboard live stats endpoint and UI (v1.1) — `.specs/dashboard/`
-- [ ] Vehicle edit UI (v1.1) — `.specs/vehicle-edit/`
-- [ ] Mockup visual parity (v1.1) — `.specs/mockup-visual-parity/`
-- [ ] Mockup functional fixes (v1.1) — `.specs/2-mockup-functional-fixes/`
-- [ ] Photo capture & storage (v2.0) — `.specs/photo-capture/`
-- [ ] Consent policy & gatehouse workflow (v2.0) — `.specs/consent-gatehouse/`
+- [~] Mockup visual parity (v1.1, Phase 9) — `UI-03` — residents page done; other pages pending — `.specs/mockup-visual-parity/`
+- [~] Mockup functional fixes (v1.1, Phase 9) — `UI-04` — residents page interactions done; login form, toasts, other pages pending — `.specs/2-mockup-functional-fixes/`
+- [ ] Photo browser capture & display (v2.0, Phase 12) — `PHOTO-02` — `.specs/photo-capture/`
+- [~] Consent gatehouse workflow UI (v2.0, Phase 13) — `CONSENT-03` — backend done; audit review UI pending — `.specs/consent-gatehouse/`
 - [ ] Door integration (v2.1, gated on hardware) — `.specs/door-integration/`
 - [ ] Multi-arch Docker/CI (fast-cycle) — `.specs/1 - modernization-roadmap-arm64/`
 
@@ -78,9 +89,9 @@ Phase numbering continues from v1.1 (Phase 10). Old v1.0 placeholder phases (12,
 
 Brownfield modernization project. The repository contains ControlEasy Reborn only; legacy ControlEasy5 (WPF) and ControlEasyWeb (Blazor/.NET 5) are referenced in docs but not present in this repo.
 
-Planning is derived from `.specs/` (19 spec folders, ~191/308 checkbox tasks complete as of 2026-06-24). Codebase intelligence lives in `.planning/codebase/`.
+Planning is derived from `.specs/` (20+ spec folders). Codebase intelligence lives in `.planning/codebase/`.
 
-Known concerns from codebase map: vendored DBTools_SQL (migration to NuGet planned — Phase 7), dual tenant column patterns, JWT/localStorage defaults, in-memory dashboard aggregation, test coverage gaps.
+Known concerns from codebase map: dual tenant column patterns, JWT/localStorage defaults, generated OpenAPI client not consumed by handwritten Angular services (tech debt from v1.0), test coverage gaps.
 
 ## Constraints
 
@@ -95,15 +106,18 @@ Known concerns from codebase map: vendored DBTools_SQL (migration to NuGet plann
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
 | Strangler Fig migration | Keep legacy running during cutover | ✓ Good — Phases 1–3 complete; WPF coexistence cancelled (not in repo) |
-| Modular monolith over microservices | Single deployable today, extract later | ✓ Good — 9 feature modules in place |
-| DBTools over EF Core | LINQ-first, multi-provider, matches AGENTS.md | ⚠️ Revisit — vendored at `src/lib/DBTools_SQL/`; migrating to [NuGet DBTools 1.4.3](https://www.nuget.org/packages/DBTools) in Phase 7 |
+| Modular monolith over microservices | Single deployable today, extract later | ✓ Good — 10 feature modules in place (9 original + Photos) |
+| DBTools over EF Core | LINQ-first, multi-provider, matches AGENTS.md | ✓ Good — vendored DBTools_SQL replaced with NuGet 1.4.3 (Phase 7) |
 | Multi-tenant shared schema + JWT `tenant_id` | Host many condominiums on one deployment | ✓ Good — TenantFilterInterceptor wired |
-| Angular 18 + Tailwind v4 design system | Modern SPA, mockup parity target | ⚠️ Revisit — formal spec incomplete; fix-design-system in progress |
+| Angular 18 + Tailwind v4 design system | Modern SPA, mockup parity target | ✓ Good — design system hardened (Phase 8); residents page rebuilt with `ce-*` components |
 | Spec-driven development via `.specs/` | AGENTS.md mandates spec-first workflow | ✓ Good — source of truth for roadmap |
 | v2.0 photo capture: browser-only, client-side compression | No hardware framework; cameras belong to condominium | ✓ Good — party-mode design session 2026-08-23 |
 | v2.0 consent: per-tenant per-category policy, no rules engine | ControlEasy enables, doesn't enforce; CCTV is backstop | ✓ Good — party-mode design session 2026-08-23 |
 | v2.1 door: participant, not gatekeeper | Door opens independently; API observes + triggers, doesn't block | ✓ Good — hardware fallback required |
 | `IDeviceHandler` emerges from 2nd integration, not speculative | Avoid premature abstraction | ✓ Good — party-mode design session 2026-08-23 |
+| Phase 11 + Phase 13 backend shipped together | Implementation collapsed the 11/13 boundary; schema + consent backend are co-dependent | ✓ Good — commit `d895c01` |
+| S3 storage: dual provider (MinIO-compatible + Amazon S3) | Support both self-hosted MinIO and native AWS S3 | ✓ Good — `S3StorageProvider` + `AmazonS3StorageProvider` |
+| Tenant staff lifecycle shipped as unplanned work | Admin/porteiro CRUD was needed for real-world condominium management | ✓ Good — commit `55377a0` |
 
 ## Evolution
 
@@ -123,4 +137,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-23 — v2.0 + v2.1 milestones defined from party-mode design session*
+*Last updated: 2026-09-12 — audited against codebase; v1.1 Phase 10 + v2.0 Phase 11 + Phase 13 backend marked validated; v1.1 Phase 9 marked partial; tenant staff lifecycle added as validated*
