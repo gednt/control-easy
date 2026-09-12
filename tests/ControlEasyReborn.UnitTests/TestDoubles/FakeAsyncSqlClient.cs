@@ -19,7 +19,7 @@ public sealed class FakeAsyncSqlClient : IAsyncSqlClient
     public ISqlQueryBuilder QueryBuilderInstance => null!;
     public IDbConfiguration Configuration => null!;
     public string ConnectionString => "Fake";
-    public string Error => string.Empty;
+    public string Error { get; set; } = string.Empty;
 
     public FakeAsyncSqlClient AddInterceptor(IQueryInterceptor interceptor)
     {
