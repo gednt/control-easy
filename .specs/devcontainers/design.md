@@ -37,7 +37,7 @@ sequence.
 | **Verification gate** | The command sequence that proves a task is done: build, up, test. Per Constitution IV and `AGENTS.md` "Post-task verification". |
 | **DooD** | Docker-out-of-Docker. The devcontainer mounts the host's `/var/run/docker.sock` and runs `docker` against the host's engine. The devcontainer does NOT run its own Docker daemon. |
 | **DinD** | Docker-in-Docker. The devcontainer runs a nested `dockerd` (typically via `docker:dind`). Adds an extra engine that can drift from the host. |
-| **Worktree** | A `git worktree` checkout of a single branch, placed in a sibling directory of the main checkout. Multiple worktrees share the same `.git` database. |
+| **Worktree** | A `git worktree` checkout of a single branch, placed inside the repo at `.worktrees/<branch-with-slashes>` (gitignored; never outside `<repo-root>/.worktrees/`). Multiple worktrees share the same `.git` database. |
 | **Compose project** | The Compose v2 unit of isolation: a project name (`COMPOSE_PROJECT_NAME`), a set of containers, a set of networks, and a set of volumes. Per-worktree Compose projects are the isolation boundary for this spec. |
 | **Traefik hostname** | A loopback-resolvable hostname (e.g. `ce-feat-x.localhost`) routed by Traefik's file provider. Per-worktree hostnames avoid Traefik router collisions. |
 | **`scripts/worktree-up.sh`** | The shell script that creates a worktree, generates an env file, registers the Traefik hostname in `/etc/hosts` (or an alternative resolver), and runs the first `docker compose up -d --build`. |
