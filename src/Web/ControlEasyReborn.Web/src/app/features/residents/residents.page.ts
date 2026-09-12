@@ -1,637 +1,596 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, OnDestroy, computed, inject, signal, viewChildren } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  CeAvatarComponent,
+  CeBadgeComponent,
+  CeButtonComponent,
+  CeCardComponent,
+  CeDropdownComponent,
+  CeEmptyStateComponent,
+  CeIconComponent,
+  CeInputComponent,
+  CeModalComponent,
+  CePaginationComponent,
+  CeSpinnerComponent,
+  CeStatTileComponent,
+  CeTableComponent,
+} from '../../design-system';
 import { ResidentsApiService, ResidentResponse } from './residents-api.service';
 import { ApartmentPickerComponent } from '../../shared/apartment-picker/apartment-picker.component';
-import {
-  ApartmentsApiService,
-  formatApartmentLabel,
-} from '../apartments/apartments-api.service';
+import { ApartmentsApiService, formatApartmentLabel } from '../apartments/apartments-api.service';
+import { DashboardApiService, RecentVisit } from '../dashboard/dashboard-api.service';
 import { cpfValidator } from '../../core/validators/cpf.validator';
 import { getApiErrorMessage } from '../../core/utils/api-error.util';
 import { AuthService } from '../../core/services/auth.service';
 
+type StatusTab = 'all' | 'active' | 'pending' | 'overdue';
+type SortKey = 'nameAsc' | 'newest';
+
 @Component({
   selector: 'ce-residents-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ApartmentPickerComponent],
+  imports: [
+    DatePipe,
+    ReactiveFormsModule,
+    ApartmentPickerComponent,
+    CeAvatarComponent,
+    CeBadgeComponent,
+    CeButtonComponent,
+    CeCardComponent,
+    CeDropdownComponent,
+    CeEmptyStateComponent,
+    CeIconComponent,
+    CeInputComponent,
+    CeModalComponent,
+    CePaginationComponent,
+    CeSpinnerComponent,
+    CeStatTileComponent,
+    CeTableComponent,
+  ],
   template: `
     <div class="page-header">
       <div class="page-title-block">
         <h1 class="page-title">Residents</h1>
-        <p class="page-subtitle">{{ totalResidents() }} active residents across all apartments in this condominium.</p>
+        <p class="page-subtitle">{{ activeCount() }} active residents across all apartments in this condominium.</p>
       </div>
       <div class="page-header-actions">
-        <button class="ce-button variant-secondary size-md" (click)="refresh()">
-          &#8635; Refresh
-        </button>
+        <ce-button variant="secondary" size="md" (click)="refresh()">
+          <ce-icon name="refresh" [size]="16" /> Refresh
+        </ce-button>
         @if (canWrite()) {
-          <button class="ce-button variant-primary size-md" (click)="openCreateModal()">
-            &#43; Add resident
-          </button>
+          <ce-button variant="primary" size="md" (click)="openCreateModal()">
+            <ce-icon name="plus" [size]="16" /> Add resident
+          </ce-button>
         }
       </div>
     </div>
 
+    <div class="stat-grid">
+      <ce-stat-tile label="Active Residents" [value]="activeCount()" />
+      <ce-stat-tile label="Total Residents" [value]="totalResidents()" />
+      <ce-stat-tile label="Apartments Covered" [value]="apartmentsCovered()" />
+      <ce-stat-tile label="Inactive Residents" [value]="inactiveCount()" />
+    </div>
+
     @if (loading()) {
       <div class="loading-state">
-        <div class="ce-spinner tone-primary size-lg"></div>
+        <ce-spinner tone="primary" size="lg" />
         <p>Loading residents...</p>
       </div>
-    } @else if (residents().length === 0 && !searchTerm()) {
-      <div class="ce-empty-state">
-        <div class="ce-empty-state-icon">&#128101;</div>
-        <div class="ce-empty-state-title">No residents yet</div>
-        <div class="ce-empty-state-description text-secondary">
-          Add your first resident to get started.
-        </div>
-        @if (canWrite()) {
-          <button class="ce-button variant-primary size-md" (click)="openCreateModal()">
-            &#43; Add resident
-          </button>
-        }
-      </div>
+    } @else if (residents().length === 0 && !searchTerm() && !selectedBlockId() && statusTab() === 'all') {
+      <ce-empty-state
+        icon="&#128101;"
+        title="No residents yet"
+        description="Add your first resident to get started."
+        [actionLabel]="canWrite() ? '+ Add resident' : ''"
+        (action)="openCreateModal()"
+      />
     } @else {
-      <div class="ce-card" style="padding: 0;">
-        <div class="table-toolbar">
-          <div class="search-wrapper">
-            <span class="search-icon">&#128269;</span>
-            <input type="search"
-                   class="search-input"
-                   placeholder="Search by name, apartment, or CPF..."
-                   [value]="searchTerm()"
-                   (input)="onSearch($event)" />
-          </div>
-          @if (searchTerm() && !loading()) {
-            <span class="result-count">{{ residents().length }} result{{ residents().length !== 1 ? 's' : '' }}</span>
+      <ce-card [padded]="false">
+        <div class="status-tabs" role="group" aria-label="Resident filters">
+          @for (tab of statusTabs(); track tab.key) {
+            <button
+              class="status-tab"
+              type="button"
+              [class.active]="statusTab() === tab.key"
+              [attr.aria-pressed]="statusTab() === tab.key"
+              (click)="onTabSelect(tab.key)"
+            >
+              {{ tab.label }} ({{ tab.count }})
+            </button>
           }
         </div>
-        <div class="ce-table-wrapper">
-          <table class="ce-table" aria-label="Residents table">
-            <thead>
+        <div class="filter-toolbar">
+          <ce-input
+            class="toolbar-search"
+            inputId="resident-search"
+            type="search"
+            placeholder="Search by name, apartment, or CPF..."
+            (input)="onSearch($event)"
+          />
+          @if (searchTerm()) {
+            <span class="result-count">{{ filteredTotal() }} result{{ filteredTotal() !== 1 ? 's' : '' }}</span>
+          }
+          <ce-dropdown>
+            <button class="filter-trigger" ceDropdownTrigger type="button">
+              {{ blockTriggerLabel() }} <ce-icon name="chevron-down" [size]="14" />
+            </button>
+            <button role="menuitem" type="button" (click)="onBlockSelect(null)">All blocks</button>
+            @for (option of blockOptions(); track option.id) {
+              <button role="menuitem" type="button" (click)="onBlockSelect(option.id)">{{ option.label }}</button>
+            }
+          </ce-dropdown>
+          <ce-dropdown>
+            <button class="filter-trigger" ceDropdownTrigger type="button">
+              {{ sortTriggerLabel() }} <ce-icon name="chevron-down" [size]="14" />
+            </button>
+            <button role="menuitem" type="button" (click)="onSortSelect('nameAsc')">Name (A&#8211;Z)</button>
+            <button role="menuitem" type="button" (click)="onSortSelect('newest')">Newest first</button>
+          </ce-dropdown>
+        </div>
+        <ce-table>
+          <thead>
+            <tr>
+              <th scope="col">Resident</th>
+              <th scope="col">Apartment</th>
+              <th scope="col">CPF</th>
+              <th scope="col">Phone</th>
+              <th scope="col">Status</th>
+              <th scope="col" class="actions-column"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (resident of paginatedResidents(); track resident.id) {
               <tr>
-                <th scope="col">Resident</th>
-                <th scope="col">Apartment</th>
-                <th scope="col">CPF</th>
-                <th scope="col">Phone</th>
-                <th scope="col">Status</th>
-                <th scope="col" style="width: 1%;"></th>
+                <td>
+                  <div class="resident-name-cell">
+                    <ce-avatar [name]="resident.name" size="sm" />
+                    <div>
+                      <div class="font-semibold">{{ resident.name }}</div>
+                      @if (resident.email) {
+                        <div class="text-xs text-secondary">{{ resident.email }}</div>
+                      }
+                    </div>
+                  </div>
+                </td>
+                <td>{{ getApartmentLabel(resident.apartmentId) }}</td>
+                <td>{{ resident.cpf }}</td>
+                <td>{{ resident.phone ?? '—' }}</td>
+                <td>
+                  <ce-badge
+                    [content]="resident.active ? 'Active' : 'Inactive'"
+                    [tone]="resident.active ? 'success' : 'neutral'"
+                    size="sm"
+                  />
+                </td>
+                <td class="resident-actions">
+                  @if (canWrite()) {
+                    <ce-dropdown>
+                      <button class="action-menu-btn" ceDropdownTrigger type="button" aria-label="Resident actions">
+                        <ce-icon name="more-horizontal" [size]="16" />
+                      </button>
+                      <button role="menuitem" type="button" (click)="openEditModal(resident)">Edit</button>
+                      @if (resident.active) {
+                        <button
+                          role="menuitem"
+                          type="button"
+                          style="color: var(--color-danger);"
+                          (click)="onDeactivate(resident)"
+                        >
+                          Deactivate
+                        </button>
+                      }
+                    </ce-dropdown>
+                  }
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              @for (resident of residents(); track resident.id) {
-                <tr>
-                  <td>
-                    <div class="resident-name-cell">
-                      <div class="resident-avatar" [style]="getAvatarStyle(resident)">
-                        {{ getInitials(resident.name) }}
-                      </div>
-                      <div>
-                        <div class="font-semibold">{{ resident.name }}</div>
-                        @if (resident.email) {
-                          <div class="text-xs text-secondary">{{ resident.email }}</div>
-                        }
-                      </div>
-                    </div>
-                  </td>
-                  <td>{{ getApartmentLabel(resident.apartmentId) }}</td>
-                  <td>{{ resident.cpf }}</td>
-                  <td>{{ resident.phone ?? '\u2014' }}</td>
-                  <td>
-                    <span class="ce-badge tone-success size-sm">{{ resident.active ? 'Active' : 'Inactive' }}</span>
-                  </td>
-                  <td>
-                    @if (canWrite()) {
-                      <div class="action-cell">
-                        <button class="icon-btn-sm" aria-label="Edit resident" title="Edit" (click)="openEditModal(resident)">&#9998;</button>
-                        @if (resident.active) {
-                          <button class="icon-btn-sm action-deactivate" aria-label="Deactivate resident" title="Deactivate" (click)="onDeactivate(resident)">&#8855;</button>
-                        }
-                      </div>
-                    }
-                  </td>
-                </tr>
-              } @empty {
-                <tr>
-                  <td colspan="6">
-                    <div class="ce-empty-state" style="padding: var(--space-8) var(--space-4);">
-                      <div class="ce-empty-state-icon">&#128269;</div>
-                      <div class="ce-empty-state-title">No residents match your filters</div>
-                      <div class="ce-empty-state-description text-secondary">
-                        Try clearing the search or selecting a different filter.
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      </div>
-    }
-
-    @if (createModalOpen()) {
-      <div class="ce-modal-backdrop" (click)="closeCreateModal()">
-        <div class="ce-modal size-md" role="dialog" aria-modal="true" aria-labelledby="add-resident-title" (click)="$event.stopPropagation()">
-          <div class="ce-modal-header">
-            <h3 class="ce-modal-title" id="add-resident-title">Add new resident</h3>
-            <button class="ce-modal-close" (click)="closeCreateModal()" aria-label="Close">&#10005;</button>
-          </div>
-          <div class="ce-modal-body">
-            @if (createError()) {
-              <div class="form-error-banner">{{ createError() }}</div>
+            } @empty {
+              <tr>
+                <td colspan="6">
+                  <ce-empty-state
+                    icon="&#128269;"
+                    title="No residents match your filters"
+                    description="Try clearing the search or selecting a different filter."
+                  />
+                </td>
+              </tr>
             }
-            <form class="ce-form" [formGroup]="createForm" (ngSubmit)="onCreateResident()">
-              <div class="ce-input-group">
-                <label class="ce-input-label" for="ar-name">Full name</label>
-                <div class="ce-input-wrapper" [class.has-error]="createForm.get('name')?.invalid && createForm.get('name')?.touched">
-                  <input id="ar-name" class="ce-input" placeholder="e.g. Maria Silva" formControlName="name" />
-                </div>
-                @if (createForm.get('name')?.invalid && createForm.get('name')?.touched) {
-                  <div class="ce-input-error">Name is required</div>
-                }
-              </div>
-              <div class="ce-input-group">
-                <label class="ce-input-label" for="ar-cpf">CPF</label>
-                <div class="ce-input-wrapper" [class.has-error]="createForm.get('cpf')?.invalid && createForm.get('cpf')?.touched">
-                  <input id="ar-cpf" class="ce-input" placeholder="000.000.000-00" formControlName="cpf" />
-                </div>
-                @if (createForm.get('cpf')?.hasError('required') && createForm.get('cpf')?.touched) {
-                  <div class="ce-input-error">CPF is required</div>
-                } @else if (createForm.get('cpf')?.hasError('invalidCpf') && createForm.get('cpf')?.touched) {
-                  <div class="ce-input-error">CPF check digits are invalid</div>
-                }
-              </div>
-              <ce-apartment-picker
-                formControlName="apartmentId"
-                label="Apartment"
-                inputId="ar-apartment"
-                placeholder="Select block and unit..."
-                [hasError]="!!(createForm.get('apartmentId')?.invalid && createForm.get('apartmentId')?.touched)" />
-              @if (createForm.get('apartmentId')?.invalid && createForm.get('apartmentId')?.touched) {
-                <div class="ce-input-error">Apartment is required</div>
-              }
-              <div class="ce-input-group">
-                <label class="ce-input-label" for="ar-phone">Phone</label>
-                <div class="ce-input-wrapper">
-                  <input id="ar-phone" class="ce-input" placeholder="(11) 99999-0000" formControlName="phone" />
-                </div>
-              </div>
-            </form>
-          </div>
-          <div class="ce-modal-footer">
-            <button class="ce-button variant-ghost size-sm" (click)="closeCreateModal()">Cancel</button>
-            <button class="ce-button variant-primary size-sm"
-                    (click)="onCreateResident()"
-                    [class.disabled]="createForm.invalid || creating()"
-                    [attr.aria-busy]="creating()"
-                    [disabled]="createForm.invalid || creating()">
-              @if (creating()) {
-                <span class="ce-spinner tone-current size-sm"></span>
-              }
-              Add resident
-            </button>
-          </div>
+          </tbody>
+        </ce-table>
+        <div class="table-footer">
+          <ce-pagination
+            [page]="clampedPage()"
+            [pageSize]="pageSize()"
+            [total]="filteredTotal()"
+            [pageSizeOptions]="pageSizeOptions"
+            (pageChange)="onPageChange($event)"
+            (pageSizeChange)="onPageSizeChange($event)"
+          />
         </div>
-      </div>
+      </ce-card>
     }
 
-    @if (editModalOpen()) {
-      <div class="ce-modal-backdrop" (click)="closeEditModal()">
-        <div class="ce-modal size-md" role="dialog" aria-modal="true" aria-labelledby="edit-resident-title" (click)="$event.stopPropagation()">
-          <div class="ce-modal-header">
-            <h3 class="ce-modal-title" id="edit-resident-title">Edit resident</h3>
-            <button class="ce-modal-close" (click)="closeEditModal()" aria-label="Close">&#10005;</button>
-          </div>
-          <div class="ce-modal-body">
-            @if (editError()) {
-              <div class="form-error-banner">{{ editError() }}</div>
-            }
-            <form class="ce-form" [formGroup]="editForm" (ngSubmit)="onEditResident()">
-              <div class="ce-input-group">
-                <label class="ce-input-label" for="er-name">Full name</label>
-                <div class="ce-input-wrapper" [class.has-error]="editForm.get('name')?.invalid && editForm.get('name')?.touched">
-                  <input id="er-name" class="ce-input" placeholder="e.g. Maria Silva" formControlName="name" />
-                </div>
-                @if (editForm.get('name')?.invalid && editForm.get('name')?.touched) {
-                  <div class="ce-input-error">Name is required</div>
-                }
-              </div>
-              <div class="ce-input-group">
-                <label class="ce-input-label" for="er-cpf">CPF</label>
-                <div class="ce-input-wrapper" [class.has-error]="editForm.get('cpf')?.invalid && editForm.get('cpf')?.touched">
-                  <input id="er-cpf" class="ce-input" placeholder="000.000.000-00" formControlName="cpf" />
-                </div>
-                @if (editForm.get('cpf')?.hasError('required') && editForm.get('cpf')?.touched) {
-                  <div class="ce-input-error">CPF is required</div>
-                } @else if (editForm.get('cpf')?.hasError('invalidCpf') && editForm.get('cpf')?.touched) {
-                  <div class="ce-input-error">CPF check digits are invalid</div>
-                }
-              </div>
-              <ce-apartment-picker
-                formControlName="apartmentId"
-                label="Apartment"
-                inputId="er-apartment"
-                placeholder="Select block and unit..."
-                [hasError]="!!(editForm.get('apartmentId')?.invalid && editForm.get('apartmentId')?.touched)" />
-              @if (editForm.get('apartmentId')?.invalid && editForm.get('apartmentId')?.touched) {
-                <div class="ce-input-error">Apartment is required</div>
-              }
-              <div class="ce-input-group">
-                <label class="ce-input-label" for="er-phone">Phone</label>
-                <div class="ce-input-wrapper">
-                  <input id="er-phone" class="ce-input" placeholder="(11) 99999-0000" formControlName="phone" />
+    <ce-card>
+      <div card-header>Recent activity</div>
+      @if (recentVisits().length === 0) {
+        <ce-empty-state
+          icon="&#128197;"
+          title="No recent activity"
+          description="Recent visits will appear here as they are registered."
+        />
+      } @else {
+        <ul class="activity-list">
+          @for (visit of recentVisits(); track visit.id) {
+            <li class="activity-item">
+              <ce-avatar [name]="visit.visitorName" size="sm" />
+              <div class="activity-body">
+                <div class="activity-title">{{ visit.visitorName }}</div>
+                <div class="text-xs text-secondary">
+                  {{ visit.apartmentLabel ?? '—' }} &#183; {{ visit.createdAtUtc | date: 'short' }}
                 </div>
               </div>
-            </form>
-          </div>
-          <div class="ce-modal-footer">
-            <button class="ce-button variant-ghost size-sm" (click)="closeEditModal()">Cancel</button>
-            <button class="ce-button variant-primary size-sm"
-                    (click)="onEditResident()"
-                    [class.disabled]="editForm.invalid || saving()"
-                    [attr.aria-busy]="saving()"
-                    [disabled]="editForm.invalid || saving()">
-              @if (saving()) {
-                <span class="ce-spinner tone-current size-sm"></span>
-              }
-              Save changes
-            </button>
-          </div>
-        </div>
-      </div>
-    }
+              <ce-badge [content]="visitStatusLabel(visit.status)" [tone]="visitStatusTone(visit.status)" size="sm" />
+            </li>
+          }
+        </ul>
+      }
+    </ce-card>
 
-    @if (confirmDeactivateOpen()) {
-      <div class="ce-modal-backdrop" (click)="closeDeactivateConfirm()">
-        <div class="ce-modal size-sm" role="dialog" aria-modal="true" aria-labelledby="deactivate-resident-title" (click)="$event.stopPropagation()">
-          <div class="ce-modal-header">
-            <h3 class="ce-modal-title" id="deactivate-resident-title">Deactivate resident</h3>
-            <button class="ce-modal-close" (click)="closeDeactivateConfirm()" aria-label="Close">&#10005;</button>
-          </div>
-          <div class="ce-modal-body">
-            <p class="text-secondary">Are you sure you want to deactivate <strong>{{ residentToDeactivate()?.name }}</strong>? They will no longer be able to access the condominium.</p>
-          </div>
-          <div class="ce-modal-footer">
-            <button class="ce-button variant-ghost size-sm" (click)="closeDeactivateConfirm()">Cancel</button>
-            <button class="ce-button variant-danger size-sm"
-                    (click)="onConfirmDeactivate()"
-                    [class.disabled]="deactivating()"
-                    [disabled]="deactivating()">
-              @if (deactivating()) {
-                <span class="ce-spinner tone-current size-sm"></span>
-              }
-              Deactivate
-            </button>
-          </div>
-        </div>
+    <ce-modal
+      [open]="createModalOpen()"
+      title="Add new resident"
+      size="md"
+      (openChange)="onCreateModalOpenChange($event)"
+    >
+      @if (createError()) {
+        <div class="form-error-banner">{{ createError() }}</div>
+      }
+      <form class="resident-form" [formGroup]="createForm" (ngSubmit)="onCreateResident()">
+        <ce-input
+          label="Full name"
+          inputId="ar-name"
+          placeholder="e.g. Maria Silva"
+          formControlName="name"
+          [error]="fieldError(createForm, 'name', 'Name is required')"
+        />
+        <ce-input
+          label="CPF"
+          inputId="ar-cpf"
+          placeholder="000.000.000-00"
+          formControlName="cpf"
+          [error]="cpfError(createForm, 'cpf')"
+        />
+        <ce-apartment-picker
+          formControlName="apartmentId"
+          label="Apartment"
+          inputId="ar-apartment"
+          placeholder="Select block and unit..."
+          [hasError]="fieldError(createForm, 'apartmentId', 'Apartment is required') !== null"
+        />
+        @if (fieldError(createForm, 'apartmentId', 'Apartment is required') !== null) {
+          <div class="field-error">Apartment is required</div>
+        }
+        <ce-input label="Phone" inputId="ar-phone" placeholder="(11) 99999-0000" formControlName="phone" />
+      </form>
+      <div ce-modal-footer>
+        <ce-button variant="ghost" size="sm" (click)="closeCreateModal()">Cancel</ce-button>
+        <ce-button
+          variant="primary"
+          size="sm"
+          [disabled]="createForm.invalid || creating()"
+          [loading]="creating()"
+          (click)="onCreateResident()"
+        >
+          Add resident
+        </ce-button>
       </div>
-    }
+    </ce-modal>
+
+    <ce-modal [open]="editModalOpen()" title="Edit resident" size="md" (openChange)="onEditModalOpenChange($event)">
+      @if (editError()) {
+        <div class="form-error-banner">{{ editError() }}</div>
+      }
+      <form class="resident-form" [formGroup]="editForm" (ngSubmit)="onEditResident()">
+        <ce-input
+          label="Full name"
+          inputId="er-name"
+          placeholder="e.g. Maria Silva"
+          formControlName="name"
+          [error]="fieldError(editForm, 'name', 'Name is required')"
+        />
+        <ce-input
+          label="CPF"
+          inputId="er-cpf"
+          placeholder="000.000.000-00"
+          formControlName="cpf"
+          [error]="cpfError(editForm, 'cpf')"
+        />
+        <ce-apartment-picker
+          formControlName="apartmentId"
+          label="Apartment"
+          inputId="er-apartment"
+          placeholder="Select block and unit..."
+          [hasError]="fieldError(editForm, 'apartmentId', 'Apartment is required') !== null"
+        />
+        @if (fieldError(editForm, 'apartmentId', 'Apartment is required') !== null) {
+          <div class="field-error">Apartment is required</div>
+        }
+        <ce-input label="Phone" inputId="er-phone" placeholder="(11) 99999-0000" formControlName="phone" />
+      </form>
+      <div ce-modal-footer>
+        <ce-button variant="ghost" size="sm" (click)="closeEditModal()">Cancel</ce-button>
+        <ce-button
+          variant="primary"
+          size="sm"
+          [disabled]="editForm.invalid || saving()"
+          [loading]="saving()"
+          (click)="onEditResident()"
+        >
+          Save changes
+        </ce-button>
+      </div>
+    </ce-modal>
+
+    <ce-modal
+      [open]="confirmDeactivateOpen()"
+      title="Deactivate resident"
+      size="sm"
+      (openChange)="onDeactivateModalOpenChange($event)"
+    >
+      <p class="text-secondary">
+        Are you sure you want to deactivate <strong>{{ residentToDeactivate()?.name }}</strong
+        >? They will no longer be able to access the condominium.
+      </p>
+      <div ce-modal-footer>
+        <ce-button variant="ghost" size="sm" (click)="closeDeactivateConfirm()">Cancel</ce-button>
+        <ce-button
+          variant="danger"
+          size="sm"
+          [disabled]="deactivating()"
+          [loading]="deactivating()"
+          (click)="onConfirmDeactivate()"
+        >
+          Deactivate
+        </ce-button>
+      </div>
+    </ce-modal>
   `,
-  styles: [`
-    .page-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--space-4);
-      flex-wrap: wrap;
-      margin-bottom: var(--space-6);
-    }
-    .page-title-block { min-width: 0; }
-    .page-title { font-size: var(--font-size-2xl); margin-bottom: var(--space-1); }
-    .page-subtitle { color: var(--color-text-secondary); font-size: var(--font-size-sm); }
-    .page-header-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
-    .loading-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: var(--space-12);
-      gap: var(--space-4);
-      color: var(--color-text-secondary);
-    }
+  styles: [
+    `
+      .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        flex-wrap: wrap;
+        margin-bottom: var(--space-6);
+      }
+      .page-title-block {
+        min-width: 0;
+      }
+      .page-title {
+        font-size: var(--font-size-2xl);
+        margin-bottom: var(--space-1);
+      }
+      .page-subtitle {
+        color: var(--color-text-secondary);
+        font-size: var(--font-size-sm);
+      }
+      .page-header-actions {
+        display: flex;
+        gap: var(--space-2);
+        flex-wrap: wrap;
+      }
 
-    .ce-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: var(--space-2);
-      font-weight: var(--font-weight-medium);
-      border: 1px solid transparent;
-      border-radius: var(--radius-lg);
-      cursor: pointer;
-      user-select: none;
-      white-space: nowrap;
-      transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), opacity var(--duration-fast) var(--ease-out);
-      text-decoration: none;
-      font-family: inherit;
-    }
-    .ce-button:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
-    .ce-button.size-sm { height: 2rem; padding: 0 var(--space-3); font-size: var(--font-size-sm); }
-    .ce-button.size-md { height: 2.5rem; padding: 0 var(--space-4); font-size: var(--font-size-sm); }
-    .ce-button.variant-primary { background: var(--color-primary); color: var(--color-text-on-primary); box-shadow: var(--shadow-sm); }
-    .ce-button.variant-primary:hover:not(:disabled) { background: var(--color-primary-hover); transform: translateY(-1px); box-shadow: var(--shadow-primary-glow); }
-    .ce-button.variant-secondary { background: var(--color-surface); color: var(--color-text-primary); border-color: var(--color-border); }
-    .ce-button.variant-secondary:hover:not(:disabled) { background: var(--color-surface-elevated); }
-    .ce-button.variant-ghost { background: transparent; color: var(--color-text-primary); }
-    .ce-button.variant-ghost:hover:not(:disabled) { background: var(--color-neutral-light); }
-    .ce-button.variant-danger { background: var(--color-danger); color: var(--color-text-on-primary); }
-    .ce-button.variant-danger:hover:not(:disabled) { background: var(--color-danger-hover); }
-    .ce-button:disabled, .ce-button[aria-busy="true"] { opacity: 0.6; cursor: not-allowed; pointer-events: none; }
-    .ce-button.disabled { opacity: 0.6; cursor: not-allowed; pointer-events: none; }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+        gap: var(--space-4);
+        margin-bottom: var(--space-6);
+      }
 
-    .ce-card {
-      background: var(--color-surface-elevated);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow-card);
-      overflow: hidden;
-    }
+      .loading-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: var(--space-12);
+        gap: var(--space-4);
+        color: var(--color-text-secondary);
+      }
 
-    .table-toolbar {
-      padding: var(--space-4) var(--space-6);
-      border-bottom: 1px solid var(--color-border);
-      display: flex;
-      gap: var(--space-3);
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .search-wrapper {
-      flex: 1;
-      max-width: 24rem;
-      position: relative;
-    }
-    .search-icon {
-      position: absolute;
-      left: var(--space-3);
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--color-text-muted);
-      pointer-events: none;
-      font-size: 1rem;
-    }
-    .search-input {
-      width: 100%;
-      height: 2.5rem;
-      padding: 0 var(--space-3) 0 2.5rem;
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      background: var(--color-background);
-      font-size: var(--font-size-sm);
-      color: var(--color-text-primary);
-      font-family: inherit;
-    }
-    .search-input:focus {
-      outline: none;
-      border-color: var(--color-primary);
-      box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-primary) 15%, transparent);
-    }
-    .result-count {
-      font-size: var(--font-size-xs);
-      color: var(--color-text-muted);
-      white-space: nowrap;
-    }
+      .status-tabs {
+        display: flex;
+        gap: 0;
+        padding: 0 var(--space-6);
+        border-bottom: 1px solid var(--color-border);
+        overflow-x: auto;
+      }
+      .status-tab {
+        padding: var(--space-3) var(--space-4);
+        border: 0;
+        background: transparent;
+        color: var(--color-text-secondary);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-medium);
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        font-family: inherit;
+        white-space: nowrap;
+        transition:
+          color var(--duration-fast) var(--ease-out),
+          border-color var(--duration-fast) var(--ease-out);
+      }
+      .status-tab:hover {
+        color: var(--color-text-primary);
+      }
+      .status-tab.active {
+        color: var(--color-primary);
+        border-bottom-color: var(--color-primary);
+      }
 
-    .ce-table-wrapper { overflow-x: auto; }
-    .ce-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: var(--font-size-sm);
-    }
-    .ce-table thead { background: var(--color-neutral-light); position: sticky; top: 0; }
-    .ce-table th {
-      text-align: left;
-      padding: var(--space-3) var(--space-4);
-      font-weight: var(--font-weight-semibold);
-      color: var(--color-text-secondary);
-      font-size: var(--font-size-xs);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      border-bottom: 1px solid var(--color-border);
-    }
-    .ce-table td {
-      padding: var(--space-3) var(--space-4);
-      border-bottom: 1px solid var(--color-border);
-      color: var(--color-text-primary);
-    }
-    .ce-table tbody tr:last-child td { border-bottom: 0; }
-    .ce-table tbody tr:hover { background: color-mix(in oklch, var(--color-primary) 3%, transparent); }
+      .filter-toolbar {
+        padding: var(--space-4) var(--space-6);
+        border-bottom: 1px solid var(--color-border);
+        display: flex;
+        gap: var(--space-3);
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .toolbar-search {
+        flex: 1;
+        max-width: 24rem;
+      }
+      .result-count {
+        font-size: var(--font-size-xs);
+        color: var(--color-text-muted);
+        white-space: nowrap;
+      }
+      .filter-trigger {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        height: 2.5rem;
+        padding: 0 var(--space-3);
+        background: var(--color-surface);
+        color: var(--color-text-primary);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        font-size: var(--font-size-sm);
+        font-family: inherit;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background var(--duration-fast) var(--ease-out);
+      }
+      .filter-trigger:hover {
+        background: var(--color-surface-elevated);
+      }
 
-    .resident-name-cell {
-      display: flex;
-      align-items: center;
-      gap: var(--space-3);
-    }
-    .resident-avatar {
-      width: 2.5rem;
-      height: 2.5rem;
-      border-radius: var(--radius-full);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: var(--font-weight-semibold);
-      font-size: 0.85rem;
-      color: var(--color-text-on-primary);
-      flex-shrink: 0;
-    }
+      .actions-column {
+        width: 1%;
+      }
+      .resident-name-cell {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+      }
+      .resident-actions {
+        width: 1%;
+        white-space: nowrap;
+      }
+      .resident-actions ce-dropdown {
+        visibility: hidden;
+        opacity: 0;
+        transition:
+          opacity var(--duration-fast) var(--ease-out),
+          visibility var(--duration-fast) var(--ease-out);
+      }
+      .resident-actions ce-dropdown:focus-within {
+        visibility: visible;
+        opacity: 1;
+      }
+      tr:hover .resident-actions ce-dropdown {
+        visibility: visible;
+        opacity: 1;
+      }
+      @media (hover: none) {
+        .resident-actions ce-dropdown {
+          visibility: visible;
+          opacity: 1;
+        }
+      }
+      .action-menu-btn {
+        width: 2rem;
+        height: 2rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: 0;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        color: var(--color-text-muted);
+      }
+      .action-menu-btn:hover {
+        background: var(--color-neutral-light);
+        color: var(--color-text-primary);
+      }
 
-    .action-cell {
-      display: flex;
-      gap: var(--space-1);
-    }
+      .table-footer {
+        display: flex;
+        justify-content: flex-end;
+        padding: var(--space-4) var(--space-6);
+        border-top: 1px solid var(--color-border);
+      }
 
-    .ce-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: var(--space-1);
-      font-weight: var(--font-weight-medium);
-      border-radius: var(--radius-full);
-      border: 1px solid transparent;
-      font-size: var(--font-size-xs);
-      line-height: 1;
-    }
-    .ce-badge.size-sm { padding: var(--space-1) var(--space-2); font-size: 0.7rem; }
-    .ce-badge.tone-success { background: var(--color-success-light); color: var(--color-success); border-color: color-mix(in oklch, var(--color-success) 30%, transparent); }
-    .ce-badge.tone-neutral { background: var(--color-neutral-light); color: var(--color-text-secondary); border-color: var(--color-border); }
+      .activity-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .activity-item {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-3) 0;
+        border-bottom: 1px solid var(--color-border);
+      }
+      .activity-item:last-child {
+        border-bottom: 0;
+      }
+      .activity-body {
+        flex: 1;
+        min-width: 0;
+      }
 
-    .icon-btn-sm {
-      width: 2rem;
-      height: 2rem;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: transparent;
-      border: 0;
-      border-radius: var(--radius-md);
-      cursor: pointer;
-      color: var(--color-text-muted);
-      font-size: 1rem;
-    }
-    .icon-btn-sm:hover { background: var(--color-neutral-light); color: var(--color-text-primary); }
-    .action-deactivate:hover { background: var(--color-danger-light); color: var(--color-danger); }
+      .resident-form {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-4);
+      }
+      .field-error {
+        font-size: var(--font-size-xs);
+        color: var(--color-danger);
+        font-weight: var(--font-weight-medium);
+      }
+      .form-error-banner {
+        margin-bottom: var(--space-4);
+        padding: var(--space-3);
+        border-radius: var(--radius-lg);
+        background: var(--color-danger-light);
+        color: var(--color-danger);
+        font-size: var(--font-size-sm);
+      }
 
-    .ce-empty-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: var(--space-12) var(--space-6);
-      gap: var(--space-3);
-      color: var(--color-text-secondary);
-    }
-    .ce-empty-state-icon {
-      width: 4rem;
-      height: 4rem;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--color-neutral-light);
-      color: var(--color-text-muted);
-      border-radius: var(--radius-full);
-      margin-bottom: var(--space-2);
-      font-size: 1.5rem;
-    }
-    .ce-empty-state-title { font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--color-text-primary); }
-    .ce-empty-state-description { max-width: 24rem; }
-
-    .ce-spinner {
-      display: inline-block;
-      border-radius: var(--radius-full);
-      border: 2px solid currentColor;
-      border-top-color: transparent;
-      animation: spin-slow 1.4s linear infinite;
-    }
-    .ce-spinner.size-sm { width: 1rem; height: 1rem; border-width: 2px; }
-    .ce-spinner.size-lg { width: 2rem; height: 2rem; border-width: 3px; }
-    .ce-spinner.tone-primary { color: var(--color-primary); }
-    .ce-spinner.tone-current { color: currentColor; }
-
-    .ce-modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgb(0 0 0 / 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      padding: var(--space-4);
-      animation: fade-in var(--duration-base) var(--ease-out);
-    }
-    .ce-modal {
-      background: var(--color-surface-elevated);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow-xl);
-      width: 100%;
-      max-width: 32rem;
-      max-height: calc(100vh - var(--space-8));
-      overflow: auto;
-      animation: zoom-in var(--duration-base) var(--ease-out);
-    }
-    .ce-modal.size-sm { max-width: 24rem; }
-    .ce-modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: var(--space-5) var(--space-6);
-      border-bottom: 1px solid var(--color-border);
-    }
-    .ce-modal-title { font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); }
-    .ce-modal-close {
-      background: transparent;
-      border: 0;
-      color: var(--color-text-muted);
-      cursor: pointer;
-      padding: var(--space-1);
-      border-radius: var(--radius-md);
-      display: inline-flex;
-      font-size: 1.25rem;
-    }
-    .ce-modal-close:hover { background: var(--color-neutral-light); color: var(--color-text-primary); }
-    .ce-modal-body { padding: var(--space-6); }
-    .ce-modal-footer {
-      display: flex;
-      justify-content: flex-end;
-      gap: var(--space-2);
-      padding: var(--space-4) var(--space-6);
-      border-top: 1px solid var(--color-border);
-    }
-
-    .ce-form {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-4);
-    }
-    .ce-input-group { display: flex; flex-direction: column; gap: var(--space-1); }
-    .ce-input-label {
-      font-size: var(--font-size-sm);
-      font-weight: var(--font-weight-medium);
-      color: var(--color-text-primary);
-    }
-    .ce-input-wrapper {
-      display: flex;
-      align-items: center;
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      transition: border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
-      overflow: hidden;
-    }
-    .ce-input-wrapper:focus-within {
-      border-color: var(--color-primary);
-      box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-primary) 15%, transparent);
-    }
-    .ce-input-wrapper.has-error {
-      border-color: var(--color-danger);
-      box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-danger) 15%, transparent);
-    }
-    .ce-input {
-      flex: 1;
-      border: 0;
-      background: transparent;
-      padding: var(--space-3);
-      font-family: inherit;
-      font-size: var(--font-size-sm);
-      color: var(--color-text-primary);
-      outline: none;
-      min-height: 2.5rem;
-    }
-    .ce-input::placeholder { color: var(--color-text-muted); }
-    .ce-input-error {
-      font-size: var(--font-size-xs);
-      color: var(--color-danger);
-      font-weight: var(--font-weight-medium);
-    }
-    .form-row { display: flex; gap: var(--space-3); }
-    .form-error-banner {
-      margin-bottom: var(--space-4);
-      padding: var(--space-3);
-      border-radius: var(--radius-lg);
-      background: var(--color-danger-light);
-      color: var(--color-danger);
-      font-size: var(--font-size-sm);
-    }
-
-    .font-semibold { font-weight: var(--font-weight-semibold); }
-    .text-xs { font-size: var(--font-size-xs); }
-    .text-secondary { color: var(--color-text-secondary); }
-
-    @keyframes spin-slow { to { transform: rotate(360deg); } }
-    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes zoom-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
-  `],
+      .font-semibold {
+        font-weight: var(--font-weight-semibold);
+      }
+      .text-xs {
+        font-size: var(--font-size-xs);
+      }
+      .text-secondary {
+        color: var(--color-text-secondary);
+      }
+    `,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ResidentsPage {
+export class ResidentsPage implements OnDestroy {
   private readonly api = inject(ResidentsApiService);
   private readonly apartmentsApi = inject(ApartmentsApiService);
+  private readonly dashboardApi = inject(DashboardApiService);
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
+  private readonly dropdowns = viewChildren(CeDropdownComponent);
 
   readonly canWrite = computed(() => this.auth.hasPermission('Residents.Write'));
 
   residents = signal<ResidentResponse[]>([]);
   apartmentLabels = signal<Record<string, string>>({});
+  recentVisits = signal<RecentVisit[]>([]);
   loading = signal(true);
   creating = signal(false);
   saving = signal(false);
@@ -644,7 +603,95 @@ export class ResidentsPage {
   searchTerm = signal('');
   residentToDeactivate = signal<ResidentResponse | null>(null);
   editingResident = signal<ResidentResponse | null>(null);
-  totalResidents = computed(() => this.residents().filter(r => r.active).length);
+
+  statusTab = signal<StatusTab>('all');
+  selectedBlockId = signal<string | null>(null);
+  sortKey = signal<SortKey>('nameAsc');
+  page = signal(1);
+  pageSize = signal(10);
+
+  readonly pageSizeOptions: number[] = [10, 25, 50];
+
+  readonly activeCount = computed(() => this.residents().filter((r) => r.active).length);
+  readonly totalResidents = computed(() => this.residents().length);
+  readonly inactiveCount = computed(() => this.totalResidents() - this.activeCount());
+  readonly apartmentsCovered = computed(() => {
+    const ids = new Set<string>();
+    for (const resident of this.residents()) {
+      if (resident.apartmentId) {
+        ids.add(resident.apartmentId);
+      }
+    }
+    return ids.size;
+  });
+
+  readonly statusTabs = computed(() => [
+    { key: 'all' as StatusTab, label: 'All', count: this.residents().length },
+    { key: 'active' as StatusTab, label: 'Active', count: this.activeCount() },
+    { key: 'pending' as StatusTab, label: 'Pending', count: 0 },
+    { key: 'overdue' as StatusTab, label: 'Overdue', count: 0 },
+  ]);
+
+  readonly blockOptions = computed(() => {
+    const seen = new Set<string>();
+    const options: { id: string; label: string }[] = [];
+    for (const [id, label] of Object.entries(this.apartmentLabels())) {
+      if (!seen.has(id)) {
+        seen.add(id);
+        options.push({ id, label: label + ' \u00b7 ' + id.slice(0, 8) });
+      }
+    }
+    return options;
+  });
+
+  readonly blockTriggerLabel = computed(() => {
+    const id = this.selectedBlockId();
+    if (!id) return 'Block: All';
+    return 'Block: ' + (this.apartmentLabels()[id] ?? id.slice(0, 8));
+  });
+
+  readonly sortTriggerLabel = computed(() =>
+    this.sortKey() === 'newest' ? 'Sort: Newest first' : 'Sort: Name (A\u2013Z)',
+  );
+
+  readonly filteredResidents = computed(() => {
+    const list = this.residents();
+    const search = this.searchTerm().trim().toLowerCase();
+    const blockId = this.selectedBlockId();
+    const tab = this.statusTab();
+    return list.filter((resident) => {
+      if (blockId && resident.apartmentId !== blockId) return false;
+      if (tab === 'active' && !resident.active) return false;
+      if (tab === 'pending' || tab === 'overdue') return false;
+      if (search) {
+        const haystack = [resident.name, resident.cpf, resident.email ?? '', resident.phone ?? '', this.getApartmentLabel(resident.apartmentId)]
+          .join(' ')
+          .toLowerCase();
+        if (!haystack.includes(search)) return false;
+      }
+      return true;
+    });
+  });
+
+  readonly sortedResidents = computed(() => {
+    const list = [...this.filteredResidents()];
+    if (this.sortKey() === 'newest') {
+      return list.sort((a, b) => new Date(b.createdAtUtc).getTime() - new Date(a.createdAtUtc).getTime());
+    }
+    return list.sort((a, b) => a.name.localeCompare(b.name));
+  });
+
+  readonly filteredTotal = computed(() => this.sortedResidents().length);
+
+  readonly clampedPage = computed(() => {
+    const pageCount = Math.max(1, Math.ceil(this.filteredTotal() / this.pageSize()));
+    return Math.min(this.page(), pageCount);
+  });
+
+  readonly paginatedResidents = computed(() => {
+    const start = (this.clampedPage() - 1) * this.pageSize();
+    return this.sortedResidents().slice(start, start + this.pageSize());
+  });
 
   createForm: FormGroup = this.fb.group({
     name: ['', [Validators.required]],
@@ -661,10 +708,19 @@ export class ResidentsPage {
   });
 
   private searchTimeout: ReturnType<typeof setTimeout> | null = null;
+  private searchRequestId = 0;
 
   constructor() {
     this.loadApartmentLabels();
     this.loadResidents();
+    this.loadRecentVisits();
+  }
+
+  ngOnDestroy(): void {
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+      this.searchTimeout = null;
+    }
   }
 
   loadApartmentLabels(): void {
@@ -685,15 +741,27 @@ export class ResidentsPage {
   }
 
   loadResidents(): void {
+    const requestId = ++this.searchRequestId;
     this.loading.set(true);
-    this.api.list().subscribe({
+    this.api.list(this.searchTerm() || undefined, 0, 500).subscribe({
       next: (data) => {
+        if (requestId !== this.searchRequestId) return;
         this.residents.set(data);
         this.loading.set(false);
       },
       error: () => {
+        if (requestId !== this.searchRequestId) return;
         this.loading.set(false);
       },
+    });
+  }
+
+  private loadRecentVisits(): void {
+    this.dashboardApi.getStats().subscribe({
+      next: (stats) => {
+        this.recentVisits.set(stats.recentVisits ?? []);
+      },
+      error: () => {},
     });
   }
 
@@ -705,19 +773,40 @@ export class ResidentsPage {
     const target = event.target as HTMLInputElement;
     const value = target.value;
     this.searchTerm.set(value);
+    this.page.set(1);
     if (this.searchTimeout) {
       clearTimeout(this.searchTimeout);
     }
     this.searchTimeout = setTimeout(() => {
-      this.loading.set(true);
-      this.api.list(value || undefined).subscribe({
-        next: (data) => {
-          this.residents.set(data);
-          this.loading.set(false);
-        },
-        error: () => this.loading.set(false),
-      });
+      this.searchTimeout = null;
+      this.loadResidents();
     }, 300);
+  }
+
+  onTabSelect(tab: StatusTab): void {
+    this.statusTab.set(tab);
+    this.page.set(1);
+  }
+
+  onBlockSelect(apartmentId: string | null): void {
+    this.selectedBlockId.set(apartmentId);
+    this.page.set(1);
+    this.closeAllDropdowns();
+  }
+
+  onSortSelect(key: SortKey): void {
+    this.sortKey.set(key);
+    this.page.set(1);
+    this.closeAllDropdowns();
+  }
+
+  onPageChange(page: number): void {
+    this.page.set(page);
+  }
+
+  onPageSizeChange(pageSize: number): void {
+    this.pageSize.set(pageSize);
+    this.page.set(1);
   }
 
   openCreateModal(): void {
@@ -730,30 +819,37 @@ export class ResidentsPage {
     this.createModalOpen.set(false);
   }
 
+  onCreateModalOpenChange(open: boolean): void {
+    if (!open && !this.creating()) this.closeCreateModal();
+  }
+
   onCreateResident(): void {
     if (this.createForm.invalid) return;
     this.creating.set(true);
     this.createError.set(null);
     const value = this.createForm.value;
-    this.api.create({
-      name: value.name,
-      cpf: value.cpf,
-      phone: value.phone ?? null,
-      apartmentId: value.apartmentId,
-    }).subscribe({
-      next: () => {
-        this.creating.set(false);
-        this.closeCreateModal();
-        this.loadResidents();
-      },
-      error: (err) => {
-        this.creating.set(false);
-        this.createError.set(getApiErrorMessage(err, 'Failed to create resident'));
-      },
-    });
+    this.api
+      .create({
+        name: value.name,
+        cpf: value.cpf,
+        phone: value.phone ?? null,
+        apartmentId: value.apartmentId,
+      })
+      .subscribe({
+        next: () => {
+          this.creating.set(false);
+          this.closeCreateModal();
+          this.loadResidents();
+        },
+        error: (err) => {
+          this.creating.set(false);
+          this.createError.set(getApiErrorMessage(err, 'Failed to create resident'));
+        },
+      });
   }
 
   openEditModal(resident: ResidentResponse): void {
+    this.closeAllDropdowns();
     this.editingResident.set(resident);
     this.editForm.patchValue({
       name: resident.name,
@@ -770,6 +866,10 @@ export class ResidentsPage {
     this.editingResident.set(null);
   }
 
+  onEditModalOpenChange(open: boolean): void {
+    if (!open && !this.saving()) this.closeEditModal();
+  }
+
   onEditResident(): void {
     if (this.editForm.invalid) return;
     const resident = this.editingResident();
@@ -777,26 +877,29 @@ export class ResidentsPage {
     this.saving.set(true);
     this.editError.set(null);
     const value = this.editForm.value;
-    this.api.update(resident.id, {
-      name: value.name,
-      cpf: value.cpf,
-      phone: value.phone ?? null,
-      apartmentId: value.apartmentId,
-      active: resident.active,
-    }).subscribe({
-      next: () => {
-        this.saving.set(false);
-        this.closeEditModal();
-        this.loadResidents();
-      },
-      error: (err) => {
-        this.saving.set(false);
-        this.editError.set(getApiErrorMessage(err, 'Failed to update resident'));
-      },
-    });
+    this.api
+      .update(resident.id, {
+        name: value.name,
+        cpf: value.cpf,
+        phone: value.phone ?? null,
+        apartmentId: value.apartmentId,
+        active: resident.active,
+      })
+      .subscribe({
+        next: () => {
+          this.saving.set(false);
+          this.closeEditModal();
+          this.loadResidents();
+        },
+        error: (err) => {
+          this.saving.set(false);
+          this.editError.set(getApiErrorMessage(err, 'Failed to update resident'));
+        },
+      });
   }
 
   onDeactivate(resident: ResidentResponse): void {
+    this.closeAllDropdowns();
     this.residentToDeactivate.set(resident);
     this.confirmDeactivateOpen.set(true);
   }
@@ -806,43 +909,74 @@ export class ResidentsPage {
     this.residentToDeactivate.set(null);
   }
 
+  onDeactivateModalOpenChange(open: boolean): void {
+    if (!open && !this.deactivating()) this.closeDeactivateConfirm();
+  }
+
   onConfirmDeactivate(): void {
     const resident = this.residentToDeactivate();
     if (!resident) return;
     this.deactivating.set(true);
-    this.api.deactivate(resident.id, resident.name, resident.cpf, resident.email, resident.phone, resident.apartmentId).subscribe({
-      next: () => {
-        this.deactivating.set(false);
-        this.closeDeactivateConfirm();
-        this.loadResidents();
-      },
-      error: () => {
-        this.deactivating.set(false);
-      },
-    });
+    this.api
+      .deactivate(resident.id, resident.name, resident.cpf, resident.email, resident.phone, resident.apartmentId)
+      .subscribe({
+        next: () => {
+          this.deactivating.set(false);
+          this.closeDeactivateConfirm();
+          this.loadResidents();
+        },
+        error: () => {
+          this.deactivating.set(false);
+        },
+      });
   }
 
-  getInitials(name: string): string {
-    if (!name) return '?';
-    const parts = name.trim().split(/\s+/);
-    const first = parts[0];
-    const last = parts[parts.length - 1];
-    if (parts.length >= 2 && first && last) {
-      return (first.charAt(0) + last.charAt(0)).toUpperCase();
+  fieldError(form: FormGroup, controlName: string, message: string): string | null {
+    const control = form.get(controlName);
+    return control && control.invalid && control.touched ? message : null;
+  }
+
+  cpfError(form: FormGroup, controlName: string): string | null {
+    const control = form.get(controlName);
+    if (!control || !control.touched) return null;
+    if (control.hasError('required')) return 'CPF is required';
+    if (control.hasError('invalidCpf')) return 'CPF check digits are invalid';
+    return control.invalid ? 'CPF check digits are invalid' : null;
+  }
+
+  visitStatusLabel(status: string): string {
+    switch (status) {
+      case 'Pending':
+        return 'Pending';
+      case 'CheckedIn':
+        return 'On-site';
+      case 'CheckedOut':
+        return 'Checked out';
+      case 'Cancelled':
+        return 'Cancelled';
+      default:
+        return status;
     }
-    return first?.charAt(0)?.toUpperCase() ?? '?';
   }
 
-  private readonly avatarColors = [
-    'linear-gradient(135deg, #4f46e5, #818cf8)',
-    'linear-gradient(135deg, var(--color-accent-pink), var(--color-accent-pink-light))',
-    'linear-gradient(135deg, #22c55e, #86efac)',
-    'linear-gradient(135deg, #f59e0b, #fcd34d)',
-    'linear-gradient(135deg, #3b82f6, #93c5fd)',
-  ];
+  visitStatusTone(status: string): 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'neutral' {
+    switch (status) {
+      case 'Pending':
+        return 'warning';
+      case 'CheckedIn':
+        return 'success';
+      case 'CheckedOut':
+        return 'info';
+      case 'Cancelled':
+        return 'danger';
+      default:
+        return 'neutral';
+    }
+  }
 
-  getAvatarStyle(resident: ResidentResponse): string {
-    const index = resident.name.charCodeAt(0) % this.avatarColors.length;
-    return `background: ${this.avatarColors[index]}`;
+  private closeAllDropdowns(): void {
+    for (const dropdown of this.dropdowns()) {
+      dropdown.close();
+    }
   }
 }
