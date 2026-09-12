@@ -1,6 +1,6 @@
 # Technology Stack
 
-**Analysis Date:** 2026-06-24
+**Analysis Date:** 2026-09-12
 
 ## Languages
 
@@ -74,14 +74,13 @@
 ## Configuration
 
 **Environment:**
-- ASP.NET Core configuration hierarchy — `src/Host/ControlEasyReborn.Api/appsettings.json` plus environment variables (Docker uses `__` nesting, e.g. `Db__Host`, `Jwt__SigningKey` in `docker/docker-compose.yml`)
-- Docker secrets template — `docker/.env.example` (`MYSQL_ROOT_PASSWORD`, `MYSQL_USER`, `MYSQL_PASSWORD`, `JWT_SIGNING_KEY`)
-- DBTools default sample — `src/lib/DBTools_SQL/DBTools/config.json` (SqlServer sample; Reborn overrides via `Db:*` at runtime)
+- Docker secrets template — `docker/.env.example` (`MYSQL_ROOT_PASSWORD`, `MYSQL_USER`, `MYSQL_PASSWORD`, `JWT_SIGNING_KEY`, `STORAGE__PROVIDER`, `STORAGE__LOCAL__PATH`)
 - Angular dev proxy — `src/Web/ControlEasyReborn.Web/proxy.conf.json` forwards `/api` → `http://localhost:8080`
 
 **Key configs required:**
 - `Db:Provider`, `Db:Host`, `Db:Port`, `Db:Database`, `Db:Username`, `Db:Password`
 - `Jwt:SigningKey`, `Jwt:Issuer`, `Jwt:Audience`
+- `Storage:Provider`, `Storage:Local:Path` (Photos storage)
 - Optional: `Demo:*`, `Bootstrap:*`, `FeatureManagement:*`, `Serilog:*`, `Backup:Path`
 
 **Build:**

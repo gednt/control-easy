@@ -1,6 +1,6 @@
 # Codebase Structure
 
-**Analysis Date:** 2026-06-24
+**Analysis Date:** 2026-09-12
 
 ## Directory Layout
 
@@ -8,11 +8,11 @@
 ControlEasy/                          # Repository root
 ├── .planning/                        # GSD planning artifacts (codebase maps, phases)
 ├── .specs/                           # Spec-driven development (requirements, design, tasks)
-├── agents/                           # Agent instruction files (FrontendAgent, etc.)
+├── agents/                           # Agent instruction files
 ├── docker/                           # Docker Compose, Dockerfiles, MySQL init, Traefik
-├── docs/                             # ADRs, migration mapping, design-system docs, Penpot assets
+├── docs/                             # Architecture, Getting Started, Configuration, Testing, API, Deployment
 ├── mockup/                           # Static HTML mockups (showcase)
-├── scripts/                          # Utility scripts (SQL generation)
+├── scripts/                          # Utility scripts (SQL generation, worktrees)
 ├── src/                              # Reborn solution source (primary active codebase)
 │   ├── ControlEasyReborn.sln
 │   ├── Directory.Build.props         # Shared MSBuild: net8.0, nullable, warnings as errors
@@ -25,11 +25,10 @@ ControlEasy/                          # Repository root
 │   ├── BuildingBlocks/
 │   │   ├── ControlEasyReborn.SharedKernel/
 │   │   └── ControlEasyReborn.Infrastructure/
-│   ├── lib/
-│   │   └── DBTools_SQL/DBTools/      # Vendored multi-provider data access library
 │   └── Modules/
 │       ├── Administration/
 │       ├── Apartments/
+│       ├── Photos/
 │       ├── Reports/
 │       ├── Residents/
 │       ├── Security/
@@ -72,11 +71,6 @@ ControlEasy/                          # Repository root
 - Contains: Multi-tenancy, demo mode, bootstrap, DBTools registration
 - Key files: `src/BuildingBlocks/ControlEasyReborn.Infrastructure/Data/ServiceCollectionExtensions.cs`, `src/BuildingBlocks/ControlEasyReborn.Infrastructure/MultiTenancy/TenantResolutionMiddleware.cs`
 - Subdirectories: `SharedKernel/` (primitives, `ITenantContext`), `Infrastructure/` (middleware, interceptors, demo)
-
-**`src/lib/DBTools_SQL/DBTools/`:**
-- Purpose: Vendored data-access library (LINQ + async SQL)
-- Contains: `Core/`, `Controllers/`, `Abstractions/`, `Providers/`, `Mapping/`
-- Key files: `src/lib/DBTools_SQL/DBTools/Core/AsyncSqlClient.cs`, `src/lib/DBTools_SQL/DBTools/DBTools.csproj`
 
 **`src/Modules/{Feature}/`:**
 - Purpose: Vertical feature slice with Clean Architecture layers

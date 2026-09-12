@@ -1,6 +1,6 @@
 # External Integrations
 
-**Analysis Date:** 2026-06-24
+**Analysis Date:** 2026-09-12
 
 ## APIs & External Services
 
@@ -29,15 +29,15 @@
 - MySQL 8.0 — primary data store for ControlEasy Reborn
   - Container: `mysql:8.0` service in `docker/docker-compose.yml`
   - Connection: `Db:Host`, `Db:Port`, `Db:Database`, `Db:Username`, `Db:Password`, `Db:Provider` (env vars or `src/Host/ControlEasyReborn.Api/appsettings.json`)
-  - Client/ORM: DBTools_SQL `IAsyncSqlClient` / `Linq<TModel>` via `src/BuildingBlocks/ControlEasyReborn.Infrastructure/Data/ServiceCollectionExtensions.cs`
-  - MySQL driver: MySqlConnector loaded reflectively by `src/lib/DBTools_SQL/DBTools/Providers/MySqlProvider.cs`
-  - Schema/migrations: SQL init scripts in `docker/mysql/init/` (e.g. `00-schema.sql`, `02a-residents-schema.sql`, `05-security-schema.sql`, `11-demo-seed.sql`)
+  - Client/ORM: DBTools 1.4.3 (NuGet) `IAsyncSqlClient` / `Linq<TModel>` via `src/BuildingBlocks/ControlEasyReborn.Infrastructure/Data/ServiceCollectionExtensions.cs`
+  - MySQL driver: MySqlConnector loaded via DBTools MySQL provider
+  - Schema/migrations: SQL init scripts in `docker/mysql/init/` (e.g. `00-schema.sql`, `02a-residents-schema.sql`, `05-security-schema.sql`, `11-demo-seed.sql`, `12-photos-schema.sql`)
   - Health check: `/health` via `AspNetCore.HealthChecks.MySql` in `Program.cs`
   - Test isolation: Testcontainers MySQL 8.0 in `tests/ControlEasyReborn.IntegrationTests/MySqlContainerFixture.cs`
 
 **File Storage:**
+- Photo storage — `IPhotoStorageService` (`src/BuildingBlocks/ControlEasyReborn.Infrastructure/Storage/IPhotoStorageService.cs`); supports `Local` filesystem storage (`/storage/photos` mounted to `photos-data` volume) and S3/MinIO compatible object storage (`Storage__Provider=S3`)
 - Local filesystem — tenant SQL backups written to `Backup:Path` (default `./backups/tenants/`) via `mysqldump` + `gzip` in `src/Modules/Tenants/ControlEasyReborn.Modules.Tenants.Infrastructure/Persistence/TenantBackupService.cs`
-- No cloud object storage (S3, Azure Blob, etc.) detected
 
 **Caching:**
 - None — Redis is mentioned as optional in `AGENTS.md` and `.specs/1 - modernization-roadmap/design.md` but no Redis client, service, or compose service exists in the codebase

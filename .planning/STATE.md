@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: UI & Dashboard
 status: planning
-last_updated: "2026-08-23T23:59:00.000Z"
-last_activity: 2026-08-23
+last_updated: "2026-09-12T19:48:00.000Z"
+last_activity: 2026-09-12
 progress:
   total_phases: 2
   completed_phases: 0
@@ -17,17 +17,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-24)
+See: .planning/PROJECT.md (updated 2026-09-12)
 
 **Core value:** Gatehouse staff can reliably register and control access through a fast, tenant-isolated web UI.
-**Current focus:** v1.1 UI & Dashboard in planning; v2.0 Gatehouse Photo & Consent Ledger defined (next milestone); v2.1 Door Integration defined (gated on hardware)
+**Current focus:** v1.1 UI & Dashboard; v2.0 Phase 11 Photos & Consent Schema implemented; complete project documentation suite verified and aligned.
 
 ## Current Position
 
-Phase: Not started (roadmap defined)
+Phase: Phase 11 (PHOTO-01) landed; documentation updated via gsd-docs-update
 Plan: —
-Status: Planning
-Last activity: 2026-08-23 — v1.1 roadmap created (Phase 9 + Phase 10)
+Status: In Progress
+Last activity: 2026-09-12 — Milestone v2.0 Phase 11 photo schema implemented; comprehensive project documentation suite generated and verified.
 
 ## Performance Metrics
 

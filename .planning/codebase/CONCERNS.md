@@ -1,6 +1,6 @@
 # Codebase Concerns
 
-**Analysis Date:** 2026-06-24
+**Analysis Date:** 2026-09-12
 
 ## Tech Debt
 
@@ -18,12 +18,8 @@
 - Impact: New repositories can accidentally use the wrong client and bypass or over-apply tenant isolation. No architecture test enforces the split.
 - Fix approach: Introduce named abstractions (`IPlatformSqlClient`, `ITenantSqlClient`) and a NetArchTest rule that Domain/Infrastructure repositories use the correct one.
 
-**Hand-written Angular API clients (OpenAPI gen not wired):**
-- Issue: `ng-openapi-gen.json` targets `src/app/api`, but that directory is absent. Each feature ships a manual `*-api.service.ts` with duplicated DTO shapes.
-- Files: `src/Web/ControlEasyReborn.Web/ng-openapi-gen.json`, `src/Web/ControlEasyReborn.Web/src/app/features/residents/residents-api.service.ts`, `src/Web/ControlEasyReborn.Web/src/app/core/services/security-api.service.ts`, `docker/web.Dockerfile`
-- Why: Early vertical slices prioritized shipping pages over build-pipeline integration.
-- Impact: API contract drift between backend DTOs and frontend types; duplicate maintenance on every endpoint change.
-- Fix approach: Add `openapi-gen` step to CI/Docker build (fetch Swagger from running API or checked-in spec), commit or generate at build time, migrate feature services to generated client.
+**[RESOLVED] Hand-written Angular API clients (OpenAPI gen not wired):**
+- Resolved: `ng-openapi-gen` is wired to the build pipeline (`npm run openapi-gen` via `prebuild`), TypeScript clients live in `src/app/api`, and CI enforces zero drift via `npm run openapi-check`.
 
 **Design system CSS duplication and token namespace split:**
 - Issue: Design-system components use `--space-*` tokens; 15+ layout/feature files use `--spacing-*`. Feature pages copy-paste `.ce-button`, `.ce-table`, `.ce-input-group` styles instead of importing components.

@@ -1,7 +1,7 @@
-<!-- refreshed: 2026-06-24 -->
+<!-- refreshed: 2026-09-12 -->
 # Architecture
 
-**Analysis Date:** 2026-06-24
+**Analysis Date:** 2026-09-12
 
 ## System Overview
 
@@ -28,16 +28,16 @@ The repository hosts **ControlEasy Reborn** — a modular monolith replacing the
                ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
 │  Feature Modules (Clean Architecture per module)                         │
-│  `src/Modules/{Tenants,Security,Residents,Apartments,Visits,...}/`       │
+│  `src/Modules/{Tenants,Security,Residents,Apartments,Visits,Photos,...}/`│
 │    Api → Application (Handlers) → Domain                                 │
-│    Infrastructure (Repositories via DBTools_SQL)                         │
+│    Infrastructure (Repositories via DBTools)                             │
 ├─────────────────────────────────────────────────────────────────────────┤
 │  BuildingBlocks                                                          │
 │  `src/BuildingBlocks/ControlEasyReborn.SharedKernel/`                    │
 │  `src/BuildingBlocks/ControlEasyReborn.Infrastructure/`                  │
 ├─────────────────────────────────────────────────────────────────────────┤
-│  Data Access Library (vendored)                                          │
-│  `src/lib/DBTools_SQL/DBTools/` → `IAsyncSqlClient`, LINQ helpers        │
+│  Data Access Library (NuGet)                                             │
+│  `DBTools 1.4.3` → `IAsyncSqlClient`, `Linq<TModel>`                     │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -61,12 +61,12 @@ The repository hosts **ControlEasy Reborn** — a modular monolith replacing the
 **Overall:** Modular Monolith with Clean Architecture (vertical slices per feature module), CQRS-lite for reads (Reports), Strangler Fig migration from legacy WPF.
 
 **Key Characteristics:**
-- Single deployable API (`ControlEasyReborn.Api`) composing nine feature modules
+- Single deployable API (`ControlEasyReborn.Api`) composing ten feature modules
 - Per-module four-layer structure: Domain → Application → Infrastructure → Api
 - Handler-based application layer (no MediatR); handlers registered as scoped services
-- Minimal APIs with extension methods (`MapResidentEndpoints`, `MapSecurityApi`)
+- Minimal APIs with extension methods (`MapResidentEndpoints`, `MapSecurityApi`, `MapPhotosApi`)
 - Multi-tenant shared schema: JWT `tenant_id` claim + `TenantFilterInterceptor` on all tenant-scoped queries
-- Data access exclusively through vendored `DBTools_SQL` (`IAsyncSqlClient`); no Entity Framework in Reborn code
+- Data access exclusively through NuGet package `DBTools` 1.4.3 (`IAsyncSqlClient`, `Linq<TModel>`); no Entity Framework in Reborn code
 - Angular 18 standalone components with lazy-loaded routes and signals-based services
 
 ## Layers

@@ -104,10 +104,10 @@ docker compose -f docker/docker-compose.yml up -d
 - Demo users are **not** seeded.
 - `PlatformAdminBootstrapService` creates a random PlatformAdmin (check API logs).
 
-See also: [Getting Started (first boot)](getting-started.md) for the full normal-stack walkthrough.
+See also: [Getting Started (first boot)](GETTING-STARTED.md) for the full normal-stack walkthrough.
 
 ## Security warning
 
-The demo overlay sets a **well-known JWT signing key** (`demo-signing-key-not-for-production-use!!`). **Never** deploy `docker-compose.demo.yml` to production or any environment with real data. Demo credentials are public by design.
+The demo overlay sets a **well-known JWT signing key** (`demo-signing-key-not-for-production-use!!`). **Never** deploy `docker/docker-compose.demo.yml` to production or any environment with real data. Demo credentials are public by design.
 
 Outbound email is disabled in demo mode (`Demo__DisableOutboundEmail=true`).
