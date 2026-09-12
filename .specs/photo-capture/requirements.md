@@ -7,7 +7,7 @@
 
 ## Context
 
-The porteiro needs to photograph residents, visitors, vehicles, and service providers at the gatehouse so the photo is on the record for identity verification. The camera is the browser's (`getUserMedia`); the storage is a pluggable provider (local filesystem for dev, S3/MinIO for production). All image processing is client-side — no server-side compression, thumbnailing, or EXIF stripping.
+The porteiro needs to photograph residents, visitors, vehicles, and service providers at the gatehouse so the photo is on the record for identity verification. The camera is the browser's (`getUserMedia`); the storage is a pluggable provider (local filesystem or S3/MinIO), selectable per deployment — local filesystem is a supported production backend for single-node installations, while S3/MinIO is recommended for multi-node or horizontally-scaled deployments. All image processing is client-side — no server-side compression, thumbnailing, or EXIF stripping.
 
 ## User Stories
 
@@ -15,7 +15,7 @@ The porteiro needs to photograph residents, visitors, vehicles, and service prov
 
 - **UC-PC-01:** As a *gatehouse attendant (porteiro)*, I want to capture a photograph of a visitor, resident, service provider, or vehicle at check-in so the photo is stored and retrievable for identity verification at the gatehouse.
 - **UC-PC-02:** As a *tenant administrator*, I want to view and manage all photos associated with residents, visitors, vehicles, and service providers in my condominium, including soft-deleting photos that are no longer needed.
-- **UC-PC-03:** As a *platform architect*, I want all photos stored behind an abstraction layer (`IStorageProvider`) with swappable backends (local filesystem for dev, MinIO/S3 for production) so the storage implementation can change without modifying business logic.
+- **UC-PC-03:** As a *platform architect*, I want all photos stored behind an abstraction layer (`IStorageProvider`) with swappable backends (local filesystem or S3/MinIO) so the storage implementation can change without modifying business logic. Local filesystem is a supported production backend for single-node deployments; S3/MinIO is recommended for multi-node or horizontally-scaled deployments.
 - **UC-PC-04:** As a *security officer*, I want photo access logged in the audit trail and restricted by permission (`photos.read`, `photos.write`, `photos.delete`) so only authorized users can view or modify sensitive images.
 - **UC-PC-05:** As a *resident (morador)*, I want to upload or update my own profile photo from the web UI so my identity is visible to gatehouse attendants during verification.
 
@@ -33,7 +33,7 @@ The porteiro needs to photograph residents, visitors, vehicles, and service prov
 
 ### PHOTO-01: Storage Infrastructure & API
 
-- `IStorageProvider` abstraction with `LocalFilesystemStorageProvider` (dev) and `S3StorageProvider` (production, MinIO-compatible)
+- `IStorageProvider` abstraction with `LocalFilesystemStorageProvider` (supported in dev and single-node production) and `S3StorageProvider` (production, MinIO-compatible; recommended for multi-node)
 - `photos` table: `id`, `tenant_id`, `entity_type`, `entity_id`, `file_path`, `thumbnail_path`, `file_size_bytes`, `mime_type`, `captured_at`, `uploaded_by`, `created_at`, `deleted_at`
 - Permissions: `photos.read`, `photos.write`, `photos.delete`
 - Endpoints: `POST /api/v1/photos` (upload), `GET /api/v1/photos/{id}` (retrieve), `DELETE /api/v1/photos/{id}` (soft-delete)

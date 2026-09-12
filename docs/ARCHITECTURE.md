@@ -100,7 +100,7 @@ To eliminate divergence between frontend models and backend DTOs:
 
 ### `IPhotoStorageService`
 - **Location:** `src/BuildingBlocks/ControlEasyReborn.Infrastructure/Storage/IPhotoStorageService.cs`
-- **Role:** Pluggable storage provider supporting local filesystem storage (`LocalPhotoStorageService` saving to `/storage/photos`) or S3-compatible object storage (e.g. MinIO/AWS).
+- **Role:** Pluggable storage provider supporting local filesystem storage (`LocalPhotoStorageService` saving to `/storage/photos`, supported in dev and single-node production) or S3-compatible object storage (e.g. MinIO/AWS, recommended for multi-node).
 
 ### `TenantResolutionMiddleware`
 - **Location:** `src/BuildingBlocks/ControlEasyReborn.Infrastructure/MultiTenancy/TenantResolutionMiddleware.cs`
