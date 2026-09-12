@@ -1,0 +1,15 @@
+# Build context exclusions — keeps image builds small and avoids
+# "invalid file request" failures from host-installed artifacts.
+**/node_modules
+**/dist
+**/bin
+**/obj
+**/.git
+**/.worktrees
+**/coverage
+**/TestResults
+**/*.md
+!README.md
+tests/
+docker/.env*
+docker/docker-compose.worktree.*.yml
