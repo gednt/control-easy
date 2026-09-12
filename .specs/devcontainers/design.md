@@ -130,8 +130,8 @@ own database state; the volume is removed by
 ### Worktree bring-up sequence
 
 ```
-git worktree add -b feat/<id> ../ControlEasy.<id> main
-cd ../ControlEasy.<id>
+git worktree add -b feat/<id> .worktrees/feat-<id> main
+cd .worktrees/feat-<id>
 COMPOSE_PROJECT_NAME=ce-<id> ./scripts/worktree-up.sh
 ```
 
@@ -157,7 +157,7 @@ COMPOSE_PROJECT_NAME=ce-<id> ./scripts/worktree-up.sh
 1. `docker compose -p ce-<id> down -v` (removes ONLY the worktree's
    containers, networks, and volume).
 2. Remove the `/etc/hosts` entry (restores the backup).
-3. `git worktree remove --force ../ControlEasy.<id>`.
+3. `git worktree remove --force .worktrees/feat-<id>` (from the main checkout; the path is `<repo-root>/.worktrees/<branch-with-slashes>`).
 
 ## Architecture diagram
 
