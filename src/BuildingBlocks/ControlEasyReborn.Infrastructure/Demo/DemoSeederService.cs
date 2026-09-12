@@ -250,8 +250,8 @@ public sealed class DemoSeederService : IHostedService
 
     private static async Task SeedAttendantProfilesAsync(IAsyncSqlClient db, DateTime now, CancellationToken ct)
     {
-        const string allPerms = "Visits.CheckIn,Visits.CheckOut,Visits.Read,Apartments.Read,Apartments.Write,Residents.Read,Residents.Write,Vehicles.Read,Vehicles.Write,ServiceProviders.Read,ServiceProviders.Write,Reports.Read";
-        const string readPerms = "Visits.Read,Apartments.Read,Residents.Read,Vehicles.Read,ServiceProviders.Read,Reports.Read";
+        const string allPerms = "Visits.CheckIn,Visits.CheckOut,Visits.Read,Apartments.Read,Apartments.Write,Residents.Read,Residents.Write,Vehicles.Read,Vehicles.Write,ServiceProviders.Read,ServiceProviders.Write,Reports.Read,Photos.Read,Photos.Write,Photos.Delete";
+        const string readPerms = "Visits.Read,Apartments.Read,Residents.Read,Vehicles.Read,ServiceProviders.Read,Reports.Read,Photos.Read,Photos.Write";
         const string platformPerms = "platform:*";
 
         await InsertProfileAsync(db, DemoIds.PlatformProfileId, DemoIds.PlatformTenantId, DemoIds.PlatformUserId, "Platform Admin", DemoIds.AuroraShiftId, DemoIds.AuroraGatehouseId, platformPerms, now, ct);

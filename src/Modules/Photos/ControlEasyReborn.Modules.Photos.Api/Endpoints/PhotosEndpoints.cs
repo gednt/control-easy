@@ -1,0 +1,113 @@
+using ControlEasyReborn.Modules.Photos.Application.Contracts;
+using ControlEasyReborn.Modules.Photos.Application.Handlers;
+using ControlEasyReborn.SharedKernel.MultiTenancy;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+
+namespace ControlEasyReborn.Modules.Photos.Api.Endpoints;
+
+public static class PhotosEndpoints
+{
+    public static IEndpointRouteBuilder MapPhotosEndpoints(this IEndpointRouteBuilder app)
+    {
+        var group = app.MapGroup("/api/v1/photos")
+            .RequireAuthorization()
+            .WithTags("Photos");
+
+        group.MapPost("/", async (
+            HttpRequest request,
+            ITenantContext tenantContext,
+            UploadPhotoHandler handler,
+            CancellationToken ct) =>
+        {
+            var tenantId = tenantContext.TenantId
+                ?? throw new InvalidOperationException("Tenant context is not resolved.");
+
+            string? rawContentType = request.ContentType?.Split(';')[0].Trim();
+            if (string.IsNullOrWhiteSpace(rawContentType))
+            {
+                return Results.StatusCode(StatusCodes.Status415UnsupportedMediaType);
+            }
+
+            Stream contentStream;
+            string mimeType;
+            string? fileName = null;
+            DateTime? capturedAt = null;
+
+            if (request.HasFormContentType)
+            {
+                var form = await request.ReadFormAsync(ct);
+                var file = form.Files.FirstOrDefault();
+                if (file is null)
+                {
+                    throw new ControlEasyReborn.Modules.Photos.Application.Errors.ValidationException(
+                        new Dictionary<string, string[]> { ["File"] = new[] { "No file was provided." } });
+                }
+
+                mimeType = file.ContentType;
+                fileName = file.FileName;
+                if (form.TryGetValue("capturedAtUtc", out var capVal) && DateTime.TryParse(capVal, out var parsedCap))
+                {
+                    capturedAt = parsedCap;
+                }
+
+                var ms = new MemoryStream();
+                await file.CopyToAsync(ms, ct);
+                ms.Position = 0;
+                contentStream = ms;
+            }
+            else if (rawContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+            {
+                mimeType = rawContentType;
+                fileName = request.Headers["X-File-Name"].FirstOrDefault()
+                    ?? request.Query["fileName"].FirstOrDefault();
+
+                var capStr = request.Headers["X-Captured-At"].FirstOrDefault()
+                    ?? request.Query["capturedAtUtc"].FirstOrDefault()
+                    ?? request.Query["capturedAt"].FirstOrDefault();
+                if (DateTime.TryParse(capStr, out var parsedCap))
+                {
+                    capturedAt = parsedCap;
+                }
+
+                var ms = new MemoryStream();
+                await request.Body.CopyToAsync(ms, ct);
+                ms.Position = 0;
+                contentStream = ms;
+            }
+            else
+            {
+                return Results.StatusCode(StatusCodes.Status415UnsupportedMediaType);
+            }
+
+            var metadata = new UploadPhotoMetadata(mimeType, capturedAt, fileName);
+            var response = await handler.HandleAsync(contentStream, metadata, tenantId, ct);
+            return Results.Created($"/api/v1/photos/{response.Id}", response);
+        })
+        .RequireAuthorization("Permission_Photos.Write");
+
+        group.MapGet("/{id:guid}", async (
+            Guid id,
+            GetPhotoHandler handler,
+            CancellationToken ct) =>
+        {
+            var result = await handler.HandleAsync(id, ct);
+            return Results.File(result.Content, result.MimeType);
+        })
+        .RequireAuthorization("Permission_Photos.Read");
+
+        group.MapDelete("/{id:guid}", async (
+            Guid id,
+            SoftDeletePhotoHandler handler,
+            CancellationToken ct) =>
+        {
+            await handler.HandleAsync(id, ct);
+            return Results.NoContent();
+        })
+        .RequireAuthorization("Permission_Photos.Delete");
+
+        return app;
+    }
+}
