@@ -1,5 +1,6 @@
 using ControlEasyReborn.Api.Hosting;
 using ControlEasyReborn.Infrastructure.Data;
+using ControlEasyReborn.Infrastructure.Storage;
 using ControlEasyReborn.Infrastructure.Bootstrap;
 using ControlEasyReborn.Infrastructure.Demo;
 using ControlEasyReborn.Infrastructure.MultiTenancy;
@@ -28,6 +29,9 @@ using ControlEasyReborn.Modules.Reports.Infrastructure.DI;
 using ControlEasyReborn.Modules.Visits.Api.Endpoints;
 using ControlEasyReborn.Modules.Visits.Api.DI;
 using ControlEasyReborn.Modules.Visits.Infrastructure.DI;
+using ControlEasyReborn.Modules.Photos.Api.DI;
+using ControlEasyReborn.Modules.Photos.Api.Endpoints;
+using ControlEasyReborn.Modules.Photos.Infrastructure.DI;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.FeatureManagement;
 using Serilog;
@@ -51,6 +55,7 @@ try
     });
 
     builder.Services.AddControlEasyDbTools(builder.Configuration);
+    builder.Services.AddControlEasyStorage(builder.Configuration);
 
     builder.Services.AddAuthentication()
         .AddJwtBearer(options =>
@@ -126,6 +131,7 @@ try
     builder.Services.AddVehiclesModule();
     builder.Services.AddVisitsModule();
     builder.Services.AddReportsModule();
+    builder.Services.AddPhotosModule();
 
     builder.Services.AddControlEasyDemo(builder.Configuration);
     builder.Services.AddControlEasyBootstrap(builder.Configuration);
@@ -173,6 +179,7 @@ try
     app.MapVisitsApi();
     app.MapReportsApi();
     app.MapAdministrationApi();
+    app.MapPhotosApi();
 
     app.Run();
 }
@@ -217,6 +224,9 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
             ControlEasyReborn.Modules.Visits.Application.Errors.NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
             ControlEasyReborn.Modules.Visits.Application.Errors.ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
             ControlEasyReborn.Modules.Visits.Application.Errors.ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
+            ControlEasyReborn.Modules.Photos.Application.Errors.NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
+            ControlEasyReborn.Modules.Photos.Application.Errors.ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
+            ControlEasyReborn.Modules.Photos.Application.Errors.ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
             ControlEasyReborn.Modules.Administration.Application.Errors.NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
             ControlEasyReborn.Modules.Administration.Application.Errors.ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
             ControlEasyReborn.Modules.Administration.Application.Errors.ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
@@ -265,6 +275,10 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
         else if (exception is ControlEasyReborn.Modules.Visits.Application.Errors.ValidationException visValEx)
         {
             problemDetails.Extensions["errors"] = visValEx.Errors;
+        }
+        else if (exception is ControlEasyReborn.Modules.Photos.Application.Errors.ValidationException phoValEx)
+        {
+            problemDetails.Extensions["errors"] = phoValEx.Errors;
         }
 
         httpContext.Response.StatusCode = status;

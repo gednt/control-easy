@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ControlEasyReborn.Modules.Photos.Application</RootNamespace>
+    <AssemblyName>ControlEasyReborn.Modules.Photos.Application</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ControlEasyReborn.Modules.Photos.Domain\ControlEasyReborn.Modules.Photos.Domain.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\ControlEasyReborn.SharedKernel\ControlEasyReborn.SharedKernel.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" />
+  </ItemGroup>
+</Project>

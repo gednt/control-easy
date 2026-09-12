@@ -33,11 +33,15 @@ services:
       Jwt__Audience: ControlEasyReborn
       ASPNETCORE_ENVIRONMENT: Development
       Serilog__WriteTo__1__Args__serverUrl: http://seq:5341
+      Storage__Provider: Local
+      Storage__Local__Path: /storage/photos
     depends_on:
       db:
         condition: service_healthy
     ports:
       - "${API_PORT:-8081}:8080"
+    volumes:
+      - photos-data:/storage/photos
     labels:
       - "traefik.http.routers.api.rule=(Host(`localhost`) || Host(`reverse-proxy`)) && PathPrefix(`/api`)"
       - "traefik.http.routers.api.entrypoints=web"
@@ -89,3 +93,4 @@ volumes:
   mysql-data:
   traefik-data:
   seq-data:
+  photos-data:

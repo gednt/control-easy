@@ -8,5 +8,6 @@ public static class TenantAdminDefaults
         "Residents.Read,Residents.Write," +
         "Vehicles.Read,Vehicles.Write," +
         "ServiceProviders.Read,ServiceProviders.Write," +
-        "Reports.Read";
+        "Reports.Read," +
+        "Photos.Read,Photos.Write,Photos.Delete";
 }

@@ -14,6 +14,9 @@ public static class Permissions
     public const string ServiceProvidersRead = "ServiceProviders.Read";
     public const string ServiceProvidersWrite = "ServiceProviders.Write";
     public const string ReportsRead = "Reports.Read";
+    public const string PhotosRead = "Photos.Read";
+    public const string PhotosWrite = "Photos.Write";
+    public const string PhotosDelete = "Photos.Delete";
 
     public static readonly string[] All =
     [
@@ -22,6 +25,7 @@ public static class Permissions
         ResidentsRead, ResidentsWrite,
         VehiclesRead, VehiclesWrite,
         ServiceProvidersRead, ServiceProvidersWrite,
-        ReportsRead
+        ReportsRead,
+        PhotosRead, PhotosWrite, PhotosDelete
     ];
 }

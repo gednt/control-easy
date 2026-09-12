@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ControlEasyReborn.Modules.Photos.Api</RootNamespace>
+    <AssemblyName>ControlEasyReborn.Modules.Photos.Api</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ControlEasyReborn.Modules.Photos.Application\ControlEasyReborn.Modules.Photos.Application.csproj" />
+    <ProjectReference Include="..\ControlEasyReborn.Modules.Photos.Infrastructure\ControlEasyReborn.Modules.Photos.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+</Project>

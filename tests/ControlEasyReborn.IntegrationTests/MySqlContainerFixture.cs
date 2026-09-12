@@ -17,14 +17,24 @@ public sealed class MySqlCollectionDefinition : ICollectionFixture<MySqlContaine
 [Collection("MySql Collection")]
 public sealed class MySqlContainerFixture : IAsyncLifetime
 {
-    private readonly IContainer _container;
+    private readonly IContainer? _container;
     private string _connectionString = string.Empty;
+    private bool _skipContainerLifecycle;
 
     public string ConnectionString => _connectionString;
-    public string Host => _container.Hostname;
+    public string Host => _container?.Hostname ?? HostOverride;
+    public string HostOverride { get; private set; } = string.Empty;
+    public string PortOverride { get; private set; } = string.Empty;
 
     public MySqlContainerFixture()
     {
+        var external = Environment.GetEnvironmentVariable("CE_ITEST_MYSQL");
+        if (!string.IsNullOrWhiteSpace(external))
+        {
+            _skipContainerLifecycle = true;
+            return;
+        }
+
         _container = new ContainerBuilder()
             .WithImage("mysql:8.0")
             .WithEnvironment("MYSQL_ROOT_PASSWORD", "testpw")
@@ -36,10 +46,40 @@ public sealed class MySqlContainerFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await _container.StartAsync();
+        var external = Environment.GetEnvironmentVariable("CE_ITEST_MYSQL");
 
-        var port = _container.GetMappedPublicPort(3306);
-        _connectionString = $"Server={_container.Hostname};Port={port};Database=controleasydb;Uid=root;Pwd=testpw;";
+        if (!string.IsNullOrWhiteSpace(external))
+        {
+            // Reuse an already-running MySQL instance instead of Testcontainers
+            // (e.g. a dedicated container on a dev machine). Host may be "host:port".
+            var host = external.Contains(":") ? external.Split(':')[0] : external;
+            var port = external.Contains(":") ? external.Split(':')[1] : "3306";
+            _connectionString = $"Server={host};Port={port};Database=controleasydb;Uid=root;Pwd=testpw;";
+            _skipContainerLifecycle = true;
+            HostOverride = host;
+            PortOverride = port;
+
+            await WaitForMySqlReady();
+            await RunInitScripts();
+            return;
+        }
+
+        await _container!.StartAsync();
+
+        // When the tests themselves run inside a container (devcontainer),
+        // the MySQL container is a sibling on the same bridge network: reach
+        // it directly via its container IP and internal port. Otherwise use
+        // the host-mapped port via the container hostname (localhost).
+        if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
+        {
+            var ip = _container.Hostname;
+            _connectionString = $"Server={ip};Port=3306;Database=controleasydb;Uid=root;Pwd=testpw;";
+        }
+        else
+        {
+            var port = _container.GetMappedPublicPort(3306);
+            _connectionString = $"Server={_container.Hostname};Port={port};Database=controleasydb;Uid=root;Pwd=testpw;";
+        }
 
         await WaitForMySqlReady();
         await RunInitScripts();
@@ -47,7 +87,8 @@ public sealed class MySqlContainerFixture : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
-        await _container.DisposeAsync();
+        if (!_skipContainerLifecycle && _container is not null)
+            await _container.DisposeAsync();
     }
 
     private async Task WaitForMySqlReady()
