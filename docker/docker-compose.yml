@@ -66,9 +66,11 @@ services:
       - mysql-data:/var/lib/mysql
       - ./mysql/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u${MYSQL_USER:-controleasy}", "-p${MYSQL_PASSWORD:-controleasy_dev}"]
+      test: ["CMD-SHELL", "mysqladmin ping --protocol=tcp -h 127.0.0.1 -u\"$$MYSQL_USER\" -p\"$$MYSQL_PASSWORD\" && mysql --protocol=tcp -h 127.0.0.1 -u\"$$MYSQL_USER\" -p\"$$MYSQL_PASSWORD\" -e \"USE $$MYSQL_DATABASE; SELECT IF((SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE()) > 0, 1, 0)\" | grep -q 1"]
       interval: 5s
-      retries: 20
+      timeout: 5s
+      retries: 30
+      start_period: 30s
 
   adminer:
     image: adminer:4
