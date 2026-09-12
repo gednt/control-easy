@@ -22,32 +22,33 @@
 
 ---
 
-## v1.1 UI & Dashboard (Defined: 2026-08-23)
+## v1.1 UI & Dashboard (Defined: 2026-08-23 — Shipped without GSD artifacts 2026-09-12)
 
 **Phases:** 9, 10
-**Status:** Planning (not started)
+**Status:** Shipped (no GSD artifacts)
 
 **Scope:** Complete the deferred UI parity, functional fixes, dashboard live data, and vehicle editing work from the v1.0-era user experience surface.
 
 **Phases:**
-- Phase 9: UI Parity & Functional Fixes (`UI-03`, `UI-04`)
-- Phase 10: Dashboard Live Stats & Vehicle Edit (`DASH-01`, `DASH-02`, `DASH-04`)
+- Phase 9: UI Parity & Functional Fixes (`UI-03`, `UI-04`) — residents page rebuilt with `ce-*` components (commit `0976037`); other pages not yet rebuilt
+- Phase 10: Dashboard Live Stats & Vehicle Edit (`DASH-01`, `DASH-02`, `DASH-04`) — shipped: `GET /api/v1/dashboard/stats`, dashboard UI with live stat tiles, vehicle edit modal + `update()` in VehiclesApiService
 
 **Roadmap:** `.planning/ROADMAP.md`
+**Note:** Phase 9 and 10 shipped without GSD artifacts (PLAN/SUMMARY/VERIFICATION). Backfill is optional — same pattern as v1.0 Phases 1–6 + 11.
 
 ---
 
-## v2.0 Gatehouse Photo & Consent Ledger (Defined: 2026-08-23)
+## v2.0 Gatehouse Photo & Consent Ledger (Defined: 2026-08-23 — In Progress)
 
 **Phases:** 11, 12, 13
-**Status:** Defined (not started — follows v1.1)
+**Status:** In Progress (Phase 11 shipped, Phase 13 backend shipped, Phase 12 not started)
 
 **Scope:** Browser-based photo capture for residents, visitors, vehicles, and service providers with per-tenant per-category consent policy. The porteiro captures a photo in under 3 seconds. The condominium sets whether photo consent is required per category. Every entry is logged with millisecond-precision timestamps cross-referenceable with the condominium's external CCTV. No hardware framework — the camera is the browser's. No server-side image processing — all compression, EXIF stripping, and thumbnailing is client-side.
 
 **Phases:**
-- Phase 11: Photos & Consent Schema Infrastructure (`PHOTO-01`) — `IStorageProvider`, `photos` table, `consent_audit_log` table, `tenant_consent_policy` table, permissions, endpoints
-- Phase 12: Photo Capture & Display (`PHOTO-02`) — `ce-photo-capture` component, `getUserMedia`, client-side compression, EXIF strip, thumbnails, upload retry, `ce-photo` display
-- Phase 13: Consent Policy & Gatehouse Workflow (`CONSENT-01`, `CONSENT-02`, `CONSENT-03`) — per-category policy toggle, four entry states, 3-second workflow, audit review, CSV export
+- Phase 11: Photos & Consent Schema Infrastructure (`PHOTO-01`) — ✅ Shipped (commit `d895c01`): `IStorageProvider` (local + S3/MinIO + Amazon S3), `photos` table, `consent_audit_log` table (append-only triggers), `tenant_consent_policy` table, `photos.read/write/delete` permissions, upload/retrieve/soft-delete endpoints, 118 unit + 73 integration tests
+- Phase 12: Photo Capture & Display (`PHOTO-02`) — Not started: `ce-photo-capture` component, `getUserMedia`, client-side compression, EXIF strip, thumbnails, upload retry, `ce-photo` display
+- Phase 13: Consent Policy & Gatehouse Workflow (`CONSENT-01`, `CONSENT-02`, `CONSENT-03`) — ✅ Backend shipped (commit `d895c01`): `POST/GET /api/v1/entry-log`, `GET /api/v1/entry-log/export` (CSV), `GET/PUT /api/v1/consent-policy`, four entry states, override reasons (emergency/vouched), policy enforcement, append-only DB triggers, CHECK constraint on `entered_with_consent` → `photo_id` non-null. ❌ UI not started: 3-second gatehouse workflow page, audit review UI with filters/highlighting/CSV export button
 
 **Design principles:**
 1. Logging is faster than skipping — 3-second workflow is the honesty enforcement

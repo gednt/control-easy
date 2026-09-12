@@ -52,7 +52,7 @@
 5. `photos.read`/`photos.write`/`photos.delete` permissions enforced on endpoints
 6. `dotnet test` green (unit + integration + architecture); Docker API healthy
 
-**Plans:** TBD
+**Plans:** 1 (shipped, commit `d895c01`, no GSD artifacts)
 
 ---
 
@@ -146,7 +146,7 @@
 9. Playwright E2E: full gatehouse workflow (register visitor with photo, register refusal, register gatehouse-only, register override)
 10. `dotnet test` + `npm test` green; Docker stack healthy
 
-**Plans:** TBD
+**Plans:** TBD (backend shipped in Phase 11 commit `d895c01`; UI not started)
 
 ---
 
@@ -269,9 +269,27 @@ Pulled out of v2 per design session recommendation. Low-risk DevOps hygiene, ~1 
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 11. Photos & Consent Schema Infrastructure | 0/0 | Not started | - |
+| 11. Photos & Consent Schema Infrastructure | 1/1 | ✅ Shipped (commit `d895c01`, no GSD artifacts) | 2026-09-12 |
 | 12. Photo Capture & Display | 0/0 | Not started | - |
-| 13. Consent Policy & Gatehouse Workflow | 0/0 | Not started | - |
+| 13. Consent Policy & Gatehouse Workflow | 0/0 | ⚠️ Backend shipped (commit `d895c01`); UI not started | — |
+
+**Phase 11 shipped details (commit `d895c01`, 2026-09-12):**
+- `IStorageProvider` abstraction with `LocalFilesystemStorageProvider` (dev), `S3StorageProvider` (MinIO-compatible), `AmazonS3StorageProvider` (native S3)
+- `photos` table, `consent_audit_log` table (append-only triggers), `tenant_consent_policy` table, CHECK constraint on `entered_with_consent` → `photo_id` non-null
+- `photos.read`/`photos.write`/`photos.delete` permissions in security, tenant defaults, demo seed
+- Endpoints: `POST/GET/DELETE /api/v1/photos`, `POST/GET /api/v1/entry-log`, `GET /api/v1/entry-log/export` (CSV), `GET/PUT /api/v1/consent-policy`
+- 118 unit tests + 73 integration tests (including cross-tenant, append-only trigger, CHECK constraint, policy enforcement)
+
+**Phase 13 backend shipped details (same commit `d895c01`):**
+- `CreateEntryLogHandler` — validates consent policy, enforces state transitions, creates `consent_audit_log` entry
+- `ListEntryLogsHandler` — list with filters (entryState, subjectType, fromUtc, toUtc)
+- `ExportEntryLogCsvHandler` — CSV export with millisecond-precision `recorded_at`
+- `UpdateConsentPolicyHandler` — get + update per-tenant per-category policy
+- Four entry states: `entered_with_consent`, `entered_override`, `gatehouse_only`, `denied` (note: code also includes `entered_without_consent` state)
+- Override reason codes: hardcoded `emergency` / `vouched`
+- Append-only enforcement: DB triggers reject UPDATE and DELETE on `consent_audit_log`
+- Hard DB constraint: `entered_with_consent` without `photo_id` → rejected
+- ❌ UI not started: 3-second gatehouse workflow page, audit review UI with filters/highlighting/CSV export button
 
 ### v2.1 — Door Integration (Optional)
 
@@ -291,9 +309,9 @@ Pulled out of v2 per design session recommendation. Low-risk DevOps hygiene, ~1 
 ## Execution Order
 
 ```
-v1.1 complete (Phase 10)
+v1.1 complete (Phase 10) ✅ + Phase 9 partial
   │
-  ├──▶ Phase 11 (schema) ──▶ Phase 12 (capture) ──▶ Phase 13 (consent)   [v2.0 — linear pipeline]
+  ├──▶ Phase 11 (schema) ✅ ──▶ Phase 12 (capture) ──▶ Phase 13 (consent)   [v2.0 — Phase 11 + 13 backend done; Phase 12 + 13 UI pending]
   │
   ├──▶ Multi-Arch Docker/CI (anytime, independent)
   │
@@ -302,5 +320,6 @@ v1.1 complete (Phase 10)
 
 ---
 *v2.0 + v2.1 roadmap defined: 2026-08-23*
+*Audited and updated: 2026-09-12 — Phase 11 shipped, Phase 13 backend shipped, Phase 12 + Phase 13 UI pending*
 *Origin: party-mode design session (Vex, Grumbal, Boundary, Yui, Dana, Wildcard, Level, Killjoy, Splinter)*
 *Supersedes: old v1.0 placeholder Phase 12 (photo/hardware) and Phase 14 (multi-arch)*

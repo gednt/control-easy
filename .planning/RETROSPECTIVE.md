@@ -36,8 +36,42 @@
 - Treat generated contracts as useful only when endpoint metadata and application consumption are both verified.
 - Milestone audits should distinguish missing evidence from missing implementation before creating closure work.
 
+## Post-v1.0 Work (2026-09-12 audit)
+
+**Shipped without GSD artifacts:** v1.1 Phase 10 (dashboard + vehicle edit), v1.1 Phase 9 partial (residents page rebuild), v2.0 Phase 11 (Photos & Consent Schema), v2.0 Phase 13 backend (consent policy + entry log + CSV export). Unplanned: tenant staff lifecycle management, bootstrap race fix, Traefik TLS, worktree script fixes.
+
+### What Was Built
+
+- Photos module (Domain/Application/Infrastructure/Api) with `IStorageProvider` (local + S3/MinIO + Amazon S3), `photos`/`consent_audit_log`/`tenant_consent_policy` tables, append-only DB triggers, CHECK constraint on consent entries.
+- Consent backend: entry-log CRUD, CSV export, consent policy get/update, four entry states, override reasons, policy enforcement.
+- Dashboard: `GET /api/v1/dashboard/stats` endpoint + live stat tiles UI + recent visits table.
+- Vehicle edit: `update()` in VehiclesApiService + edit modal in vehicles page.
+- Residents page rebuilt with `ce-*` design-system components (stat tiles, tabs, dropdowns, table, badge, pagination, modals, card, inputs, client-side filter/sort/pagination).
+- Tenant staff lifecycle: admin/porteiro CRUD, suspend/resume/revoke, last-admin guard, duplicate email rejection, 13 new unit tests.
+- 118 unit tests + 73 integration tests for Photos/Consent module.
+
+### What Worked
+
+- Shipping Phase 11 + Phase 13 backend in one commit was efficient — the schema and consent backend are co-dependent; splitting them would have created an artificial boundary.
+- The `ce-*` design-system component adoption on the residents page proved the pattern works for remaining pages.
+- Cross-tenant integration tests on the Photos module caught isolation issues early.
+
+### What Was Inefficient
+
+- v1.1 Phase 9/10 and v2.0 Phase 11/13 shipped without GSD artifacts (PLAN/SUMMARY/VERIFICATION) — same pattern as v1.0 Phases 1–6 + 11. This required a full audit to reconstruct what shipped.
+- Planning docs (STATE, MILESTONES, ROADMAP, REQUIREMENTS, PROJECT) drifted significantly from codebase reality. STATE.md said "v1.1 in planning" while v2.0 Phase 11 was already shipped.
+- Unplanned work (tenant staff lifecycle) shipped without being tracked in requirements — it should have been captured as a new requirement when started.
+
+### Key Lessons
+
+- Planning docs must be updated when implementation ships, not deferred to a later audit. The 2026-09-12 audit found docs 2 milestones behind reality.
+- When implementation collapses roadmap phase boundaries (Phase 11 + 13 backend shipped together), update the roadmap to reflect the actual delivery shape rather than forcing the plan to match the original phase split.
+- Unplanned work should be captured in REQUIREMENTS.md as it starts, even if it's a bugfix or hardening task — future audits need the trail.
+
 ## Cross-Milestone Trends
 
 | Milestone | Requirements | Verification | Main debt |
 |---|---:|---|---|
 | v1.0 | 32/32 active | 79 unit, 55 integration, 6 architecture, 203 Angular | Generated-client adoption |
+| v1.1 (partial) | 3/5 done (DASH-01/02/04), 2/5 partial (UI-03/04) | Shipped without GSD artifacts | Phase 9 remaining pages; Phase 9/10 backfill |
+| v2.0 (in progress) | 3/5 done + 1 partial (CONSENT-03 UI pending) | 118 unit, 73 integration (Photos module) | Phase 12 (browser capture UI); Phase 13 UI; GSD artifact backfill |
