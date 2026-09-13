@@ -57,3 +57,34 @@ CREATE TABLE IF NOT EXISTS CondominiumSettings (
     UNIQUE KEY UK_CondominiumSettings_TenantId (TenantId),
     INDEX IX_CondominiumSettings_tenant_id (tenant_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Ensure migration on existing databases where AuditLog already existed
+DROP PROCEDURE IF EXISTS upgrade_audit_log;
+DELIMITER //
+CREATE PROCEDURE upgrade_audit_log()
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'AuditLog' AND COLUMN_NAME = 'Category'
+    ) THEN
+        ALTER TABLE AuditLog ADD COLUMN Category VARCHAR(100) NOT NULL DEFAULT 'System' AFTER TenantId;
+        ALTER TABLE AuditLog ADD INDEX IX_AuditLog_Category (Category);
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'AuditLog' AND COLUMN_NAME = 'Severity'
+    ) THEN
+        ALTER TABLE AuditLog ADD COLUMN Severity INT NOT NULL DEFAULT 0 AFTER EntityId;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'AuditLog' AND COLUMN_NAME = 'MetadataJson'
+    ) THEN
+        ALTER TABLE AuditLog ADD COLUMN MetadataJson TEXT NULL AFTER Details;
+    END IF;
+END //
+DELIMITER ;
+CALL upgrade_audit_log();
+DROP PROCEDURE IF EXISTS upgrade_audit_log;

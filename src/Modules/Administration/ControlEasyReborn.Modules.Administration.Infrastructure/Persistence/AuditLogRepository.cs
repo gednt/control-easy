@@ -29,6 +29,7 @@ public sealed class AuditLogRepository : IAuditLogRepository
             {
                 "Id",
                 "TenantId",
+                "tenant_id",
                 "Category",
                 "Action",
                 "EntityType",
@@ -45,6 +46,7 @@ public sealed class AuditLogRepository : IAuditLogRepository
             {
                 entry.Id,
                 entry.TenantId,
+                entry.TenantId,
                 entry.Category,
                 entry.Action,
                 entry.EntityType,
@@ -54,7 +56,7 @@ public sealed class AuditLogRepository : IAuditLogRepository
                 (object?)entry.PerformedByName ?? DBNull.Value,
                 (object?)entry.Details ?? DBNull.Value,
                 (object?)entry.MetadataJson ?? DBNull.Value,
-                entry.CreatedAtUtc
+                entry.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm:ss")
             },
             primaryKeyName: "Id",
             autoIncrement: false,
