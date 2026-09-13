@@ -11,7 +11,7 @@ Built as a high-performance modular monolith with an Angular 18 SPA frontend and
 
 - **Backend:** ASP.NET Core 8 (C# 12 minimal API endpoints, Clean Architecture per module)
 - **Frontend:** Angular 18 SPA (standalone components, signals, OnPush change detection, Lucide icons)
-- **Data Access:** [DBTools](https://www.nuget.org/packages/DBTools) 1.4.3 (`Linq<T>`, `IAsyncSqlClient`) — No EF Core
+- **Data Access:** [DBTools](https://www.nuget.org/packages/DBTools) 1.4.3 (`Linq<T>`, `IAsyncSqlClient`) — Custom open-source ORM created by Felipe Coelho (in development since 2014) — No EF Core
 - **Database:** MySQL 8
 - **Reverse Proxy & Gateway:** Traefik v3.1
 - **Logging & Diagnostics:** Serilog (Console JSON + Seq)
@@ -28,6 +28,12 @@ Following the conclusion of the course, custody and ownership of the code remain
 2. **Second Generation (C# Windows Forms):** Ported to C# to improve type safety, maintainability, and code structure, continuing desktop-based operations.
 3. **Third Generation — ControlEasy Reborn (Modern Web & Multi-Tenancy):** Complete architectural rebirth into a high-performance web platform — engineered as a Clean Architecture modular monolith on ASP.NET Core 8 minimal APIs, an Angular 18 SPA with reactive signals, and native multi-tenancy supporting multiple condominium complexes on a shared, isolated infrastructure.
 
+### The Story of DBTools (Custom ORM)
+
+A defining architectural characteristic across ControlEasy's history is the intentional use of **[DBTools](https://www.nuget.org/packages/DBTools)** instead of standard heavyweight ORMs like Entity Framework Core. 
+
+DBTools was created by **Felipe Coelho** in **2014** during the initial development of ControlEasy. It was conceived to provide fast, predictable, LINQ-to-SQL query composition tailored specifically to access-control workflows without the hidden magic, complex change-tracking, and runtime overhead of general-purpose ORMs. Over more than a decade of active use and refinement, DBTools evolved naturally alongside ControlEasy from internal data-access utilities into the standalone, open-source NuGet package utilized across the solution today. In ControlEasy Reborn, DBTools underpins tenant-isolated query generation through `ITenantAwareLinqFactory` while sustaining high-throughput gatehouse operations.
+
 ## Prerequisites
 
 - **Docker Engine 24+** with **Docker Compose v2** (`docker compose`)
@@ -38,7 +44,7 @@ Following the conclusion of the course, custody and ownership of the code remain
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/reisfelipe18/ControlEasy.git
+   git clone https://github.com/gednt/ControlEasy.git
    cd ControlEasy
    ```
 
@@ -126,8 +132,12 @@ Comprehensive documentation is available in the [`docs/`](docs/) directory:
 
 This project is **Source-Available**.
 
-The source code is publicly accessible for evaluation, inspection, security auditing, and educational reference. However, **modifications, derivative works, and production or commercial use require prior written authorization** from the copyright holder.
+The application source code is publicly accessible for evaluation, inspection, security auditing, and educational reference. However, **modifications, derivative works, and production or commercial use require prior written authorization** from the copyright holder.
 
-For full license terms and conditions, or to inquire about modification authorization, please see [LICENSE.md](LICENSE.md).
+### Open-Source Components (DBTools)
 
-Copyright (c) 2026 Felipe Coelho Silva. All rights reserved.
+ControlEasy Reborn incorporates and relies upon **[DBTools](https://www.nuget.org/packages/DBTools)** (`Linq<TModel>`, `IAsyncSqlClient`), an open-source ORM and data-access library also authored and created by Felipe Coelho R. Silva. DBTools is distributed independently under its own open-source license.
+
+For complete license terms, restrictions, and authorization inquiries, please see [LICENSE.md](LICENSE.md).
+
+Copyright (c) 2026 Felipe Coelho R. Silva. All rights reserved.

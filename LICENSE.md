@@ -1,6 +1,6 @@
 # ControlEasy Source-Available License
 
-Copyright (c) 2026 Felipe Coelho Silva. All rights reserved.
+Copyright (c) 2026 Felipe Coelho R. Silva. All rights reserved.
 
 ## 1. Source Availability & Inspection Grant
 
@@ -35,10 +35,17 @@ Public forks created on git hosting platforms (such as GitHub) are permitted sol
 
 To request authorization to modify the source code, submit upstream contributions, or obtain a commercial deployment license, please contact:
 
-- **Author & Copyright Holder:** Felipe Coelho Silva
-- **GitHub:** [https://github.com/reisfelipe18](https://github.com/reisfelipe18)
-- **Repository:** [https://github.com/reisfelipe18/ControlEasy](https://github.com/reisfelipe18/ControlEasy)
+- **Author & Copyright Holder:** Felipe Coelho R. Silva
+- **GitHub:** [https://github.com/gednt](https://github.com/gednt)
+- **Repository:** [https://github.com/gednt/ControlEasy](https://github.com/gednt/ControlEasy)
 
-## 6. Disclaimer of Warranty & Limitation of Liability
+## 6. Open-Source Dependencies & DBTools
+
+This software incorporates and relies upon **[DBTools](https://www.nuget.org/packages/DBTools)** (`Linq<TModel>`, `IAsyncSqlClient`), a high-performance lightweight ORM and data-access library also authored and created by Felipe Coelho R. Silva.
+
+Unlike the ControlEasy application (which is governed by this Source-Available License), **DBTools is open-source software** distributed independently via NuGet. Nothing in this License restricts, limits, or supersedes any rights granted under the open-source license governing DBTools.
+
+## 7. Disclaimer of Warranty & Limitation of Liability
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
