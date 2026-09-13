@@ -208,17 +208,21 @@ export class CePhotoLightboxComponent {
   });
 
   constructor() {
-    // Reset currentIndex whenever the photos array identity or startIndex changes
-    effect(() => {
-      const start = this.startIndex();
-      const list = this.photos();
-      if (list.length === 0) {
-        this.currentIndex.set(0);
-        return;
-      }
-      const idx = Math.min(Math.max(0, start), list.length - 1);
-      this.currentIndex.set(idx);
-    });
+    // Reset currentIndex whenever the photos array identity or startIndex changes.
+    // allowSignalWrites: required because we write to currentIndex inside the effect.
+    effect(
+      () => {
+        const start = this.startIndex();
+        const list = this.photos();
+        if (list.length === 0) {
+          this.currentIndex.set(0);
+          return;
+        }
+        const idx = Math.min(Math.max(0, start), list.length - 1);
+        this.currentIndex.set(idx);
+      },
+      { allowSignalWrites: true },
+    );
   }
 
   @HostListener('document:keydown.escape')

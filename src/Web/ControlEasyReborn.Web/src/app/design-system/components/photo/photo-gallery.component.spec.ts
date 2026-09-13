@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { importProvidersFrom } from '@angular/core';
 import { CePhotoGalleryComponent } from './photo-gallery.component';
 import type { PhotoResponse } from '../../../features/photos/photos-api.service';
+import { CE_LUCIDE_ICONS } from '../icon/icon.registry';
 
 function makePhoto(id: string): PhotoResponse {
   return {
@@ -23,6 +25,7 @@ describe('CePhotoGalleryComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [CePhotoGalleryComponent],
+      providers: [importProvidersFrom(CE_LUCIDE_ICONS)],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CePhotoGalleryComponent);
@@ -74,10 +77,10 @@ describe('CePhotoGalleryComponent', () => {
     fixture.componentRef.setInput('canDelete', true);
     fixture.detectChanges();
     let emittedId: string | null = null;
-    component.photoDeleted.subscribe((id) => (emittedId = id));
+    component.photoDeleted.subscribe((id: string) => (emittedId = id));
     component.lightboxOpen.set(true);
     component.onDelete('a');
-    expect(emittedId).toBe('a');
+    expect(emittedId as string | null).toBe('a');
     expect(component.lightboxOpen()).toBe(false);
   });
 

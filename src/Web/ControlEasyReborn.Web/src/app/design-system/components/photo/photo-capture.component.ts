@@ -17,14 +17,14 @@ import { CeButtonComponent } from '../button/button.component';
 import { CeIconComponent } from '../icon/icon.component';
 import { CeSpinnerComponent } from '../spinner/spinner.component';
 import { ToastService } from '../toast/toast.component';
-import { PhotosApiService, type PhotoResponse } from '../../features/photos/photos-api.service';
+import { PhotosApiService, type PhotoResponse } from '../../../features/photos/photos-api.service';
 import {
   compressImage,
   DEFAULT_COMPRESSION,
   DEFAULT_RETRY,
   uploadWithRetry,
-} from '../../features/photos/photo-utils';
-import type { PhotoEntityType as PhotoEntityTypeArg } from '../../features/photos/photos-api.service';
+} from '../../../features/photos/photo-utils';
+import type { PhotoEntityType as PhotoEntityTypeArg } from '../../../features/photos/photos-api.service';
 
 type Mode = 'camera' | 'upload';
 type Status = 'idle' | 'previewing' | 'capturing' | 'compressing' | 'uploading' | 'error';
@@ -280,6 +280,7 @@ export class CePhotoCaptureComponent implements AfterViewInit, OnDestroy {
 
   photoUploaded = output<PhotoResponse>();
   closed = output<void>();
+  modeChange = output<Mode>();
 
   status = signal<Status>('idle');
   retryAttempt = signal(0);
@@ -293,8 +294,8 @@ export class CePhotoCaptureComponent implements AfterViewInit, OnDestroy {
     () => this.status() === 'uploading' || this.status() === 'compressing',
   );
 
-  private videoElement?: HTMLVideoElement;
-  private stream?: MediaStream;
+  private videoElement: HTMLVideoElement | null = null;
+  private stream: MediaStream | null = null;
   private cameraStarted = false;
 
   // Re-render viewchild template refs in case Angular template parser complains
@@ -304,20 +305,24 @@ export class CePhotoCaptureComponent implements AfterViewInit, OnDestroy {
 
   constructor() {
     // Lifecycle: when the modal opens in camera mode, request the camera.
-    // When it closes, tear down.
-    effect(() => {
-      const isOpen = this.open();
-      const m = this.mode();
-      if (!isOpen) {
-        this.stopCamera();
-        this.cameraStarted = false;
-        return;
-      }
-      if (m === 'camera' && !this.cameraStarted) {
-        // Defer to next microtask so the @ViewChild is resolved.
-        queueMicrotask(() => void this.startCamera());
-      }
-    });
+    // When it closes, tear down. allowSignalWrites is required because
+    // stopCamera() resets internal signal-driven flags via tear-down.
+    effect(
+      () => {
+        const isOpen = this.open();
+        const m = this.mode();
+        if (!isOpen) {
+          this.stopCamera();
+          this.cameraStarted = false;
+          return;
+        }
+        if (m === 'camera' && !this.cameraStarted) {
+          // Defer to next microtask so the @ViewChild is resolved.
+          queueMicrotask(() => void this.startCamera());
+        }
+      },
+      { allowSignalWrites: true },
+    );
   }
 
   ngAfterViewInit(): void {
@@ -361,11 +366,12 @@ export class CePhotoCaptureComponent implements AfterViewInit, OnDestroy {
   stopCamera(): void {
     if (this.stream) {
       this.stream.getTracks().forEach((t) => t.stop());
-      this.stream = undefined;
     }
+    this.stream = null;
     if (this.videoElement) {
       this.videoElement.srcObject = null;
     }
+    this.videoElement = null;
   }
 
   async capture(): Promise<void> {
@@ -447,7 +453,7 @@ export class CePhotoCaptureComponent implements AfterViewInit, OnDestroy {
 
   switchMode(mode: Mode): void {
     if (mode === 'upload') this.stopCamera();
-    this.mode.set(mode);
+    this.modeChange.emit(mode);
   }
 
   async upload(): Promise<void> {

@@ -53,11 +53,13 @@ describe('CePhotoComponent', () => {
     fixture.detectChanges();
     let clicked = false;
     component.photoClicked.subscribe(() => (clicked = true));
-    component.clickable.set(false);
+    fixture.componentRef.setInput('clickable', false);
+    fixture.detectChanges();
     component.onClick();
     expect(clicked).toBe(false);
 
-    component.clickable.set(true);
+    fixture.componentRef.setInput('clickable', true);
+    fixture.detectChanges();
     component.onClick();
     expect(clicked).toBe(true);
   });

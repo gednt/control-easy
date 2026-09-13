@@ -23,6 +23,7 @@ import {
   Trash2,
   LogOut,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   Check,
   Info,
@@ -30,6 +31,9 @@ import {
   CircleAlert,
   House,
   LayoutGrid,
+  Camera,
+  Upload,
+  Image,
 } from 'lucide-angular';
 
 /** Tree-shaken Lucide icon set used across the app shell and feature pages. */
@@ -57,6 +61,7 @@ export const CE_LUCIDE_ICONS = LucideAngularModule.pick({
   Trash2,
   LogOut,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   Check,
   Info,
@@ -64,4 +69,7 @@ export const CE_LUCIDE_ICONS = LucideAngularModule.pick({
   CircleAlert,
   House,
   LayoutGrid,
+  Camera,
+  Upload,
+  Image,
 });

@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { importProvidersFrom } from '@angular/core';
 import { CePhotoLightboxComponent } from './photo-lightbox.component';
 import type { PhotoResponse } from '../../../features/photos/photos-api.service';
+import { CE_LUCIDE_ICONS } from '../icon/icon.registry';
 
 function makePhoto(id: string): PhotoResponse {
   return {
@@ -23,6 +25,7 @@ describe('CePhotoLightboxComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [CePhotoLightboxComponent],
+      providers: [importProvidersFrom(CE_LUCIDE_ICONS)],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CePhotoLightboxComponent);
@@ -106,9 +109,9 @@ describe('CePhotoLightboxComponent', () => {
     fixture.componentRef.setInput('canDelete', true);
     fixture.detectChanges();
     let deletedId: string | null = null;
-    component.photoDeleted.subscribe((id) => (deletedId = id));
+    component.photoDeleted.subscribe((id: string) => (deletedId = id));
     component.onDelete(new Event('click'));
-    expect(deletedId).toBe('a');
+    expect(deletedId as string | null).toBe('a');
   });
 
   it('does not render delete button when canDelete is false', () => {
