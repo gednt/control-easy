@@ -38,17 +38,27 @@
 
 ---
 
-## v2.0 Gatehouse Photo & Consent Ledger (Defined: 2026-08-23 — In Progress)
+## v2.0 Gatehouse Photo & Consent Ledger (Defined: 2026-08-23 — Shipped 2026-09-13)
 
 **Phases:** 11, 12, 13
-**Status:** In Progress (Phase 11 shipped, Phase 13 backend shipped, Phase 12 not started)
+**Status:** ✅ Shipped (all 3 phases complete)
 
 **Scope:** Browser-based photo capture for residents, visitors, vehicles, and service providers with per-tenant per-category consent policy. The porteiro captures a photo in under 3 seconds. The condominium sets whether photo consent is required per category. Every entry is logged with millisecond-precision timestamps cross-referenceable with the condominium's external CCTV. No hardware framework — the camera is the browser's. No server-side image processing — all compression, EXIF stripping, and thumbnailing is client-side.
 
 **Phases:**
 - Phase 11: Photos & Consent Schema Infrastructure (`PHOTO-01`) — ✅ Shipped (commit `d895c01`): `IStorageProvider` (local + S3/MinIO + Amazon S3), `photos` table, `consent_audit_log` table (append-only triggers), `tenant_consent_policy` table, `photos.read/write/delete` permissions, upload/retrieve/soft-delete endpoints, 118 unit + 73 integration tests
-- Phase 12: Photo Capture & Display (`PHOTO-02`) — Not started: `ce-photo-capture` component, `getUserMedia`, client-side compression, EXIF strip, thumbnails, upload retry, `ce-photo` display
-- Phase 13: Consent Policy & Gatehouse Workflow (`CONSENT-01`, `CONSENT-02`, `CONSENT-03`) — ✅ Backend shipped (commit `d895c01`): `POST/GET /api/v1/entry-log`, `GET /api/v1/entry-log/export` (CSV), `GET/PUT /api/v1/consent-policy`, four entry states, override reasons (emergency/vouched), policy enforcement, append-only DB triggers, CHECK constraint on `entered_with_consent` → `photo_id` non-null. ❌ UI not started: 3-second gatehouse workflow page, audit review UI with filters/highlighting/CSV export button
+- Phase 12: Photo Capture & Display (`PHOTO-02`) — ✅ Shipped (commit range `1e9d2cc`..`21f879e` on `feat/planning-reconcile-v2`): `ce-photo-capture` (camera + upload), `ce-photo`, `ce-photo-gallery`, `ce-photo-lightbox`, `PhotosApiService`, `photo-utils` (compressImage 0.8→0.6→0.3 ladder, generateThumbnail, uploadWithRetry 3× backoff), integration into residents/visits/vehicles/service-providers, 247 Angular unit tests + 5 Playwright E2E tests with exifr EXIF verification
+- Phase 13: Consent Policy & Gatehouse Workflow (`CONSENT-01`, `CONSENT-02`, `CONSENT-03`) — ✅ Shipped (backend in commit `d895c01`; UI in commit range `0bbc788`..`b8d94a1` on `feat/planning-reconcile-v2`): `EntryLogService` + `ConsentPolicyService`, `ce-entry-workflow` (4-tile modal with auto-camera), `ce-override-reason` (Emergency/Vouched), `ce-entry-state-badge` (5 states), `ce-audit-filters` + `ce-audit-row` + `/audit` page (filterable + CSV export with ms timestamps), `/admin/consent-policy` page (4 toggles), 3 role guards, 8 unit tests + 12 Playwright E2E tests
+
+**Verification:** Milestone audit `passed` (`.planning/v2.0-MILESTONE-AUDIT.md`); all 3 phases have `*-VERIFICATION.md` with `status: passed`; 5/5 requirements validated (PHOTO-01, PHOTO-02, CONSENT-01, CONSENT-02, CONSENT-03).
+
+**Known tech debt (forward-compatible shims):**
+- Photos entity binding via localStorage cache (backend lacks `entity_type`/`entity_id` columns)
+- Thumbnails via CSS object-fit cover (backend lacks `/api/v1/photos/{id}/thumbnail` route)
+- Consent policy list via 4× parallel category calls (backend lacks `/consent-policy` list endpoint)
+- Pagination total via entries.length (backend lacks X-Total-Count header)
+
+All shims are documented inline and in each phase VERIFICATION.md. Future backend work can remove them without component changes.
 
 **Design principles:**
 1. Logging is faster than skipping — 3-second workflow is the honesty enforcement
