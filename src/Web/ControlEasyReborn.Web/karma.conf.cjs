@@ -12,8 +12,9 @@ module.exports = function configureKarma(config) {
     customLaunchers: {
       ChromeHeadlessNoSandbox: {
         base: 'ChromeHeadless',
-        flags: ['--no-sandbox', '--disable-gpu'],
+        flags: ['--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage'],
       },
     },
+    browsers: ['ChromeHeadlessNoSandbox'],
   });
 };
