@@ -252,12 +252,14 @@ const VEHICLE_TYPES = [
       size="lg"
       (openChange)="onPhotosModalOpenChange($event)"
     >
-      <ce-photo-panel
-        entityType="vehicle"
-        [entity]="photosEntity()"
-        [canAdd]="canWrite()"
-        [canDelete]="canWrite()"
-      />
+      @if (photosModalOpen()) {
+        <ce-photo-panel
+          entityType="vehicle"
+          [entity]="photosEntity()"
+          [canAdd]="canWrite()"
+          [canDelete]="canWrite()"
+        />
+      }
       <div ce-modal-footer>
         <ce-button variant="ghost" size="sm" (click)="closePhotos()">Close</ce-button>
       </div>

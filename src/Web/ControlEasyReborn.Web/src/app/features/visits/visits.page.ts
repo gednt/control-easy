@@ -138,12 +138,14 @@ type StatusFilter = 'all' | 'Pending' | 'CheckedIn';
       size="lg"
       (openChange)="onPhotosModalOpenChange($event)"
     >
-      <ce-photo-panel
-        entityType="visitor"
-        [entity]="photosEntity()"
-        [canAdd]="true"
-        [canDelete]="true"
-      />
+      @if (photosModalOpen()) {
+        <ce-photo-panel
+          entityType="visitor"
+          [entity]="photosEntity()"
+          [canAdd]="true"
+          [canDelete]="true"
+        />
+      }
       <div ce-modal-footer>
         <ce-button variant="ghost" size="sm" (click)="closePhotos()">Close</ce-button>
       </div>

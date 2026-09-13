@@ -88,23 +88,30 @@ export class CePhotoPanelComponent {
   photos = signal<PhotoResponse[]>([]);
 
   constructor() {
-    effect(() => {
-      const entity = this.entity();
-      const type = this.entityType();
-      if (!entity) {
-        this.photos.set([]);
-        return;
-      }
-      this.photos.set(this.bindings.list(type, entity.id));
-      this.photosApi.list(0, 50, { entityType: type, entityId: entity.id }).subscribe({
-        next: (photos) => {
-          if (this.entity()?.id !== entity.id || this.entityType() !== type) return;
-          this.bindings.setAll(type, entity.id, photos);
-          this.photos.set(photos);
-          this.photosChanged.emit(photos);
-        },
-      });
-    });
+    effect(
+      (onCleanup) => {
+        const entity = this.entity();
+        const type = this.entityType();
+        if (!entity) {
+          this.photos.set([]);
+          return;
+        }
+        this.photos.set(this.bindings.list(type, entity.id));
+        const sub = this.photosApi.list(0, 50, { entityType: type, entityId: entity.id }).subscribe({
+          next: (photos) => {
+            if (this.entity()?.id !== entity.id || this.entityType() !== type) return;
+            this.bindings.setAll(type, entity.id, photos);
+            this.photos.set(photos);
+            this.photosChanged.emit(photos);
+          },
+          error: () => {
+            // Preserve cached photos on network failure
+          },
+        });
+        onCleanup(() => sub.unsubscribe());
+      },
+      { allowSignalWrites: true },
+    );
   }
 
   openCapture(): void {

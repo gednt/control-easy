@@ -399,12 +399,14 @@ type SortKey = 'nameAsc' | 'newest';
       size="lg"
       (openChange)="onViewModalOpenChange($event)"
     >
-      <ce-photo-panel
-        entityType="resident"
-        [entity]="residentPhotoEntity()"
-        [canAdd]="canWrite()"
-        [canDelete]="canWrite()"
-      />
+      @if (viewModalOpen()) {
+        <ce-photo-panel
+          entityType="resident"
+          [entity]="residentPhotoEntity()"
+          [canAdd]="canWrite()"
+          [canDelete]="canWrite()"
+        />
+      }
       <div ce-modal-footer>
         <ce-button variant="ghost" size="sm" (click)="closeViewModal()">Close</ce-button>
       </div>

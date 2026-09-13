@@ -75,12 +75,14 @@ import { CeButtonComponent, CeModalComponent, CePhotoPanelComponent } from '../.
       size="lg"
       (openChange)="onPhotosModalOpenChange($event)"
     >
-      <ce-photo-panel
-        entityType="service-provider"
-        [entity]="photosEntity()"
-        [canAdd]="true"
-        [canDelete]="true"
-      />
+      @if (photosModalOpen()) {
+        <ce-photo-panel
+          entityType="service-provider"
+          [entity]="photosEntity()"
+          [canAdd]="true"
+          [canDelete]="true"
+        />
+      }
       <div ce-modal-footer>
         <ce-button variant="ghost" size="sm" (click)="closePhotos()">Close</ce-button>
       </div>

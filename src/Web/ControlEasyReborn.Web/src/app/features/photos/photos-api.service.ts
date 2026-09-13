@@ -92,6 +92,6 @@ export class PhotosApiService {
     let params = new HttpParams().set('skip', _skip.toString()).set('take', _take.toString());
     if (_filter?.entityType) params = params.set('entityType', _filter.entityType);
     if (_filter?.entityId) params = params.set('entityId', _filter.entityId);
-    return this.http.get<PhotoResponse[]>(`${this.baseUrl}/`, { params });
+    return this.http.get<PhotoResponse[]>(this.baseUrl, { params });
   }
 }
