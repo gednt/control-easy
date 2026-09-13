@@ -49,6 +49,15 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
+    builder.WebHost.ConfigureKestrel(options =>
+    {
+        options.Limits.MaxRequestBodySize = PhotosEndpoints.MaxRequestSizeBytes;
+    });
+    builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+    {
+        options.MultipartBodyLengthLimit = PhotosEndpoints.MaxRequestSizeBytes;
+    });
+
     builder.Host.UseSerilog((context, services, loggerConfig) =>
     {
         loggerConfig.ReadFrom.Configuration(context.Configuration);

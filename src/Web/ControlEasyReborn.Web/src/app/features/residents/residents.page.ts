@@ -167,8 +167,8 @@ type SortKey = 'nameAsc' | 'newest';
                   />
                 </td>
                 <td class="resident-actions">
-                  <ce-dropdown>
-                    <button class="action-menu-btn" ceDropdownTrigger type="button" aria-label="Resident actions">
+                  <ce-dropdown align="end">
+                    <button class="action-menu-btn" ceDropdownTrigger type="button" aria-label="Resident actions" aria-haspopup="menu">
                       <ce-icon name="more-horizontal" [size]="16" />
                     </button>
                     <button role="menuitem" type="button" (click)="openViewModal(resident)">
@@ -532,42 +532,31 @@ type SortKey = 'nameAsc' | 'newest';
         width: 1%;
         white-space: nowrap;
       }
-      .resident-actions ce-dropdown {
-        visibility: hidden;
-        opacity: 0;
-        transition:
-          opacity var(--duration-fast) var(--ease-out),
-          visibility var(--duration-fast) var(--ease-out);
-      }
-      .resident-actions ce-dropdown:focus-within {
-        visibility: visible;
-        opacity: 1;
-      }
-      tr:hover .resident-actions ce-dropdown {
-        visibility: visible;
-        opacity: 1;
-      }
-      @media (hover: none) {
-        .resident-actions ce-dropdown {
-          visibility: visible;
-          opacity: 1;
-        }
-      }
       .action-menu-btn {
-        width: 2rem;
-        height: 2rem;
+        width: 2.75rem;
+        height: 2.75rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: transparent;
-        border: 0;
+        background: var(--color-surface-elevated);
+        border: 1px solid var(--color-border);
         border-radius: var(--radius-md);
         cursor: pointer;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
+        box-shadow: var(--shadow-sm);
+        transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
       }
-      .action-menu-btn:hover {
-        background: var(--color-neutral-light);
-        color: var(--color-text-primary);
+      .action-menu-btn:hover, .action-menu-btn:focus-visible {
+        background: var(--color-primary-light);
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+        outline: none;
+      }
+      @media (max-width: 640px) {
+        .action-menu-btn {
+          width: 3rem;
+          height: 3rem;
+        }
       }
 
       .table-footer {

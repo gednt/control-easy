@@ -10,11 +10,14 @@ CREATE TABLE IF NOT EXISTS Photos (
     MimeType VARCHAR(100) NOT NULL,
     SizeBytes BIGINT NOT NULL,
     CapturedAtUtc DATETIME NULL,
+    EntityType VARCHAR(40) NULL,
+    EntityId VARCHAR(100) NULL,
     CreatedAtUtc DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     DeletedAtUtc DATETIME NULL,
     tenant_id CHAR(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000001',
     INDEX IX_Photos_TenantId (TenantId),
     INDEX IX_Photos_tenant_id (tenant_id),
     INDEX IX_Photos_DeletedAtUtc (DeletedAtUtc),
+    INDEX IX_Photos_Entity (EntityType, EntityId),
     INDEX IX_Photos_CreatedAtUtc (CreatedAtUtc)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

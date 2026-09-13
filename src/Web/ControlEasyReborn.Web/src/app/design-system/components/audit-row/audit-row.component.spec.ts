@@ -1,7 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { importProvidersFrom } from '@angular/core';
+import { of } from 'rxjs';
 import { CeAuditRowComponent } from './audit-row.component';
 import { CE_LUCIDE_ICONS } from '../icon/icon.registry';
+import { PhotosApiService } from '../../../features/photos/photos-api.service';
 import type {
   EntryLogResponse,
   EntryState,
@@ -25,7 +27,10 @@ describe('CeAuditRowComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [CeAuditRowComponent],
-      providers: [importProvidersFrom(CE_LUCIDE_ICONS)],
+      providers: [
+        importProvidersFrom(CE_LUCIDE_ICONS),
+        { provide: PhotosApiService, useValue: { get: () => of(new Blob(['photo'], { type: 'image/jpeg' })) } },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CeAuditRowComponent);

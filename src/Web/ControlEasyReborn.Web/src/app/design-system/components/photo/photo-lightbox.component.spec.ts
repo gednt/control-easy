@@ -1,8 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { importProvidersFrom } from '@angular/core';
+import { of } from 'rxjs';
 import { CePhotoLightboxComponent } from './photo-lightbox.component';
 import type { PhotoResponse } from '../../../features/photos/photos-api.service';
 import { CE_LUCIDE_ICONS } from '../icon/icon.registry';
+import { PhotosApiService } from '../../../features/photos/photos-api.service';
 
 function makePhoto(id: string): PhotoResponse {
   return {
@@ -25,7 +27,10 @@ describe('CePhotoLightboxComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [CePhotoLightboxComponent],
-      providers: [importProvidersFrom(CE_LUCIDE_ICONS)],
+      providers: [
+        importProvidersFrom(CE_LUCIDE_ICONS),
+        { provide: PhotosApiService, useValue: { get: () => of(new Blob(['photo'], { type: 'image/jpeg' })) } },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CePhotoLightboxComponent);

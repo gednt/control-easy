@@ -46,8 +46,8 @@ services:
       Storage__Provider: Local
       Storage__Local__Path: /storage/photos
     depends_on:
-      db:
-        condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
     ports:
       - "${API_PORT:-8081}:8080"
     volumes:
@@ -78,6 +78,22 @@ services:
       timeout: 5s
       retries: 30
       start_period: 30s
+
+  db-migrate:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: controleasydb
+      MYSQL_USER: ${MYSQL_USER:-controleasy}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-controleasy_dev}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./mysql/migrations:/migrations:ro
+    command:
+      - /bin/sh
+      - -ec
+      - mysql --protocol=tcp -h db -u"$$MYSQL_USER" -p"$$MYSQL_PASSWORD" "$$MYSQL_DATABASE" < /migrations/10-photo-entity-bindings.sql
 
   adminer:
     image: adminer:4

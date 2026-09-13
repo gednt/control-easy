@@ -6,10 +6,7 @@ import { Observable } from 'rxjs';
  * Discriminator for the entity a photo is attached to.
  * Mirrors the categories enforced by the entry-log / consent policy.
  *
- * Note: as of Phase 12 the Photos API has no entity-binding column, so the
- * frontend keeps an in-memory + localStorage cache keyed by `${type}:${id}`.
- * The enum exists so future backend binding (Phase 13+) can be plugged in
- * without changing component contracts.
+ * Mirrors the tenant-scoped categories persisted by the Photos API.
  */
 export type PhotoEntityType = 'resident' | 'visitor' | 'vehicle' | 'service-provider';
 
@@ -23,6 +20,14 @@ export interface PhotoResponse {
   capturedAtUtc: string | null;
   createdAtUtc: string;
   deletedAtUtc: string | null;
+  entityType?: PhotoEntityType | null;
+  entityId?: string | null;
+}
+
+export interface PhotoUploadTarget {
+  entityType: PhotoEntityType;
+  entityId: string;
+  capturedAtUtc?: string;
 }
 
 /**
@@ -33,38 +38,37 @@ export interface PhotoResponse {
  *   GET    /api/v1/photos/{id}   — source blob (photos.read)
  *   DELETE /api/v1/photos/{id}   — soft-delete (photos.delete)
  *
- * Not yet provided by the backend (Phase 12 deviation):
+ * Not yet provided by the backend:
  *   GET    /api/v1/photos/{id}/thumbnail  — display uses the source blob
  *                                            with `object-fit: cover` instead
- *   GET    /api/v1/photos?entityType=…    — list endpoint; binding is
- *                                            client-side via PhotoBindingCache
  */
 @Injectable({ providedIn: 'root' })
 export class PhotosApiService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = '/api/v1/photos';
 
-  upload(blob: Blob, fileName = 'photo.jpg'): Observable<PhotoResponse> {
+  upload(blob: Blob, fileName: string, target: PhotoUploadTarget): Observable<PhotoResponse> {
     const formData = new FormData();
     formData.append('file', blob, fileName);
+    formData.append('entityType', target.entityType);
+    formData.append('entityId', target.entityId);
+    if (target.capturedAtUtc) formData.append('capturedAtUtc', target.capturedAtUtc);
     return this.http.post<PhotoResponse>(this.baseUrl, formData);
   }
 
   /** Upload with progress events (used by the capture modal progress strip). */
-  uploadWithProgress(blob: Blob, fileName = 'photo.jpg'): Observable<HttpEvent<PhotoResponse>> {
+  uploadWithProgress(blob: Blob, fileName: string, target: PhotoUploadTarget): Observable<HttpEvent<PhotoResponse>> {
     const formData = new FormData();
     formData.append('file', blob, fileName);
+    formData.append('entityType', target.entityType);
+    formData.append('entityId', target.entityId);
+    if (target.capturedAtUtc) formData.append('capturedAtUtc', target.capturedAtUtc);
     const req = new HttpRequest('POST', this.baseUrl, formData, { reportProgress: true });
     return this.http.request<PhotoResponse>(req);
   }
 
   get(id: string): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/${id}`, { responseType: 'blob' });
-  }
-
-  /** Direct URL for use in <img src> — avoids blob-URL lifecycle management. */
-  getSourceUrl(id: string): string {
-    return `${this.baseUrl}/${id}`;
   }
 
   /**
@@ -82,14 +86,12 @@ export class PhotosApiService {
   }
 
   /**
-   * Returns a paginated list of photos. The backend does not currently expose
-   * this endpoint; callers should fall back to PhotoBindingCache. Kept as a
-   * forward-compatible stub so adding the backend list later is non-breaking.
+   * Returns the photos attached to an entity in the current tenant.
    */
   list(_skip = 0, _take = 50, _filter?: { entityType?: PhotoEntityType; entityId?: string }): Observable<PhotoResponse[]> {
     let params = new HttpParams().set('skip', _skip.toString()).set('take', _take.toString());
     if (_filter?.entityType) params = params.set('entityType', _filter.entityType);
     if (_filter?.entityId) params = params.set('entityId', _filter.entityId);
-    return this.http.get<PhotoResponse[]>(this.baseUrl, { params });
+    return this.http.get<PhotoResponse[]>(`${this.baseUrl}/`, { params });
   }
 }

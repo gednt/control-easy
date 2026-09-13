@@ -1,7 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  computed,
+  effect,
   inject,
   input,
   output,
@@ -27,14 +27,8 @@ export interface PhotoPanelEntity {
 
 /**
  * Reusable photo panel that can be embedded into any entity detail modal.
- * Wraps ce-photo-gallery + ce-photo-capture + the Phase-12 frontend binding
- * cache so each entity type (resident/visitor/vehicle/service-provider) can
- * show its photos with a single component.
- *
- * Phase 12 deviation: the backend Photos API has no entity binding column
- * nor a list endpoint, so photos are persisted in localStorage via
- * PhotoBindingCacheService. When the backend grows the binding this
- * component becomes a thin wrapper over photosApi.list() / entity upload.
+ * Wraps ce-photo-gallery + ce-photo-capture for each supported entity. The
+ * local cache only provides an offline fallback; the API is authoritative.
  */
 @Component({
   selector: 'ce-photo-panel',
@@ -91,11 +85,27 @@ export class CePhotoPanelComponent {
 
   showCapture = signal(false);
 
-  photos = computed<PhotoResponse[]>(() => {
-    const e = this.entity();
-    if (!e) return [];
-    return this.bindings.list(this.entityType(), e.id);
-  });
+  photos = signal<PhotoResponse[]>([]);
+
+  constructor() {
+    effect(() => {
+      const entity = this.entity();
+      const type = this.entityType();
+      if (!entity) {
+        this.photos.set([]);
+        return;
+      }
+      this.photos.set(this.bindings.list(type, entity.id));
+      this.photosApi.list(0, 50, { entityType: type, entityId: entity.id }).subscribe({
+        next: (photos) => {
+          if (this.entity()?.id !== entity.id || this.entityType() !== type) return;
+          this.bindings.setAll(type, entity.id, photos);
+          this.photos.set(photos);
+          this.photosChanged.emit(photos);
+        },
+      });
+    });
+  }
 
   openCapture(): void {
     if (!this.canAdd() || !this.entity()) return;
@@ -106,6 +116,7 @@ export class CePhotoPanelComponent {
     const e = this.entity();
     if (!e) return;
     const next = this.bindings.add(this.entityType(), e.id, photo);
+    this.photos.set(next);
     this.toast.success('Photo uploaded');
     this.photosChanged.emit(next);
   }
@@ -116,10 +127,11 @@ export class CePhotoPanelComponent {
     try {
       await firstValueFrom(this.photosApi.delete(photoId));
       const next = this.bindings.remove(this.entityType(), e.id, photoId);
+      this.photos.set(next);
       this.toast.success('Photo deleted');
       this.photosChanged.emit(next);
-    } catch {
-      this.toast.error(getApiErrorMessage(undefined, 'Failed to delete photo'));
+    } catch (err) {
+      this.toast.error(getApiErrorMessage(err, 'Failed to delete photo'));
     }
   }
 }

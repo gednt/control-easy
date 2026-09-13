@@ -1,6 +1,11 @@
 namespace ControlEasyReborn.Modules.Photos.Application.Contracts;
 
-public sealed record UploadPhotoMetadata(string MimeType, DateTime? CapturedAtUtc, string? FileName);
+public sealed record UploadPhotoMetadata(
+    string MimeType,
+    DateTime? CapturedAtUtc,
+    string? FileName,
+    string? EntityType = null,
+    string? EntityId = null);
 
 public sealed record PhotoResponse(
     Guid Id,
@@ -11,7 +16,9 @@ public sealed record PhotoResponse(
     long SizeBytes,
     DateTime? CapturedAtUtc,
     DateTime CreatedAtUtc,
-    DateTime? DeletedAtUtc);
+    DateTime? DeletedAtUtc,
+    string? EntityType = null,
+    string? EntityId = null);
 
 public sealed record CreateEntryLogRequest(
     string EntryState,

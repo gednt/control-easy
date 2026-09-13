@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
 import { CePhotoComponent } from './photo.component';
+import { PhotosApiService } from '../../../features/photos/photos-api.service';
 
 describe('CePhotoComponent', () => {
   let fixture: ComponentFixture<CePhotoComponent>;
@@ -8,6 +10,9 @@ describe('CePhotoComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [CePhotoComponent],
+      providers: [
+        { provide: PhotosApiService, useValue: { get: () => of(new Blob(['photo'], { type: 'image/jpeg' })) } },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CePhotoComponent);
@@ -33,7 +38,7 @@ describe('CePhotoComponent', () => {
     fixture.detectChanges();
     const img: HTMLImageElement = fixture.nativeElement.querySelector('img');
     expect(img).toBeTruthy();
-    expect(img.src).toContain('/api/v1/photos/photo-1');
+    expect(img.src).toContain('blob:');
     expect(img.getAttribute('loading')).toBe('lazy');
   });
 

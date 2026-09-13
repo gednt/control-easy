@@ -39,6 +39,7 @@ public sealed class UploadPhotoMetadataValidator : AbstractValidator<UploadPhoto
         "image/png",
         "image/webp"
     ];
+    private static readonly string[] AllowedEntityTypes = ["resident", "visitor", "vehicle", "service-provider"];
 
     public UploadPhotoMetadataValidator()
     {
@@ -46,6 +47,19 @@ public sealed class UploadPhotoMetadataValidator : AbstractValidator<UploadPhoto
             .NotEmpty()
             .Must(m => AllowedMimeTypes.Contains(m))
             .WithMessage("Unsupported image mime type. Allowed: image/jpeg, image/png, image/webp.");
+
+        RuleFor(r => r)
+            .Must(r => string.IsNullOrWhiteSpace(r.EntityType) == string.IsNullOrWhiteSpace(r.EntityId))
+            .WithMessage("Entity type and entity id must be supplied together.");
+
+        RuleFor(r => r.EntityType)
+            .Must(type => type is not null && AllowedEntityTypes.Contains(type))
+            .When(r => !string.IsNullOrWhiteSpace(r.EntityType))
+            .WithMessage("Entity type must be resident, visitor, vehicle, or service-provider.");
+
+        RuleFor(r => r.EntityId)
+            .MaximumLength(100)
+            .When(r => !string.IsNullOrWhiteSpace(r.EntityId));
     }
 }
 

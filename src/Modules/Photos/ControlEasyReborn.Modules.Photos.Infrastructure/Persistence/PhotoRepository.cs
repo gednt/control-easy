@@ -11,7 +11,7 @@ public sealed class PhotoRepository : IPhotoRepository
 {
     private const string TableName = "Photos";
 
-    private const string Fields = "Id, TenantId, FilePath, ThumbnailPath, MimeType, SizeBytes, CapturedAtUtc, CreatedAtUtc, DeletedAtUtc";
+    private const string Fields = "Id, TenantId, FilePath, ThumbnailPath, MimeType, SizeBytes, CapturedAtUtc, EntityType, EntityId, CreatedAtUtc, DeletedAtUtc";
 
     private readonly ITenantContext _ctx;
     private readonly ITenantAwareLinqFactory _factory;
@@ -34,13 +34,25 @@ public sealed class PhotoRepository : IPhotoRepository
         return MapFirstOrDefault(rows);
     }
 
+    public async Task<IReadOnlyList<Photo>> ListByEntityAsync(string entityType, string entityId, CancellationToken ct)
+    {
+        var db = _factory.Create(_ctx);
+        var rows = await db.SelectAsync(
+            fields: Fields,
+            table: TableName,
+            whereClause: "EntityType = @param0 AND EntityId = @param1 AND DeletedAtUtc IS NULL",
+            parameters: new object[] { entityType, entityId },
+            ct: ct);
+        return rows.Rows.Cast<DataRow>().Select(MapRow).OfType<Photo>().OrderByDescending(photo => photo.CreatedAtUtc).ToArray();
+    }
+
     public async Task AddAsync(Photo photo, CancellationToken ct)
     {
         var db = _factory.Create(_ctx);
         await db.InsertAsync(
-            new[] { "Id", "TenantId", "FilePath", "ThumbnailPath", "MimeType", "SizeBytes", "CapturedAtUtc", "CreatedAtUtc", "DeletedAtUtc", "tenant_id" },
+            new[] { "Id", "TenantId", "FilePath", "ThumbnailPath", "MimeType", "SizeBytes", "CapturedAtUtc", "EntityType", "EntityId", "CreatedAtUtc", "DeletedAtUtc", "tenant_id" },
             TableName,
-            new object?[] { photo.Id, photo.TenantId, photo.FilePath, (object?)photo.ThumbnailPath ?? DBNull.Value, photo.MimeType, photo.SizeBytes, (object?)photo.CapturedAtUtc ?? DBNull.Value, photo.CreatedAtUtc, (object?)photo.DeletedAtUtc ?? DBNull.Value, photo.TenantId },
+            new object?[] { photo.Id, photo.TenantId, photo.FilePath, (object?)photo.ThumbnailPath ?? DBNull.Value, photo.MimeType, photo.SizeBytes, (object?)photo.CapturedAtUtc ?? DBNull.Value, (object?)photo.EntityType ?? DBNull.Value, (object?)photo.EntityId ?? DBNull.Value, photo.CreatedAtUtc, (object?)photo.DeletedAtUtc ?? DBNull.Value, photo.TenantId },
             primaryKeyName: "Id",
             autoIncrement: false,
             ct: ct);
@@ -68,6 +80,8 @@ public sealed class PhotoRepository : IPhotoRepository
     {
         var thumbnailPathStr = r["ThumbnailPath"]?.ToString();
         var capturedAtStr = r["CapturedAtUtc"]?.ToString();
+        var entityTypeStr = r["EntityType"]?.ToString();
+        var entityIdStr = r["EntityId"]?.ToString();
         var deletedAtStr = r["DeletedAtUtc"]?.ToString();
 
         return new Photo(
@@ -79,6 +93,8 @@ public sealed class PhotoRepository : IPhotoRepository
             sizeBytes: Convert.ToInt64(r["SizeBytes"]),
             capturedAtUtc: string.IsNullOrEmpty(capturedAtStr) ? null : DateTime.Parse(capturedAtStr, null, System.Globalization.DateTimeStyles.RoundtripKind),
             createdAtUtc: Convert.ToDateTime(r["CreatedAtUtc"]),
-            deletedAtUtc: string.IsNullOrEmpty(deletedAtStr) ? null : DateTime.Parse(deletedAtStr, null, System.Globalization.DateTimeStyles.RoundtripKind));
+            deletedAtUtc: string.IsNullOrEmpty(deletedAtStr) ? null : DateTime.Parse(deletedAtStr, null, System.Globalization.DateTimeStyles.RoundtripKind),
+            entityType: string.IsNullOrEmpty(entityTypeStr) ? null : entityTypeStr,
+            entityId: string.IsNullOrEmpty(entityIdStr) ? null : entityIdStr);
     }
 }
