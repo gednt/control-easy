@@ -32,7 +32,7 @@ affects:
 
 # Actuals (#2632) — pairs with the plan's `estimate` to calibrate future estimates.
 actuals:
-  tokens: 29245
+  tokens: 28929
   tasks: 10
   commits: 12
 
@@ -223,7 +223,7 @@ status: complete
 - **Started:** 2026-09-12T23:00Z (commits b59dbed onwards)
 - **Completed:** 2026-09-13
 - **Tasks:** 10 of 10
-- **Files modified:** 30 (24 created, 6 modified); 3,047 net insertions
+- **Files modified:** 34 (25 created, 9 modified); 3,047 net insertions
 
 ## Accomplishments
 
