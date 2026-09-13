@@ -3,4 +3,8 @@
     <RootNamespace>ControlEasyReborn.Modules.Administration.Domain</RootNamespace>
     <AssemblyName>ControlEasyReborn.Modules.Administration.Domain</AssemblyName>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\ControlEasyReborn.SharedKernel\ControlEasyReborn.SharedKernel.csproj" />
+  </ItemGroup>
 </Project>

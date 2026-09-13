@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using ControlEasyReborn.Modules.Administration.Application.Contracts;
 using ControlEasyReborn.Modules.Administration.Application.Handlers;
 using ControlEasyReborn.SharedKernel.MultiTenancy;
@@ -16,9 +17,53 @@ public static class AdministrationEndpoints
             .RequireAuthorization()
             .WithTags("Administration");
 
+        // Settings Endpoints
+        group.MapGet("/settings", async (
+            GetCondominiumSettingsHandler handler,
+            ITenantContext tenantContext,
+            CancellationToken ct) =>
+        {
+            var tenantId = tenantContext.TenantId
+                ?? throw new InvalidOperationException("Tenant context is not resolved.");
+            var response = await handler.HandleAsync(tenantId, ct);
+            return Results.Ok(response);
+        });
+
+        group.MapPut("/settings", async (
+            [FromBody] UpdateCondominiumSettingsRequest request,
+            ClaimsPrincipal principal,
+            UpdateCondominiumSettingsHandler handler,
+            ITenantContext tenantContext,
+            CancellationToken ct) =>
+        {
+            var tenantId = tenantContext.TenantId
+                ?? throw new InvalidOperationException("Tenant context is not resolved.");
+
+            Guid? userId = null;
+            var subClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? principal.FindFirst("sub")?.Value;
+            if (Guid.TryParse(subClaim, out var parsedId))
+            {
+                userId = parsedId;
+            }
+
+            var userName = principal.FindFirst(ClaimTypes.Name)?.Value
+                ?? principal.FindFirst("name")?.Value
+                ?? principal.FindFirst(ClaimTypes.Email)?.Value;
+
+            var response = await handler.HandleAsync(tenantId, request, userId, userName, ct);
+            return Results.Ok(response);
+        });
+
+        // Audit Log Endpoints
         group.MapGet("/audit-logs", async (
+            string? category,
+            string? severity,
             string? entityType,
             string? action,
+            DateTime? fromUtc,
+            DateTime? toUtc,
+            string? searchTerm,
             int? skip,
             int? take,
             ListAuditLogHandler handler,
@@ -27,7 +72,27 @@ public static class AdministrationEndpoints
         {
             var tenantId = tenantContext.TenantId
                 ?? throw new InvalidOperationException("Tenant context is not resolved.");
-            var response = await handler.HandleAsync(tenantId, entityType, action, skip ?? 0, take ?? 50, ct);
+            var response = await handler.HandleAsync(
+                tenantId,
+                category,
+                severity,
+                entityType,
+                action,
+                fromUtc,
+                toUtc,
+                searchTerm,
+                skip ?? 0,
+                take ?? 50,
+                ct);
+            return Results.Ok(response);
+        });
+
+        group.MapGet("/audit-logs/{id:guid}", async (
+            Guid id,
+            GetAuditLogByIdHandler handler,
+            CancellationToken ct) =>
+        {
+            var response = await handler.HandleAsync(id, ct);
             return Results.Ok(response);
         });
 
@@ -54,6 +119,7 @@ public static class AdministrationEndpoints
             return Results.Ok(response);
         });
 
+        // Legacy Configuration Endpoints (Retained for API backwards compatibility)
         group.MapGet("/configurations", async (
             int? skip,
             int? take,

@@ -2,6 +2,7 @@ using ControlEasyReborn.Modules.Administration.Application.Abstractions;
 using ControlEasyReborn.Modules.Administration.Application.Contracts;
 using ControlEasyReborn.Modules.Administration.Application.Errors;
 using ControlEasyReborn.Modules.Administration.Domain.Entities;
+using ControlEasyReborn.SharedKernel.Auditing;
 using FluentValidation;
 
 namespace ControlEasyReborn.Modules.Administration.Application.Handlers;
@@ -27,6 +28,10 @@ public sealed class CreateAuditLogHandler
                 .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray()));
         }
 
+        var severity = Enum.TryParse<AuditSeverity>(request.Severity, true, out var parsedSeverity)
+            ? parsedSeverity
+            : AuditSeverity.Info;
+
         var entry = new AuditLogEntry(
             id: Guid.NewGuid(),
             tenantId: tenantId,
@@ -36,12 +41,27 @@ public sealed class CreateAuditLogHandler
             performedByUserId: request.PerformedByUserId,
             performedByName: request.PerformedByName,
             details: request.Details,
-            createdAtUtc: DateTime.UtcNow);
+            createdAtUtc: DateTime.UtcNow,
+            category: request.Category ?? AuditCategory.System,
+            severity: severity,
+            metadataJson: request.MetadataJson);
 
         await _auditLogs.AddAsync(entry, ct);
         return ToResponse(entry);
     }
 
     internal static AuditLogResponse ToResponse(AuditLogEntry e) =>
-        new(e.Id, e.TenantId, e.Action, e.EntityType, e.EntityId, e.PerformedByUserId, e.PerformedByName, e.Details, e.CreatedAtUtc);
+        new(
+            e.Id,
+            e.TenantId,
+            e.Action,
+            e.EntityType,
+            e.EntityId,
+            e.PerformedByUserId,
+            e.PerformedByName,
+            e.Details,
+            e.CreatedAtUtc,
+            e.Category,
+            e.Severity.ToString(),
+            e.MetadataJson);
 }

@@ -18,5 +18,6 @@
 -- ALTER TABLE Photos ADD COLUMN tenant_id CHAR(36) NOT NULL;
 -- ALTER TABLE ConsentAuditLog ADD COLUMN tenant_id CHAR(36) NOT NULL;
 -- ALTER TABLE TenantConsentPolicy ADD COLUMN tenant_id CHAR(36) NOT NULL;
+-- ALTER TABLE CondominiumSettings ADD COLUMN tenant_id CHAR(36) NOT NULL;
 
 SELECT 1;

@@ -4,6 +4,8 @@ using ControlEasyReborn.Modules.Administration.Application.Contracts;
 using ControlEasyReborn.Modules.Administration.Application.Handlers;
 using ControlEasyReborn.Modules.Administration.Application.Validators;
 using ControlEasyReborn.Modules.Administration.Infrastructure.Persistence;
+using ControlEasyReborn.Modules.Administration.Infrastructure.Services;
+using ControlEasyReborn.SharedKernel.Auditing;
 using ControlEasyReborn.SharedKernel.MultiTenancy;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,17 +23,28 @@ public static class AdministrationModuleServiceCollectionExtensions
 
         services.AddScoped<IAuditLogRepository, AuditLogRepository>();
         services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
+        services.AddScoped<ICondominiumSettingsRepository, CondominiumSettingsRepository>();
+        services.AddScoped<IAuditLogWriter, AuditLogWriter>();
+
         services.AddScoped<CreateAuditLogHandler>();
         services.AddScoped<ListAuditLogHandler>();
+        services.AddScoped<GetAuditLogByIdHandler>();
         services.AddScoped<GetEntityAuditLogHandler>();
+
+        services.AddScoped<GetCondominiumSettingsHandler>();
+        services.AddScoped<UpdateCondominiumSettingsHandler>();
+
         services.AddScoped<CreateConfigurationHandler>();
         services.AddScoped<GetConfigurationHandler>();
         services.AddScoped<GetConfigurationByKeyHandler>();
         services.AddScoped<ListConfigurationsHandler>();
         services.AddScoped<UpdateConfigurationHandler>();
+
         services.AddScoped<IValidator<CreateAuditLogRequest>, CreateAuditLogRequestValidator>();
         services.AddScoped<IValidator<CreateConfigurationRequest>, CreateConfigurationRequestValidator>();
         services.AddScoped<IValidator<UpdateConfigurationRequest>, UpdateConfigurationRequestValidator>();
+        services.AddScoped<IValidator<UpdateCondominiumSettingsRequest>, CondominiumSettingsValidator>();
+
         return services;
     }
 }

@@ -6,7 +6,10 @@ public sealed record CreateAuditLogRequest(
     Guid EntityId,
     Guid PerformedByUserId,
     string? PerformedByName,
-    string? Details);
+    string? Details,
+    string? Category = null,
+    string? Severity = null,
+    string? MetadataJson = null);
 
 public sealed record AuditLogResponse(
     Guid Id,
@@ -17,7 +20,10 @@ public sealed record AuditLogResponse(
     Guid PerformedByUserId,
     string? PerformedByName,
     string? Details,
-    DateTime CreatedAtUtc);
+    DateTime CreatedAtUtc,
+    string Category = "System",
+    string Severity = "Info",
+    string? MetadataJson = null);
 
 public sealed record CreateConfigurationRequest(
     string Key,
