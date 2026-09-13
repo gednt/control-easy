@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Gatehouse Photo & Consent Ledger
 status: in_progress
-last_updated: "2026-09-12T20:30:00.000Z"
-last_activity: 2026-09-12
+last_updated: "2026-09-13T07:00:00.000Z"
+last_activity: 2026-09-13
 progress:
   total_phases: 3
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
-  percent: 33
+  completed_phases: 2
+  total_plans: 3
+  completed_plans: 3
+  percent: 67
 ---
 
 # Project State
@@ -24,16 +24,16 @@ See: .planning/PROJECT.md (updated 2026-09-12)
 
 ## Current Position
 
-Phase: Phase 11 shipped (commit `d895c01`); Phase 13 backend shipped in same commit
+Phase: Phase 12 shipped (commit range `bd630c9`..`21f879e`, 2026-09-12); Phase 13 UI shipped (commit range `0bbc788`..`b8d94a1`, 2026-09-13)
 Plan: —
 Status: In Progress
-Last activity: 2026-09-12 — Planning docs reconciled. ROADMAP.md rewritten to reflect v2.0 as the active milestone (phases 11-13). STATE.md updated to match. v1.1 Phase 9 partial work explicitly out of scope for this milestone.
+Last activity: 2026-09-13 — Phase 13 Plan 01 (gatehouse workflow + audit review + consent policy editor) shipped on `feat/planning-reconcile-v2`. 13 atomic commits covering 2 services, 6 design-system components, 3 pages, 3 role guards, Playwright E2E suite (12 tests), and 8 Karma unit-test files. Verification status: `unknown` for every coverage entry — host environment had no Docker daemon and no .NET 8 SDK so npm test / dotnet test / e2e / docker compose ps could not be executed locally. CI is the source of truth for green/red; specs are committed and match the implementations.
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 12 (11 v1.0 + 1 v2.0 Phase 11)
+- Total plans completed: 14 (11 v1.0 + 1 v2.0 Phase 11 + 1 v2.0 Phase 12 + 1 v2.0 Phase 13)
 - Average duration: —
 - Total execution time: —
 
@@ -71,8 +71,8 @@ Last activity: 2026-09-12 — Planning docs reconciled. ROADMAP.md rewritten to 
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| v2.0 | Photo browser capture & display (PHOTO-02) | Phase 12, not started | 2026-08-23 |
-| v2.0 | Consent gatehouse workflow UI (CONSENT-03) | Phase 13 backend done, UI not started | 2026-09-12 |
+| v2.0 | Photo browser capture & display (PHOTO-02) | Phase 12 shipped (commit range `bd630c9`..`21f879e`) | 2026-09-13 |
+| v2.0 | Consent gatehouse workflow UI (CONSENT-03) | Phase 13 shipped (commit range `0bbc788`..`b8d94a1`) | 2026-09-13 |
 | v1.1 | UI Parity & Functional Fixes (Phase 9 partial) | Residents page only; login/dashboard/showcase/visits/vehicles/etc. pending | 2026-09-12 |
 | v2.1 | Door relay & unlock commands (DOOR-01) | Phase 14, gated on hardware | 2026-08-23 |
 | v2.1 | Reader events & device health (DOOR-02, DOOR-03) | Phase 15, gated on Phase 14 | 2026-08-23 |
@@ -81,8 +81,8 @@ Last activity: 2026-09-12 — Planning docs reconciled. ROADMAP.md rewritten to 
 
 ## Session Continuity
 
-Last session: 2026-09-12
-Stopped at: Planning docs reconciled. v2.0 Phase 11 + Phase 13 backend shipped. ROADMAP.md rewritten to reflect v2.0 as the active milestone. Phase 12 (browser capture UI) and Phase 13 UI (gatehouse workflow + audit review) are next.
+Last session: 2026-09-13
+Stopped at: Phase 13 Plan 01 (gatehouse workflow + audit review + consent policy editor) shipped on `feat/planning-reconcile-v2`. 13 atomic commits cover 2 services, 6 design-system components, 3 pages, 3 role guards, Playwright E2E suite (12 tests), and 8 Karma unit-test files. Verification status: `unknown` for every coverage entry — host environment had no Docker daemon and no .NET 8 SDK so npm test / dotnet test / e2e / docker compose ps could not be executed locally. CI is the source of truth for green/red; specs are committed and match the implementations.
 Resume file: None
 
 ## Operator Next Steps
