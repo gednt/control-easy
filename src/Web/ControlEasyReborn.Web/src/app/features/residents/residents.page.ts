@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, computed, inject, signal, viewChildren } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import {
   CeAvatarComponent,
   CeBadgeComponent,
@@ -12,9 +13,12 @@ import {
   CeInputComponent,
   CeModalComponent,
   CePaginationComponent,
+  CePhotoCaptureComponent,
+  CePhotoGalleryComponent,
   CeSpinnerComponent,
   CeStatTileComponent,
   CeTableComponent,
+  ToastService,
 } from '../../design-system';
 import { ResidentsApiService, ResidentResponse } from './residents-api.service';
 import { ApartmentPickerComponent } from '../../shared/apartment-picker/apartment-picker.component';
@@ -23,6 +27,8 @@ import { DashboardApiService, RecentVisit } from '../dashboard/dashboard-api.ser
 import { cpfValidator } from '../../core/validators/cpf.validator';
 import { getApiErrorMessage } from '../../core/utils/api-error.util';
 import { AuthService } from '../../core/services/auth.service';
+import { PhotosApiService, type PhotoResponse } from '../photos/photos-api.service';
+import { PhotoBindingCacheService } from '../photos/photo-binding-cache.service';
 
 type StatusTab = 'all' | 'active' | 'pending' | 'overdue';
 type SortKey = 'nameAsc' | 'newest';
@@ -44,6 +50,8 @@ type SortKey = 'nameAsc' | 'newest';
     CeInputComponent,
     CeModalComponent,
     CePaginationComponent,
+    CePhotoCaptureComponent,
+    CePhotoGalleryComponent,
     CeSpinnerComponent,
     CeStatTileComponent,
     CeTableComponent,
@@ -165,11 +173,14 @@ type SortKey = 'nameAsc' | 'newest';
                   />
                 </td>
                 <td class="resident-actions">
-                  @if (canWrite()) {
-                    <ce-dropdown>
-                      <button class="action-menu-btn" ceDropdownTrigger type="button" aria-label="Resident actions">
-                        <ce-icon name="more-horizontal" [size]="16" />
-                      </button>
+                  <ce-dropdown>
+                    <button class="action-menu-btn" ceDropdownTrigger type="button" aria-label="Resident actions">
+                      <ce-icon name="more-horizontal" [size]="16" />
+                    </button>
+                    <button role="menuitem" type="button" (click)="openViewModal(resident)">
+                      View photos
+                    </button>
+                    @if (canWrite()) {
                       <button role="menuitem" type="button" (click)="openEditModal(resident)">Edit</button>
                       @if (resident.active) {
                         <button
@@ -181,8 +192,8 @@ type SortKey = 'nameAsc' | 'newest';
                           Deactivate
                         </button>
                       }
-                    </ce-dropdown>
-                  }
+                    }
+                  </ce-dropdown>
                 </td>
               </tr>
             } @empty {
@@ -355,6 +366,43 @@ type SortKey = 'nameAsc' | 'newest';
         </ce-button>
       </div>
     </ce-modal>
+
+    <ce-modal
+      [open]="viewModalOpen()"
+      [title]="residentBeingViewed() ? residentBeingViewed()!.name + ' — Photos' : 'Resident photos'"
+      size="lg"
+      (openChange)="onViewModalOpenChange($event)"
+    >
+      <div class="view-photo-section">
+        <ce-photo-gallery
+          [photos]="residentPhotos()"
+          [canAdd]="canWrite()"
+          [canDelete]="canWrite()"
+          (addRequested)="openPhotoCapture()"
+          (photoDeleted)="onPhotoDeleted($event)"
+        />
+      </div>
+      <div ce-modal-footer>
+        <ce-button variant="ghost" size="sm" (click)="closeViewModal()">Close</ce-button>
+        @if (canWrite()) {
+          <ce-button variant="primary" size="sm" (click)="openPhotoCapture()">
+            <ce-icon name="plus" [size]="14" />
+            Add photo
+          </ce-button>
+        }
+      </div>
+    </ce-modal>
+
+    @if (showPhotoCapture() && residentBeingViewed()) {
+      <ce-photo-capture
+        entityType="resident"
+        [entityId]="residentBeingViewed()!.id"
+        mode="camera"
+        [open]="showPhotoCapture()"
+        (closed)="onPhotoCaptureClosed()"
+        (photoUploaded)="onPhotoUploaded($event)"
+      />
+    }
   `,
   styles: [
     `
@@ -574,6 +622,10 @@ type SortKey = 'nameAsc' | 'newest';
       .text-secondary {
         color: var(--color-text-secondary);
       }
+
+      .view-photo-section {
+        min-height: 96px;
+      }
     `,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -582,6 +634,9 @@ export class ResidentsPage implements OnDestroy {
   private readonly api = inject(ResidentsApiService);
   private readonly apartmentsApi = inject(ApartmentsApiService);
   private readonly dashboardApi = inject(DashboardApiService);
+  private readonly photosApi = inject(PhotosApiService);
+  private readonly photoBindings = inject(PhotoBindingCacheService);
+  private readonly toast = inject(ToastService);
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly dropdowns = viewChildren(CeDropdownComponent);
@@ -598,11 +653,15 @@ export class ResidentsPage implements OnDestroy {
   createModalOpen = signal(false);
   editModalOpen = signal(false);
   confirmDeactivateOpen = signal(false);
+  viewModalOpen = signal(false);
+  showPhotoCapture = signal(false);
   createError = signal<string | null>(null);
   editError = signal<string | null>(null);
   searchTerm = signal('');
   residentToDeactivate = signal<ResidentResponse | null>(null);
   editingResident = signal<ResidentResponse | null>(null);
+  residentBeingViewed = signal<ResidentResponse | null>(null);
+  residentPhotos = signal<PhotoResponse[]>([]);
 
   statusTab = signal<StatusTab>('all');
   selectedBlockId = signal<string | null>(null);
@@ -978,5 +1037,67 @@ export class ResidentsPage implements OnDestroy {
     for (const dropdown of this.dropdowns()) {
       dropdown.close();
     }
+  }
+
+  // ---------- Photo gallery (Phase 12) ----------
+
+  openViewModal(resident: ResidentResponse): void {
+    this.closeAllDropdowns();
+    this.residentBeingViewed.set(resident);
+    this.loadResidentPhotos(resident.id);
+    this.viewModalOpen.set(true);
+  }
+
+  closeViewModal(): void {
+    this.viewModalOpen.set(false);
+    this.residentBeingViewed.set(null);
+    this.residentPhotos.set([]);
+    this.showPhotoCapture.set(false);
+  }
+
+  onViewModalOpenChange(open: boolean): void {
+    if (!open) this.closeViewModal();
+  }
+
+  openPhotoCapture(): void {
+    if (!this.residentBeingViewed()) return;
+    this.showPhotoCapture.set(true);
+  }
+
+  onPhotoCaptureClosed(): void {
+    this.showPhotoCapture.set(false);
+  }
+
+  onPhotoUploaded(photo: PhotoResponse): void {
+    const resident = this.residentBeingViewed();
+    if (!resident) return;
+    const next = this.photoBindings.add('resident', resident.id, photo);
+    this.residentPhotos.set(next);
+    this.toast.success('Photo uploaded');
+  }
+
+  async onPhotoDeleted(photoId: string): Promise<void> {
+    const resident = this.residentBeingViewed();
+    if (!resident) return;
+    try {
+      await firstValueFrom(this.photosApi.delete(photoId));
+      const next = this.photoBindings.remove('resident', resident.id, photoId);
+      this.residentPhotos.set(next);
+      this.toast.success('Photo deleted');
+    } catch {
+      this.toast.error(getApiErrorMessage(undefined, 'Failed to delete photo'));
+    }
+  }
+
+  /**
+   * Phase 12 deviation: backend has no /photos list endpoint. We rely on the
+   * PhotoBindingCache (localStorage) so photos uploaded in this browser
+   * session reappear when the user revisits the resident.
+   */
+  loadResidentPhotos(residentId: string): void {
+    const resident = this.residents().find((r) => r.id === residentId);
+    if (!resident) return;
+    const cached = this.photoBindings.list('resident', residentId);
+    this.residentPhotos.set(cached);
   }
 }
