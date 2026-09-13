@@ -12,7 +12,6 @@ import { firstValueFrom } from 'rxjs';
 import { CeModalComponent } from '../modal/modal.component';
 import { CeButtonComponent } from '../button/button.component';
 import { CeIconComponent } from '../icon/icon.component';
-import { CeInputComponent } from '../input/input.component';
 import { CePhotoCaptureComponent } from '../photo/photo-capture.component';
 import { CeOverrideReasonComponent } from '../override-reason/override-reason.component';
 import { ToastService } from '../toast/toast.component';
@@ -57,7 +56,6 @@ const TILES: TileDescriptor[] = [
     CeModalComponent,
     CeButtonComponent,
     CeIconComponent,
-    CeInputComponent,
     CePhotoCaptureComponent,
     CeOverrideReasonComponent,
   ],
@@ -90,18 +88,26 @@ const TILES: TileDescriptor[] = [
         </div>
       } @else if (step() === 'subject-info') {
         <div class="subject-form">
-          <ce-input
-            label="Name (optional)"
-            placeholder="Visitor name"
-            [value]="subjectName()"
-            (valueChange)="subjectName.set($event)"
-          />
-          <ce-input
-            label="Document (optional)"
-            placeholder="CPF or RG"
-            [value]="subjectDocument()"
-            (valueChange)="subjectDocument.set($event)"
-          />
+          <label class="field">
+            <span class="field-label">Name (optional)</span>
+            <input
+              type="text"
+              class="ce-input"
+              placeholder="Visitor name"
+              [value]="subjectName()"
+              (input)="subjectName.set($any($event.target).value)"
+            />
+          </label>
+          <label class="field">
+            <span class="field-label">Document (optional)</span>
+            <input
+              type="text"
+              class="ce-input"
+              placeholder="CPF or RG"
+              [value]="subjectDocument()"
+              (input)="subjectDocument.set($any($event.target).value)"
+            />
+          </label>
           <div class="actions">
             <ce-button variant="ghost" size="md" (click)="back()" [disabled]="loading()">
               Back
@@ -197,6 +203,31 @@ const TILES: TileDescriptor[] = [
         flex-direction: column;
         gap: var(--space-3, 12px);
         padding: var(--space-1, 4px) 0;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1, 4px);
+      }
+      .field-label {
+        font-size: var(--font-size-sm, 14px);
+        font-weight: var(--font-weight-medium, 500);
+        color: var(--color-text-primary, #111827);
+      }
+      .ce-input {
+        padding: var(--space-2, 8px) var(--space-3, 12px);
+        border: 1px solid var(--color-border, #e5e7eb);
+        border-radius: var(--radius-md, 6px);
+        font-family: inherit;
+        font-size: var(--font-size-sm, 14px);
+        background: var(--color-surface-elevated, #fff);
+        color: var(--color-text-primary, #111827);
+        min-height: 2.5rem;
+      }
+      .ce-input:focus-visible {
+        outline: 2px solid var(--color-primary, #0066cc);
+        outline-offset: 1px;
+        border-color: var(--color-primary, #0066cc);
       }
       .actions {
         display: flex;

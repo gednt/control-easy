@@ -23,10 +23,10 @@ export type OverrideReason = 'emergency' | 'vouched';
 export interface CreateEntryLogRequest {
   entryState: EntryState;
   subjectType: SubjectType;
-  subjectName?: string;
-  subjectDocument?: string;
-  photoId?: string;
-  overrideReason?: OverrideReason;
+  subjectName?: string | undefined;
+  subjectDocument?: string | undefined;
+  photoId?: string | undefined;
+  overrideReason?: OverrideReason | undefined;
 }
 
 /**
@@ -37,20 +37,20 @@ export interface EntryLogResponse {
   id: string;
   tenantId: string;
   entryState: EntryState;
-  overrideReason?: OverrideReason;
-  photoId?: string;
+  overrideReason?: OverrideReason | undefined;
+  photoId?: string | undefined;
   subjectType: SubjectType;
-  subjectName?: string;
-  subjectDocument?: string;
-  performedByProfileId?: string;
+  subjectName?: string | undefined;
+  subjectDocument?: string | undefined;
+  performedByProfileId?: string | undefined;
   recordedAt: string;
 }
 
 export interface AuditFilters {
-  entryState?: EntryState;
-  subjectType?: SubjectType;
-  fromUtc?: string;
-  toUtc?: string;
+  entryState?: EntryState | undefined;
+  subjectType?: SubjectType | undefined;
+  fromUtc?: string | undefined;
+  toUtc?: string | undefined;
   skip: number;
   take: number;
 }

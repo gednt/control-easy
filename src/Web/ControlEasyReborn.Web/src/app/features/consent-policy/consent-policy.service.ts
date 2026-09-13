@@ -11,16 +11,16 @@ export interface ConsentPolicyResponse {
   tenantId: string;
   subjectCategory: SubjectCategory;
   photoRequired: boolean;
-  dwellTimeLimitMinutes?: number;
-  updatedByProfileId?: string;
+  dwellTimeLimitMinutes?: number | undefined;
+  updatedByProfileId?: string | undefined;
   createdAtUtc: string;
-  updatedAtUtc?: string;
+  updatedAtUtc?: string | undefined;
 }
 
 export interface UpdateConsentPolicyRequest {
   subjectCategory: SubjectCategory;
   photoRequired: boolean;
-  dwellTimeLimitMinutes?: number;
+  dwellTimeLimitMinutes?: number | undefined;
 }
 
 /**
