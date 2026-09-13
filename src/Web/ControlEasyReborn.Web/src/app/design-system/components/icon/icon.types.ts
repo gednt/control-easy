@@ -3,10 +3,12 @@ export type LucideIconName =
   | 'dashboard'
   | 'users'
   | 'user'
+  | 'user-check'
   | 'building'
   | 'calendar'
   | 'car'
   | 'briefcase'
+  | 'package'
   | 'settings'
   | 'search'
   | 'bell'
@@ -16,6 +18,7 @@ export type LucideIconName =
   | 'eye'
   | 'eye-off'
   | 'x'
+  | 'x-circle'
   | 'plus'
   | 'refresh'
   | 'more-horizontal'
@@ -26,6 +29,7 @@ export type LucideIconName =
   | 'chevron-left'
   | 'chevron-right'
   | 'check'
+  | 'check-circle'
   | 'info'
   | 'alert-triangle'
   | 'alert-circle'
@@ -33,7 +37,9 @@ export type LucideIconName =
   | 'layout-grid'
   | 'camera'
   | 'upload'
-  | 'image';
+  | 'image'
+  | 'download'
+  | 'file-text';
 
 const ICON_ALIASES: Partial<Record<LucideIconName, string>> = {
   dashboard: 'layout-dashboard',
@@ -43,6 +49,12 @@ const ICON_ALIASES: Partial<Record<LucideIconName, string>> = {
   'alert-triangle': 'triangle-alert',
   'alert-circle': 'circle-alert',
   home: 'house',
+  'x-circle': 'circle-x',
+  'check-circle': 'circle-check',
+  'user-check': 'user-check',
+  package: 'package',
+  download: 'download',
+  'file-text': 'file-text',
 };
 
 export function resolveLucideIconName(name: LucideIconName): string {
