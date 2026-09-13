@@ -43,13 +43,13 @@ Requirements for the v2.0 milestone. Photo capture is browser-based (camera + up
 ### Photo Capture & Storage
 
 - [x] **PHOTO-01**: Storage infrastructure & API — `IStorageProvider` (local + S3/MinIO), `photos` table, `photos.read`/`photos.write`/`photos.delete` permissions, upload/retrieve/soft-delete endpoints, env-var config *(commit `d895c01`)*
-- [ ] **PHOTO-02**: Browser capture & compression — `ce-photo-capture` component (`getUserMedia` + file upload), resize ≤1280px → JPEG ≤500KB, EXIF strip, 128×128 thumbnail client-side, upload retry (3× backoff), `ce-photo` display component, integration into resident/visitor/vehicle/service-provider pages
+- [x] **PHOTO-02**: Browser capture & compression — `ce-photo-capture` component (`getUserMedia` + file upload), resize ≤1280px → JPEG ≤500KB, EXIF strip, 128×128 thumbnail client-side, upload retry (3× backoff), `ce-photo` display component, integration into resident/visitor/vehicle/service-provider pages *(commit range `bd630c9`..`21f879e`, see `.planning/phases/12-photo-capture-display/12-01-SUMMARY.md`)*
 
 ### Consent Policy & Gatehouse Workflow
 
 - [x] **CONSENT-01**: Consent policy config — per-tenant per-category toggle (dwellers/visitors/service-providers/vehicles × photo_required), `tenant_consent_policy` table, editable by tenant admin, no rules engine *(commit `d895c01`)*
-- [x] **CONSENT-02**: Gatehouse entry workflow — four entry states (`entered_with_consent` / `entered_override` / `gatehouse_only` / `denied`), `consent_audit_log` table (append-only, millisecond timestamps), hard DB constraint (consent entry = photo non-null), override reason codes (hardcoded: emergency/vouched), 3-second workflow target *(backend shipped, commit `d895c01`; UI not started)*
-- [~] **CONSENT-03**: Audit review & export — filter by date/category/state/porteiro, override highlighting, CSV export with millisecond timestamps, `recorded_at` cross-referenceable with external CCTV *(backend shipped: `GET /api/v1/entry-log/export` CSV + list filters; UI not started, commit `d895c01`)*
+- [x] **CONSENT-02**: Gatehouse entry workflow — four entry states (`entered_with_consent` / `entered_override` / `gatehouse_only` / `denied`), `consent_audit_log` table (append-only, millisecond timestamps), hard DB constraint (consent entry = photo non-null), override reason codes (hardcoded: emergency/vouched), 3-second workflow target *(backend commit `d895c01`; UI commit range `0bbc788`..`b8d94a1`; see `.planning/phases/13-consent-policy-gatehouse/13-01-SUMMARY.md`)*
+- [x] **CONSENT-03**: Audit review & export — filter by date/category/state/porteiro, override highlighting, CSV export with millisecond timestamps, `recorded_at` cross-referenceable with external CCTV *(backend commit `d895c01`; UI commit range `0bbc788`..`b8d94a1`; see `.planning/phases/13-consent-policy-gatehouse/13-01-SUMMARY.md`)*
 
 ## v2.1 Requirements — Door Integration (Optional)
 
@@ -102,10 +102,10 @@ Populated during roadmap creation. Each v1.1 requirement maps to exactly one pha
 | DASH-02 | Phase 10 | `dashboard` | ✅ Done |
 | DASH-04 | Phase 10 | `vehicle-edit` | ✅ Done |
 | PHOTO-01 | Phase 11 | `photo-capture` | ✅ Done (commit `d895c01`) |
-| PHOTO-02 | Phase 12 | `photo-capture` | Pending |
+| PHOTO-02 | Phase 12 | `photo-capture` | ✅ Done (commit range `bd630c9`..`21f879e`) |
 | CONSENT-01 | Phase 13 | `consent-gatehouse` | ✅ Done (backend, commit `d895c01`) |
-| CONSENT-02 | Phase 13 | `consent-gatehouse` | ✅ Backend done; UI pending |
-| CONSENT-03 | Phase 13 | `consent-gatehouse` | Partial (backend done; UI pending) |
+| CONSENT-02 | Phase 13 | `consent-gatehouse` | ✅ Done (backend + UI, commit range `0bbc788`..`b8d94a1`) |
+| CONSENT-03 | Phase 13 | `consent-gatehouse` | ✅ Done (backend + UI, commit range `0bbc788`..`b8d94a1`) |
 | DOOR-01 | Phase 14 | `door-integration` | Pending (gated on hardware) |
 | DOOR-02 | Phase 15 | `door-integration` | Pending (gated on Phase 14) |
 | DOOR-03 | Phase 15 | `door-integration` | Pending (gated on Phase 14) |
@@ -114,7 +114,7 @@ Populated during roadmap creation. Each v1.1 requirement maps to exactly one pha
 
 **Coverage:**
 - v1.1 requirements: 5 top-level (22 atomic sub-requirements) — 3 done (DASH-01/02/04), 2 partial (UI-03, UI-04)
-- v2.0 requirements: 5 top-level (PHOTO-01, PHOTO-02, CONSENT-01, CONSENT-02, CONSENT-03) — 3 done + 1 partial (CONSENT-03 backend done, UI pending) + 1 pending (PHOTO-02)
+- v2.0 requirements: 5 top-level (PHOTO-01, PHOTO-02, CONSENT-01, CONSENT-02, CONSENT-03) — 5 done (PHOTO-02 shipped in Phase 12; CONSENT-02/03 shipped with both backend + UI in Phase 13)
 - v2.1 requirements: 3 top-level (DOOR-01, DOOR-02, DOOR-03) — all pending (gated on hardware)
 - Fast-cycle: 2 (ARCH-01, ARCH-02) — pending
 - Mapped to phases: 15/15
@@ -131,4 +131,4 @@ The following work was shipped after v1.0 without being tracked in the requireme
 
 ---
 *Requirements defined: 2026-08-23*
-*Last updated: 2026-09-12 — audited against codebase; DASH-01/02/04, PHOTO-01, CONSENT-01/02 marked done; UI-03/04 marked partial; unplanned shipped work added*
+*Last updated: 2026-09-13 — audited against codebase; v2.0 now 5/5 done (PHOTO-02 shipped Phase 12; CONSENT-02/03 UI shipped Phase 13 on `feat/planning-reconcile-v2`)*
