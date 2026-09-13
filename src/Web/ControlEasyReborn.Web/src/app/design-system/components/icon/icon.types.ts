@@ -23,13 +23,17 @@ export type LucideIconName =
   | 'trash-2'
   | 'log-out'
   | 'chevron-down'
+  | 'chevron-left'
   | 'chevron-right'
   | 'check'
   | 'info'
   | 'alert-triangle'
   | 'alert-circle'
   | 'home'
-  | 'layout-grid';
+  | 'layout-grid'
+  | 'camera'
+  | 'upload'
+  | 'image';
 
 const ICON_ALIASES: Partial<Record<LucideIconName, string>> = {
   dashboard: 'layout-dashboard',
