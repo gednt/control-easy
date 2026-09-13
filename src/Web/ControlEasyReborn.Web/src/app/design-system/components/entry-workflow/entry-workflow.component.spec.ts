@@ -45,55 +45,118 @@ describe('CeEntryWorkflowComponent', () => {
     );
   });
 
-  it('register tile opens photo capture for a consented visitor', () => {
-    component['onTileTap']('register');
+  it('register tile opens photo capture when consent policy requires photo', fakeAsync(() => {
+    void component.onTileTap('register');
+    tick();
 
-    expect(component['showCapture']()).toBe(true);
-    expect(component['pendingState']()).toBe('entered_with_consent');
+    const policyReq = httpMock.expectOne('/api/v1/consent-policy/visitors');
+    expect(policyReq.request.method).toBe('GET');
+    policyReq.flush({
+      id: 'p-1',
+      tenantId: 't-1',
+      subjectCategory: 'visitors',
+      photoRequired: true,
+      createdAtUtc: new Date().toISOString(),
+    });
+    tick();
+
+    expect(component.showCapture()).toBe(true);
+    expect(component.pendingState()).toBe('entered_with_consent');
+  }));
+
+  it('register tile skips photo capture when consent policy does not require photo', fakeAsync(() => {
+    void component.onTileTap('register');
+    tick();
+
+    const policyReq = httpMock.expectOne('/api/v1/consent-policy/visitors');
+    expect(policyReq.request.method).toBe('GET');
+    policyReq.flush({
+      id: 'p-1',
+      tenantId: 't-1',
+      subjectCategory: 'visitors',
+      photoRequired: false,
+      createdAtUtc: new Date().toISOString(),
+    });
+    tick();
+
+    expect(component.showCapture()).toBe(false);
+    expect(component.pendingState()).toBe('entered_with_consent');
+    expect(component.step()).toBe('subject-info');
+  }));
+
+  it('denied tile bypasses photo capture and advances directly to subject info', fakeAsync(() => {
+    void component.onTileTap('denied');
+    tick();
+
+    expect(component.pendingState()).toBe('entered_without_consent');
+    expect(component.showCapture()).toBe(false);
+    expect(component.step()).toBe('subject-info');
+    expect(component.selectedCategory()).toBe('visitor');
+  }));
+
+  it('gatehouse tile forces service_provider subject type', fakeAsync(() => {
+    void component.onTileTap('gatehouse');
+    tick();
+
+    expect(component.pendingState()).toBe('gatehouse_only');
+    expect(component.step()).toBe('subject-info');
+    expect(component.selectedCategory()).toBe('service_provider');
+  }));
+
+  it('override tile opens reason modal without opening camera', fakeAsync(() => {
+    void component.onTileTap('override');
+    tick();
+
+    expect(component.pendingState()).toBe('entered_override');
+    expect(component.showOverrideReason()).toBe(true);
+    expect(component.showCapture()).toBe(false);
+  }));
+
+  it('close method emits closed event to host', () => {
+    let closed = false;
+    component.closed.subscribe(() => (closed = true));
+    component.close();
+    expect(closed).toBe(true);
   });
 
-  it('denied tile opens photo capture before subject info', () => {
-    component['onTileTap']('denied');
-    expect(component['pendingState']()).toBe('entered_without_consent');
-    expect(component['showCapture']()).toBe(true);
-    expect(component['selectedCategory']()).toBe('visitor');
-  });
+  it('allows category selection in subject-info for general entries', fakeAsync(() => {
+    void component.onTileTap('denied');
+    tick();
 
-  it('allows upload fallback when camera access is unavailable', () => {
-    component['onTileTap']('denied');
-    component['onCaptureModeChange']('upload');
+    expect(component.step()).toBe('subject-info');
+    component.onCategorySelect('dweller');
+    expect(component.selectedCategory()).toBe('dweller');
+  }));
 
-    expect(component['captureMode']()).toBe('upload');
-  });
+  it('prevents selecting disallowed categories in gatehouse-only mode', fakeAsync(() => {
+    void component.onTileTap('gatehouse');
+    tick();
 
-  it('gatehouse tile forces service_provider subject type (matches backend)', () => {
-    component['onTileTap']('gatehouse');
-    expect(component['pendingState']()).toBe('gatehouse_only');
-    expect(component['step']()).toBe('subject-info');
-    expect(component['selectedCategory']()).toBe('service_provider');
-  });
+    expect(component.selectedCategory()).toBe('service_provider');
+    component.onCategorySelect('visitor');
+    // Category should remain service_provider because gatehouse_only only allows service_provider
+    expect(component.selectedCategory()).toBe('service_provider');
+  }));
 
-  it('override tile opens reason modal', () => {
-    component['onTileTap']('override');
-    expect(component['pendingState']()).toBe('entered_override');
-    expect(component['showOverrideReason']()).toBe(true);
-  });
-
-  it('continue closes the dashboard workflow after a successful entry', fakeAsync(() => {
+  it('continue closes the dashboard workflow after a successful entry without photo on refusal', fakeAsync(() => {
     let closed = false;
     component.closed.subscribe(() => (closed = true));
     fixture.componentRef.setInput('closeOnEntry', true);
-    component['onTileTap']('denied');
-    component['onPhotoUploaded']({ id: 'photo-1' });
-    component['subjectName'].set('Refused Person');
-    component['continue']();
+
+    void component.onTileTap('denied');
     tick();
+
+    component.subjectName.set('Refused Person');
+    void component.continue();
+    tick();
+
     const createReq = httpMock.expectOne('/api/v1/entry-log');
     expect(createReq.request.method).toBe('POST');
     expect(createReq.request.body.subjectType).toBe('visitor');
     expect(createReq.request.body.entryState).toBe('entered_without_consent');
     expect(createReq.request.body.subjectName).toBe('Refused Person');
-    expect(createReq.request.body.photoId).toBe('photo-1');
+    expect(createReq.request.body.photoId).toBeUndefined();
+
     createReq.flush({
       id: 'e-1',
       tenantId: 't-1',
@@ -102,22 +165,26 @@ describe('CeEntryWorkflowComponent', () => {
       recordedAt: new Date().toISOString(),
     });
     tick();
-    expect(component['step']()).toBe('tiles');
+
+    expect(component.step()).toBe('tiles');
     expect(closed).toBe(true);
   }));
 
   it('continue surfaces toast and stays open on error', fakeAsync(() => {
-    component['onTileTap']('denied');
-    component['onPhotoUploaded']({ id: 'photo-1' });
-    component['continue']();
+    void component.onTileTap('denied');
     tick();
+
+    void component.continue();
+    tick();
+
     const createReq = httpMock.expectOne('/api/v1/entry-log');
     createReq.flush(
       { detail: 'Invalid request' },
       { status: 400, statusText: 'Bad Request' },
     );
     tick();
-    expect(component['loading']()).toBe(false);
-    expect(component['step']()).toBe('subject-info');
+
+    expect(component.loading()).toBe(false);
+    expect(component.step()).toBe('subject-info');
   }));
 });

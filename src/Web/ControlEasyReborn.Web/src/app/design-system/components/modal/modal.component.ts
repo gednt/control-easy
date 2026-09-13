@@ -1,4 +1,4 @@
-import { Component, input, output, ChangeDetectionStrategy, signal, ElementRef, inject, HostListener } from '@angular/core';
+import { Component, input, output, ChangeDetectionStrategy, ElementRef, inject } from '@angular/core';
 
 @Component({
   selector: 'ce-modal',
@@ -109,6 +109,7 @@ import { Component, input, output, ChangeDetectionStrategy, signal, ElementRef, 
 export class CeModalComponent {
   open = input(false);
   openChange = output<boolean>();
+  closed = output<void>();
   title = input('');
   size = input<'sm' | 'md' | 'lg' | 'xl'>('md');
 
@@ -133,6 +134,7 @@ export class CeModalComponent {
 
   close(): void {
     this.openChange.emit(false);
+    this.closed.emit();
   }
 
   onBackdropClick(): void {

@@ -52,7 +52,7 @@ public sealed class CreateEntryLogHandler
 
         var policy = await _policies.FindByCategoryAsync(tenantId, request.SubjectType, ct);
         if (policy is { PhotoRequired: true }
-            && request.EntryState is EntryStates.EnteredWithConsent or EntryStates.EnteredWithoutConsent
+            && request.EntryState is EntryStates.EnteredWithConsent
             && request.PhotoId is null)
         {
             throw new Errors.ValidationException(new Dictionary<string, string[]>

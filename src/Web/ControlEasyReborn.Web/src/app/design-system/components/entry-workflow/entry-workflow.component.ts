@@ -23,6 +23,7 @@ import {
   type OverrideReason,
   type SubjectType,
 } from '../../../features/entry-log/entry-log.service';
+import { ConsentPolicyService } from '../../../features/consent-policy/consent-policy.service';
 import { getApiErrorMessage } from '../../../core/utils/api-error.util';
 
 type WorkflowStep = 'tiles' | 'subject-info';
@@ -42,6 +43,15 @@ const TILES: TileDescriptor[] = [
   { action: 'gatehouse', icon: 'package', label: 'Gatehouse only', sub: 'package drop', cssClass: 'tile gatehouse' },
   { action: 'override', icon: 'alert-triangle', label: 'Override', sub: 'emergency / vouched', cssClass: 'tile override' },
 ];
+
+function toSubjectCategory(subjectType: SubjectType): 'dwellers' | 'visitors' | 'service-providers' | 'vehicles' {
+  switch (subjectType) {
+    case 'dweller': return 'dwellers';
+    case 'visitor': return 'visitors';
+    case 'service_provider': return 'service-providers';
+    case 'vehicle': return 'vehicles';
+  }
+}
 
 /**
  * Gatehouse entry workflow. Hosts the 4-tile selection screen and the
@@ -87,16 +97,59 @@ const TILES: TileDescriptor[] = [
         </div>
       } @else if (step() === 'subject-info') {
         <div class="subject-form">
+          <div class="field">
+            <span class="field-label">Category</span>
+            <div class="category-selector" role="radiogroup" aria-label="Subject category">
+              <button
+                type="button"
+                class="category-chip"
+                [class.active]="selectedCategory() === 'visitor'"
+                [disabled]="!isCategoryAllowed('visitor')"
+                (click)="onCategorySelect('visitor')"
+              >
+                Visitor
+              </button>
+              <button
+                type="button"
+                class="category-chip"
+                [class.active]="selectedCategory() === 'dweller'"
+                [disabled]="!isCategoryAllowed('dweller')"
+                (click)="onCategorySelect('dweller')"
+              >
+                Resident
+              </button>
+              <button
+                type="button"
+                class="category-chip"
+                [class.active]="selectedCategory() === 'service_provider'"
+                [disabled]="!isCategoryAllowed('service_provider')"
+                (click)="onCategorySelect('service_provider')"
+              >
+                Service Provider
+              </button>
+              <button
+                type="button"
+                class="category-chip"
+                [class.active]="selectedCategory() === 'vehicle'"
+                [disabled]="!isCategoryAllowed('vehicle')"
+                (click)="onCategorySelect('vehicle')"
+              >
+                Vehicle
+              </button>
+            </div>
+          </div>
+
           <label class="field">
             <span class="field-label">Name (optional)</span>
             <input
               type="text"
               class="ce-input"
-              placeholder="Visitor name"
+              [placeholder]="subjectNamePlaceholder()"
               [value]="subjectName()"
               (input)="subjectName.set($any($event.target).value)"
             />
           </label>
+
           <label class="field">
             <span class="field-label">Document (optional)</span>
             <input
@@ -107,6 +160,20 @@ const TILES: TileDescriptor[] = [
               (input)="subjectDocument.set($any($event.target).value)"
             />
           </label>
+
+          @if (pendingState() === 'entered_with_consent' && !photoId()) {
+            <div class="photo-prompt">
+              <button type="button" class="photo-capture-trigger" (click)="openCapture()">
+                <ce-icon name="camera" [size]="16" /> Capture photo
+              </button>
+            </div>
+          } @else if (photoId()) {
+            <div class="photo-status attached">
+              <ce-icon name="check-circle" [size]="16" />
+              <span>Photo attached</span>
+            </div>
+          }
+
           <div class="actions">
             <ce-button variant="ghost" size="md" (click)="back()" [disabled]="loading()">
               Back
@@ -138,7 +205,7 @@ const TILES: TileDescriptor[] = [
       <ce-override-reason
         [open]="showOverrideReason()"
         (reasonSelected)="onOverrideReason($event)"
-        (closed)="showOverrideReason.set(false)"
+        (closed)="onOverrideClosed()"
       />
     </ce-modal>
   `,
@@ -219,6 +286,37 @@ const TILES: TileDescriptor[] = [
         font-weight: var(--font-weight-medium, 500);
         color: var(--color-text-primary, #111827);
       }
+      .category-selector {
+        display: flex;
+        gap: var(--space-2, 8px);
+        flex-wrap: wrap;
+      }
+      .category-chip {
+        padding: var(--space-2, 6px) var(--space-3, 12px);
+        border: 1px solid var(--color-border, #e5e7eb);
+        background: var(--color-surface, #fffdf7);
+        color: var(--color-text-secondary, #4b5563);
+        font-family: var(--font-family-mono, monospace);
+        font-size: var(--font-size-xs, 12px);
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 150ms ease;
+      }
+      .category-chip:hover:not(:disabled) {
+        border-color: var(--color-primary, #a84d3d);
+        color: var(--color-primary, #a84d3d);
+      }
+      .category-chip.active {
+        background: var(--color-primary, #a84d3d);
+        color: white;
+        border-color: var(--color-primary, #a84d3d);
+        font-weight: 600;
+      }
+      .category-chip:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
       .ce-input {
         padding: var(--space-2, 8px) var(--space-3, 12px);
         border: 1px solid var(--color-border, #e5e7eb);
@@ -234,6 +332,31 @@ const TILES: TileDescriptor[] = [
         outline-offset: 1px;
         border-color: var(--color-primary, #0066cc);
       }
+      .photo-capture-trigger {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2, 8px);
+        padding: var(--space-2, 8px) var(--space-3, 12px);
+        border: 1px dashed var(--color-primary, #a84d3d);
+        background: color-mix(in srgb, var(--color-primary, #a84d3d) 6%, transparent);
+        color: var(--color-primary, #a84d3d);
+        font-family: var(--font-family-mono, monospace);
+        font-size: var(--font-size-xs, 12px);
+        font-weight: 600;
+        cursor: pointer;
+        text-transform: uppercase;
+      }
+      .photo-capture-trigger:hover {
+        background: color-mix(in srgb, var(--color-primary, #a84d3d) 12%, transparent);
+      }
+      .photo-status {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2, 8px);
+        font-size: var(--font-size-xs, 12px);
+        font-weight: 600;
+        color: var(--color-success, #16a34a);
+      }
       .actions {
         display: flex;
         justify-content: space-between;
@@ -247,6 +370,7 @@ const TILES: TileDescriptor[] = [
 })
 export class CeEntryWorkflowComponent {
   private readonly entryLogService = inject(EntryLogService);
+  private readonly consentPolicyService = inject(ConsentPolicyService);
   private readonly toast = inject(ToastService);
 
   open = input<boolean>(false);
@@ -271,15 +395,21 @@ export class CeEntryWorkflowComponent {
   photoId = signal<string | null>(null);
   pendingOverrideReason = signal<OverrideReason | null>(null);
 
-  /** CePhotoCapture expects PhotoEntityType values: resident/visitor/vehicle/service-provider.
-   *  Note: SubjectType uses `service_provider` (underscore) for the entry-log API contract,
-   *  but the photo binding layer still uses `service-provider` (hyphen). */
   photoEntityType = computed<'resident' | 'visitor' | 'vehicle' | 'service-provider'>(() => {
     const cat = this.selectedCategory();
     if (cat === 'dweller') return 'resident';
     if (cat === 'service_provider') return 'service-provider';
     if (cat === 'vehicle') return 'vehicle';
     return 'visitor';
+  });
+
+  subjectNamePlaceholder = computed(() => {
+    switch (this.selectedCategory()) {
+      case 'dweller': return 'Resident name';
+      case 'service_provider': return 'Company or provider name';
+      case 'vehicle': return 'License plate or driver name';
+      default: return 'Visitor name';
+    }
   });
 
   constructor() {
@@ -295,23 +425,56 @@ export class CeEntryWorkflowComponent {
     );
   }
 
-  onTileTap(action: TileAction): void {
+  isCategoryAllowed(category: SubjectType): boolean {
+    const state = this.pendingState();
+    if (state === 'gatehouse_only') {
+      return category === 'service_provider';
+    }
+    if (state === 'entered_override') {
+      return category === 'visitor' || category === 'dweller';
+    }
+    return true;
+  }
+
+  onCategorySelect(category: SubjectType): void {
+    if (!this.isCategoryAllowed(category)) return;
+    this.selectedCategory.set(category);
+  }
+
+  openCapture(): void {
+    this.captureMode.set('camera');
+    this.showCapture.set(true);
+  }
+
+  async onTileTap(action: TileAction): Promise<void> {
     if (action === 'register') {
       this.pendingState.set('entered_with_consent');
       this.selectedCategory.set('visitor');
-      this.captureMode.set('camera');
-      this.showCapture.set(true);
+      const cat = toSubjectCategory(this.selectedCategory());
+      try {
+        const policy = await firstValueFrom(this.consentPolicyService.getByCategory(cat));
+        if (policy?.photoRequired) {
+          this.captureMode.set('camera');
+          this.showCapture.set(true);
+        } else {
+          this.step.set('subject-info');
+        }
+      } catch {
+        this.step.set('subject-info');
+      }
     } else if (action === 'denied') {
       this.pendingState.set('entered_without_consent');
       this.selectedCategory.set('visitor');
-      this.captureMode.set('camera');
-      this.showCapture.set(true);
+      this.showCapture.set(false);
+      this.step.set('subject-info');
     } else if (action === 'gatehouse') {
       this.pendingState.set('gatehouse_only');
       this.selectedCategory.set('service_provider');
+      this.showCapture.set(false);
       this.step.set('subject-info');
     } else if (action === 'override') {
       this.pendingState.set('entered_override');
+      this.showCapture.set(false);
       this.showOverrideReason.set(true);
     }
   }
@@ -336,9 +499,8 @@ export class CeEntryWorkflowComponent {
   }
 
   onCaptureClosed(): void {
-    // If the user cancelled the camera without uploading, return to tiles.
-    if (!this.photoId()) {
-      this.showCapture.set(false);
+    this.showCapture.set(false);
+    if (!this.photoId() && this.pendingState() === 'entered_with_consent') {
       this.reset();
     }
   }
@@ -351,6 +513,13 @@ export class CeEntryWorkflowComponent {
     this.pendingOverrideReason.set(reason);
     this.showOverrideReason.set(false);
     this.step.set('subject-info');
+  }
+
+  onOverrideClosed(): void {
+    this.showOverrideReason.set(false);
+    if (!this.pendingOverrideReason()) {
+      this.reset();
+    }
   }
 
   async continue(): Promise<void> {
