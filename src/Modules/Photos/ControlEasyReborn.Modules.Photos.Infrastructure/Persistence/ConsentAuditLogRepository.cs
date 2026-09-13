@@ -32,6 +32,56 @@ public sealed class ConsentAuditLogRepository : IConsentAuditLogRepository
             primaryKeyName: "Id",
             autoIncrement: false,
             ct: ct);
+
+        try
+        {
+            var defaultName = entry.SubjectType switch
+            {
+                "service_provider" => "Service provider",
+                "dweller" => "Resident",
+                "vehicle" => "Vehicle",
+                _ => "Visitor"
+            };
+            var displayName = !string.IsNullOrWhiteSpace(entry.SubjectName) ? entry.SubjectName : defaultName;
+            var document = !string.IsNullOrWhiteSpace(entry.SubjectDocument) ? entry.SubjectDocument : "N/A";
+
+            var purpose = entry.EntryState switch
+            {
+                "gatehouse_only" => "Package drop / delivery",
+                "entered_without_consent" => "Consent refused — entry denied",
+                "entered_override" => string.IsNullOrWhiteSpace(entry.OverrideReason) ? "Override entry" : $"Override ({entry.OverrideReason})",
+                _ => entry.SubjectType switch
+                {
+                    "service_provider" => "Service provider entry",
+                    "dweller" => "Resident entry",
+                    "vehicle" => "Vehicle cleared",
+                    _ => "Visitor entry"
+                }
+            };
+
+            var visitStatus = entry.EntryState switch
+            {
+                "entered_with_consent" or "entered_override" => 1, // CheckedIn
+                "gatehouse_only" => 2, // CheckedOut
+                "entered_without_consent" => 3, // Cancelled
+                _ => 0 // Pending
+            };
+
+            var checkedInAt = (visitStatus == 1 || visitStatus == 2) ? (object)entry.RecordedAt : DBNull.Value;
+            var checkedOutAt = visitStatus == 2 ? (object)entry.RecordedAt : DBNull.Value;
+
+            await db.InsertAsync(
+                new[] { "Id", "TenantId", "VisitorName", "VisitorDocument", "VisitorPhone", "ApartmentId", "Purpose", "Status", "AttendantProfileId", "GatehouseId", "CheckedInAtUtc", "CheckedOutAtUtc", "CreatedAtUtc", "UpdatedAtUtc", "tenant_id" },
+                "Visits",
+                new object?[] { entry.Id, entry.TenantId, displayName, document, DBNull.Value, DBNull.Value, purpose, visitStatus, (object?)entry.PerformedByProfileId ?? DBNull.Value, DBNull.Value, checkedInAt, checkedOutAt, entry.RecordedAt, DBNull.Value, entry.TenantId },
+                primaryKeyName: "Id",
+                autoIncrement: false,
+                ct: ct);
+        }
+        catch
+        {
+            // Non-fatal if Visits table insert fails
+        }
     }
 
     public async Task<IReadOnlyList<ConsentAuditLogEntry>> ListAsync(string? entryState, string? subjectType, DateTime? fromUtc, DateTime? toUtc, int skip, int take, CancellationToken ct)

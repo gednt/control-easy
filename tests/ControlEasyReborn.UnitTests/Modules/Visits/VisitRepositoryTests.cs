@@ -52,6 +52,16 @@ public sealed class VisitRepositoryTests
         op.Parameters.Should().NotContain(visitId);
     }
 
+    [Fact]
+    public async Task ListAsync_with_status_filter_uses_param0()
+    {
+        await _sut.ListAsync(_tenantId, "Pending", 0, 10, CancellationToken.None);
+
+        var op = _fakeClient.Operations.First(o => o.OperationType == "Select" && o.Sql.Contains("FROM Visits"));
+        op.Sql.Should().Contain("Status = @param0");
+        op.Parameters[0].Should().Be(0);
+    }
+
     private sealed class FakeTenantAwareLinqFactory : ITenantAwareLinqFactory
     {
         private readonly FakeAsyncSqlClient _client;
