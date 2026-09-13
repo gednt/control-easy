@@ -18,6 +18,16 @@ Built as a high-performance modular monolith with an Angular 18 SPA frontend and
 - **Client Generation:** OpenAPI 3 schema via Swashbuckle → Angular services via `ng-openapi-gen`
 - **Testing:** xUnit, FluentAssertions, NSubstitute, Testcontainers.MySql, NetArchTest.Rules, Playwright, Karma/Jasmine
 
+## Origin & Evolution
+
+**ControlEasy Reborn** is the modern evolution of the original **ControlEasy** project, which originated as a final course completion project (*Trabalho de Conclusão de Curso — TCC*) at **ETEC** (Escola Técnica Estadual), developed as a graduation requirement to obtain the technical degree.
+
+Following the conclusion of the course, custody and ownership of the code remained with **Felipe Coelho**, who continued its development and architectural transformation across three software generations:
+
+1. **First Generation (VB.NET & Windows Forms):** Developed originally as a desktop application in Visual Basic .NET (VB.NET) with Windows Forms, handling basic gatehouse logging and local desktop-based condominium administration.
+2. **Second Generation (C# Windows Forms):** Ported to C# to improve type safety, maintainability, and code structure, continuing desktop-based operations.
+3. **Third Generation — ControlEasy Reborn (Modern Web & Multi-Tenancy):** Complete architectural rebirth into a high-performance web platform — engineered as a Clean Architecture modular monolith on ASP.NET Core 8 minimal APIs, an Angular 18 SPA with reactive signals, and native multi-tenancy supporting multiple condominium complexes on a shared, isolated infrastructure.
+
 ## Prerequisites
 
 - **Docker Engine 24+** with **Docker Compose v2** (`docker compose`)
@@ -114,4 +124,10 @@ Comprehensive documentation is available in the [`docs/`](docs/) directory:
 
 ## License
 
-Internal / Proprietary. All rights reserved.
+This project is **Source-Available**.
+
+The source code is publicly accessible for evaluation, inspection, security auditing, and educational reference. However, **modifications, derivative works, and production or commercial use require prior written authorization** from the copyright holder.
+
+For full license terms and conditions, or to inquire about modification authorization, please see [LICENSE.md](LICENSE.md).
+
+Copyright (c) 2026 Felipe Coelho Silva. All rights reserved.
