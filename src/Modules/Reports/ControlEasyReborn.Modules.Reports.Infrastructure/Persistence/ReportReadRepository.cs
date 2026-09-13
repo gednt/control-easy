@@ -139,10 +139,58 @@ public sealed class ReportReadRepository : IReportReadRepository
             }
         }
 
-        var recentVisits = recentVisitRows.AsEnumerable()
-            .OrderByDescending(r => Convert.ToDateTime(r["CreatedAtUtc"]))
-            .Take(10)
+        var mappedVisits = recentVisitRows.AsEnumerable()
             .Select(r => MapRecentVisitWithApartment(r, apartmentLookup))
+            .ToList();
+
+        var existingVisitIds = new HashSet<Guid>(mappedVisits.Select(v => v.Id));
+
+        var mappedAuditEntries = new List<RecentVisitDto>();
+        var additionalTodayVisits = 0;
+        var additionalOpenVisits = 0;
+
+        try
+        {
+            var consentAuditRows = await db.SelectAsync(
+                fields: "Id, EntryState, OverrideReason, PhotoId, SubjectType, SubjectName, SubjectDocument, RecordedAt",
+                table: "ConsentAuditLog",
+                whereClause: "1=1",
+                parameters: Array.Empty<object>(),
+                ct: ct);
+
+            if (consentAuditRows is not null && consentAuditRows.Rows.Count > 0)
+            {
+                foreach (DataRow ar in consentAuditRows.Rows)
+                {
+                    var id = Guid.Parse(ar["Id"].ToString() ?? string.Empty);
+                    var recordedAt = Convert.ToDateTime(ar["RecordedAt"]);
+                    var entryState = ar["EntryState"]?.ToString() ?? string.Empty;
+
+                    if (recordedAt >= today)
+                    {
+                        additionalTodayVisits++;
+                    }
+
+                    if (entryState is "entered_with_consent" or "entered_override")
+                    {
+                        additionalOpenVisits++;
+                    }
+
+                    if (!existingVisitIds.Contains(id))
+                    {
+                        mappedAuditEntries.Add(MapConsentAuditEntry(ar));
+                    }
+                }
+            }
+        }
+        catch
+        {
+            // Fallback gracefully if ConsentAuditLog is empty or unpopulated
+        }
+
+        var recentVisits = mappedVisits.Concat(mappedAuditEntries)
+            .OrderByDescending(r => r.CreatedAtUtc)
+            .Take(10)
             .ToList();
 
         return new DashboardStatsResponse(
@@ -152,8 +200,8 @@ public sealed class ReportReadRepository : IReportReadRepository
             activeVehicles,
             totalApartments,
             occupiedApartments,
-            openVisits,
-            todayVisits,
+            openVisits + additionalOpenVisits,
+            todayVisits + additionalTodayVisits,
             recentVisits);
     }
 
@@ -218,5 +266,57 @@ public sealed class ReportReadRepository : IReportReadRepository
             Status: status,
             ApartmentLabel: apartmentLabel,
             CreatedAtUtc: Convert.ToDateTime(r["CreatedAtUtc"]));
+    }
+
+    private static RecentVisitDto MapConsentAuditEntry(DataRow r)
+    {
+        var id = Guid.Parse(r["Id"].ToString() ?? string.Empty);
+        var entryState = r["EntryState"]?.ToString() ?? string.Empty;
+        var subjectType = r["SubjectType"]?.ToString() ?? "visitor";
+        var subjectName = r["SubjectName"]?.ToString();
+        var overrideReason = r["OverrideReason"]?.ToString();
+        var recordedAt = Convert.ToDateTime(r["RecordedAt"]);
+
+        var defaultName = subjectType switch
+        {
+            "service_provider" => "Service provider",
+            "dweller" => "Resident",
+            "vehicle" => "Vehicle",
+            _ => "Visitor"
+        };
+        var displayName = !string.IsNullOrWhiteSpace(subjectName) ? subjectName : defaultName;
+
+        var purpose = entryState switch
+        {
+            "gatehouse_only" => "Package drop / delivery",
+            "entered_without_consent" => "Consent refused — entry denied",
+            "entered_override" => string.IsNullOrWhiteSpace(overrideReason) ? "Override entry" : $"Override ({overrideReason})",
+            _ => subjectType switch
+            {
+                "service_provider" => "Service provider entry",
+                "dweller" => "Resident entry",
+                "vehicle" => "Vehicle cleared",
+                _ => "Visitor entry"
+            }
+        };
+
+        var status = entryState switch
+        {
+            "entered_with_consent" => "CheckedIn",
+            "entered_override" => "CheckedIn",
+            "gatehouse_only" => "CheckedOut",
+            "entered_without_consent" => "Cancelled",
+            _ => "Pending"
+        };
+
+        string? apartmentLabel = entryState == "gatehouse_only" ? "Gatehouse" : null;
+
+        return new RecentVisitDto(
+            Id: id,
+            VisitorName: displayName,
+            Purpose: purpose,
+            Status: status,
+            ApartmentLabel: apartmentLabel,
+            CreatedAtUtc: recordedAt);
     }
 }

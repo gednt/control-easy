@@ -34,26 +34,17 @@ test.describe('Gatehouse Workflow', () => {
     await expect(page.getByRole('button', { name: /Override/i })).toBeVisible();
   });
 
-  test('entry denied flow: tile → photo → subject info → continue → success toast', async ({ page }) => {
-    await page.addInitScript(() => {
-      Object.defineProperty(navigator, 'mediaDevices', {
-        configurable: true,
-        value: {
-          getUserMedia: async () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = 640;
-            canvas.height = 480;
-            const ctx = canvas.getContext('2d')!;
-            ctx.fillStyle = 'red';
-            ctx.fillRect(0, 0, 640, 480);
-            return (canvas as unknown as { captureStream: (fps: number) => MediaStream }).captureStream(30);
-          },
-        },
-      });
-    });
+  test('modal can be dismissed via close button', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: /Record entry/i }).click();
+    await expect(page.getByText('New entry', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Close' }).click();
+    await expect(page.getByText('New entry', { exact: true })).not.toBeVisible();
+  });
+
+  test('entry denied flow: tile → subject info (no camera) → continue → success toast', async ({ page }) => {
     await page.goto('/gatehouse');
     await page.getByRole('button', { name: /Entry denied/i }).click();
-    await page.getByRole('button', { name: 'Capture photo' }).click();
     await expect(page.getByText('Name (optional)')).toBeVisible({ timeout: 5_000 });
     await page.getByPlaceholder('Visitor name').fill('Refused Person');
     await page.getByRole('button', { name: 'Continue' }).click();

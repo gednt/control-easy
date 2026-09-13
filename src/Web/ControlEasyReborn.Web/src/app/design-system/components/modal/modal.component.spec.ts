@@ -38,10 +38,24 @@ describe('CeModalComponent', () => {
     expect(emitted!).toBeFalse();
   });
 
+  it('should emit closed on close', () => {
+    let closedEmitted = false;
+    component.closed.subscribe(() => (closedEmitted = true));
+    component.close();
+    expect(closedEmitted).toBeTrue();
+  });
+
   it('should emit openChange=false on backdrop click', () => {
     let emitted: boolean | undefined;
     component.openChange.subscribe((val: boolean) => (emitted = val));
     component.onBackdropClick();
     expect(emitted!).toBeFalse();
+  });
+
+  it('should emit closed on backdrop click', () => {
+    let closedEmitted = false;
+    component.closed.subscribe(() => (closedEmitted = true));
+    component.onBackdropClick();
+    expect(closedEmitted).toBeTrue();
   });
 });
