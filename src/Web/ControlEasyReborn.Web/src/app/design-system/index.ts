@@ -18,5 +18,10 @@ export { CeBreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.com
 export { CeCheckboxComponent } from './components/checkbox/checkbox.component';
 export { CeIconComponent } from './components/icon/icon.component';
 export type { LucideIconName } from './components/icon/icon.types';
+export { CePhotoComponent } from './components/photo/photo.component';
+export type { CePhotoSize } from './components/photo/photo.component';
+export { CePhotoLightboxComponent } from './components/photo/photo-lightbox.component';
+export { CePhotoGalleryComponent } from './components/photo/photo-gallery.component';
+export { CePhotoCaptureComponent } from './components/photo/photo-capture.component';
 export { ThemeService } from './theme/theme.service';
 export type { Theme, ResolvedTheme } from './theme/theme.service';
