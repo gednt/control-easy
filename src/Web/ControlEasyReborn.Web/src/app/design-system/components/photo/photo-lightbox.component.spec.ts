@@ -23,13 +23,16 @@ function makePhoto(id: string): PhotoResponse {
 describe('CePhotoLightboxComponent', () => {
   let fixture: ComponentFixture<CePhotoLightboxComponent>;
   let component: CePhotoLightboxComponent;
+  let photosApi: jasmine.SpyObj<PhotosApiService>;
 
   beforeEach(async () => {
+    photosApi = jasmine.createSpyObj<PhotosApiService>('PhotosApiService', ['get']);
+    photosApi.get.and.returnValue(of(new Blob(['photo'], { type: 'image/jpeg' })));
     await TestBed.configureTestingModule({
       imports: [CePhotoLightboxComponent],
       providers: [
         importProvidersFrom(CE_LUCIDE_ICONS),
-        { provide: PhotosApiService, useValue: { get: () => of(new Blob(['photo'], { type: 'image/jpeg' })) } },
+        { provide: PhotosApiService, useValue: photosApi },
       ],
     }).compileComponents();
 
@@ -49,6 +52,14 @@ describe('CePhotoLightboxComponent', () => {
     fixture.componentRef.setInput('open', true);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.lightbox-overlay')).toBeTruthy();
+  });
+
+  it('loads the selected source through the authenticated photo service', () => {
+    fixture.componentRef.setInput('open', true);
+    fixture.detectChanges();
+
+    expect(photosApi.get).toHaveBeenCalledWith('a');
+    expect(fixture.nativeElement.querySelector('ce-photo.lightbox-image')).toBeTruthy();
   });
 
   it('shows prev/next buttons only when multiple photos', () => {
