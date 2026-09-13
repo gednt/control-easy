@@ -31,7 +31,10 @@ test.describe('Resident create with apartment', () => {
     await page.locator('#ar-phone').fill('11999990001');
 
     await submitCreateAndWait(page, '/api/v1/residents', 'Add resident', { useLast: true });
-    await expect(page.getByRole('heading', { name: 'Add new resident' })).toBeHidden();
+    await expect(page.getByRole('heading', { name: `Add photos for ${residentName}` })).toBeVisible();
+    await expect(page.locator('ce-photo-panel')).toBeVisible();
+    await page.getByRole('button', { name: 'Done' }).click();
+    await expect(page.getByRole('heading', { name: `Add photos for ${residentName}` })).toBeHidden();
 
     await searchResidents(page, residentName);
 

@@ -49,6 +49,7 @@ template: `
 
       <ce-entry-workflow
         [open]="entryWorkflowOpen()"
+        [closeOnEntry]="true"
         (closed)="entryWorkflowOpen.set(false)"
         (entryLogged)="onEntryLogged()"
       />

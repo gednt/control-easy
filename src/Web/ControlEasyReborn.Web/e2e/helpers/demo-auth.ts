@@ -68,7 +68,7 @@ export async function dismissDemoBannerIfVisible(page: Page): Promise<void> {
 }
 
 export async function searchResidents(page: Page, term: string): Promise<void> {
-  const search = page.getByRole('searchbox', { name: 'Search by name, apartment, or CPF...' });
+  const search = page.locator('#resident-search');
   await search.fill(term);
   await page.waitForTimeout(400);
 }

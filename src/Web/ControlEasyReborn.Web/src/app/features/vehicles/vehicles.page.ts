@@ -107,165 +107,144 @@ const VEHICLE_TYPES = [
       </div>
     }
 
-    @if (createModalOpen()) {
-      <div class="ce-modal-backdrop" (click)="closeCreateModal()">
-        <div class="ce-modal size-md" role="dialog" aria-modal="true" aria-labelledby="add-vehicle-title" (click)="$event.stopPropagation()">
-          <div class="ce-modal-header">
-            <h3 class="ce-modal-title" id="add-vehicle-title">Add vehicle</h3>
-            <button class="ce-modal-close" (click)="closeCreateModal()" aria-label="Close">&#10005;</button>
-          </div>
-          <div class="ce-modal-body">
-            @if (createError()) {
-              <div class="form-error-banner">{{ createError() }}</div>
+    <ce-modal
+      [open]="createModalOpen()"
+      [title]="createModalStep() === 'photos' ? 'Add photos for ' + (createdVehicle()?.plate ?? 'vehicle') : 'Add vehicle'"
+      [size]="createModalStep() === 'photos' ? 'lg' : 'md'"
+      (openChange)="onCreateModalOpenChange($event)"
+    >
+      @if (createModalStep() === 'form') {
+        @if (createError()) {
+          <div class="form-error-banner">{{ createError() }}</div>
+        }
+        <form class="ce-form" [formGroup]="createForm" (ngSubmit)="onCreate()">
+          <div class="ce-input-group">
+            <label class="ce-input-label" for="cv-plate">Plate</label>
+            <div class="ce-input-wrapper" [class.has-error]="createForm.get('plate')?.invalid && createForm.get('plate')?.touched">
+              <input id="cv-plate" class="ce-input" placeholder="e.g. ABC-1234" formControlName="plate" />
+            </div>
+            @if (createForm.get('plate')?.invalid && createForm.get('plate')?.touched) {
+              <div class="ce-input-error">Plate is required</div>
             }
-            <form class="ce-form" [formGroup]="createForm" (ngSubmit)="onCreate()">
-              <div class="ce-input-group">
-                <label class="ce-input-label" for="cv-plate">Plate</label>
-                <div class="ce-input-wrapper" [class.has-error]="createForm.get('plate')?.invalid && createForm.get('plate')?.touched">
-                  <input id="cv-plate" class="ce-input" placeholder="e.g. ABC-1234" formControlName="plate" />
-                </div>
-                @if (createForm.get('plate')?.invalid && createForm.get('plate')?.touched) {
-                  <div class="ce-input-error">Plate is required</div>
+          </div>
+          <div class="ce-input-group">
+            <label class="ce-input-label" for="cv-owner">Owner name</label>
+            <div class="ce-input-wrapper">
+              <input id="cv-owner" class="ce-input" placeholder="e.g. Maria Silva" formControlName="ownerName" />
+            </div>
+          </div>
+          <ce-apartment-picker formControlName="apartmentId" label="Apartment" inputId="cv-apartment" placeholder="Select block and unit..." />
+          <div class="ce-input-group">
+            <label class="ce-input-label" for="cv-brand">Brand</label>
+            <div class="ce-input-wrapper">
+              <input id="cv-brand" class="ce-input" placeholder="e.g. Toyota" formControlName="brand" />
+            </div>
+          </div>
+          <div class="ce-input-group">
+            <label class="ce-input-label" for="cv-model">Model</label>
+            <div class="ce-input-wrapper">
+              <input id="cv-model" class="ce-input" placeholder="e.g. Corolla" formControlName="model" />
+            </div>
+          </div>
+          <div class="ce-input-group">
+            <label class="ce-input-label" for="cv-color">Color</label>
+            <div class="ce-input-wrapper">
+              <input id="cv-color" class="ce-input" placeholder="e.g. Silver" formControlName="color" />
+            </div>
+          </div>
+          <div class="ce-input-group">
+            <label class="ce-input-label" for="cv-type">Vehicle type</label>
+            <div class="ce-input-wrapper">
+              <select id="cv-type" class="ce-input" formControlName="vehicleType">
+                <option [ngValue]="null">Select type...</option>
+                @for (vt of vehicleTypes; track vt.value) {
+                  <option [ngValue]="vt.value">{{ vt.label }}</option>
                 }
-              </div>
-              <div class="ce-input-group">
-                <label class="ce-input-label" for="cv-owner">Owner name</label>
-                <div class="ce-input-wrapper">
-                  <input id="cv-owner" class="ce-input" placeholder="e.g. Maria Silva" formControlName="ownerName" />
-                </div>
-              </div>
-              <ce-apartment-picker
-                formControlName="apartmentId"
-                label="Apartment"
-                inputId="cv-apartment"
-                placeholder="Select block and unit..." />
-              <div class="ce-input-group">
-                <label class="ce-input-label" for="cv-brand">Brand</label>
-                <div class="ce-input-wrapper">
-                  <input id="cv-brand" class="ce-input" placeholder="e.g. Toyota" formControlName="brand" />
-                </div>
-              </div>
-              <div class="ce-input-group">
-                <label class="ce-input-label" for="cv-model">Model</label>
-                <div class="ce-input-wrapper">
-                  <input id="cv-model" class="ce-input" placeholder="e.g. Corolla" formControlName="model" />
-                </div>
-              </div>
-              <div class="ce-input-group">
-                <label class="ce-input-label" for="cv-color">Color</label>
-                <div class="ce-input-wrapper">
-                  <input id="cv-color" class="ce-input" placeholder="e.g. Silver" formControlName="color" />
-                </div>
-              </div>
-              <div class="ce-input-group">
-                <label class="ce-input-label" for="cv-type">Vehicle type</label>
-                <div class="ce-input-wrapper">
-                  <select id="cv-type" class="ce-input" formControlName="vehicleType">
-                    <option [ngValue]="null">Select type...</option>
-                    @for (vt of vehicleTypes; track vt.value) {
-                      <option [ngValue]="vt.value">{{ vt.label }}</option>
-                    }
-                  </select>
-                </div>
-              </div>
-            </form>
+              </select>
+            </div>
           </div>
-          <div class="ce-modal-footer">
-            <button class="ce-button variant-ghost size-sm" (click)="closeCreateModal()">Cancel</button>
-            <button class="ce-button variant-primary size-sm"
-                    (click)="onCreate()"
-                    [class.disabled]="createForm.invalid || creating()"
-                    [attr.aria-busy]="creating()"
-                    [disabled]="createForm.invalid || creating()">
-              @if (creating()) {
-                <span class="ce-spinner tone-current size-sm"></span>
-              }
-              Create
-            </button>
-          </div>
-        </div>
+        </form>
+      } @else {
+        <ce-photo-panel entityType="vehicle" [entity]="createdVehiclePhotoEntity()" [canAdd]="canWrite()" [canDelete]="canWrite()" />
+      }
+      <div ce-modal-footer>
+        @if (createModalStep() === 'form') {
+          <ce-button variant="ghost" size="sm" (click)="closeCreateModal()">Cancel</ce-button>
+          <ce-button variant="primary" size="sm" [disabled]="createForm.invalid || creating()" [loading]="creating()" (click)="onCreate()">Create</ce-button>
+        } @else {
+          <ce-button variant="primary" size="sm" (click)="closeCreateModal()">Done</ce-button>
+        }
       </div>
-    }
-
-    @if (editModalOpen()) {
-      <div class="ce-modal-backdrop" (click)="closeEditModal()">
-        <div class="ce-modal size-md" role="dialog" aria-modal="true" aria-labelledby="edit-vehicle-title" (click)="$event.stopPropagation()">
-          <div class="ce-modal-header">
-            <h3 class="ce-modal-title" id="edit-vehicle-title">Edit vehicle</h3>
-            <button class="ce-modal-close" (click)="closeEditModal()" aria-label="Close">&#10005;</button>
-          </div>
-          <div class="ce-modal-body">
-            @if (editError()) {
-              <div class="form-error-banner">{{ editError() }}</div>
+    </ce-modal>
+    <ce-modal
+      [open]="editModalOpen()"
+      [title]="editModalStep() === 'photos' ? 'Photos for ' + (editingVehicle()?.plate ?? 'vehicle') : 'Edit vehicle'"
+      [size]="editModalStep() === 'photos' ? 'lg' : 'md'"
+      (openChange)="onEditModalOpenChange($event)"
+    >
+      @if (editModalStep() === 'form') {
+        @if (editError()) {
+          <div class="form-error-banner">{{ editError() }}</div>
+        }
+        <form class="ce-form" [formGroup]="editForm" (ngSubmit)="onEditVehicle()">
+          <div class="ce-input-group">
+            <label class="ce-input-label" for="ev-plate">Plate</label>
+            <div class="ce-input-wrapper" [class.has-error]="editForm.get('plate')?.invalid && editForm.get('plate')?.touched">
+              <input id="ev-plate" class="ce-input" placeholder="e.g. ABC-1234" formControlName="plate" />
+            </div>
+            @if (editForm.get('plate')?.invalid && editForm.get('plate')?.touched) {
+              <div class="ce-input-error">Plate is required</div>
             }
-            <form class="ce-form" [formGroup]="editForm" (ngSubmit)="onEditVehicle()">
-              <div class="ce-input-group">
-                <label class="ce-input-label" for="ev-plate">Plate</label>
-                <div class="ce-input-wrapper" [class.has-error]="editForm.get('plate')?.invalid && editForm.get('plate')?.touched">
-                  <input id="ev-plate" class="ce-input" placeholder="e.g. ABC-1234" formControlName="plate" />
-                </div>
-                @if (editForm.get('plate')?.invalid && editForm.get('plate')?.touched) {
-                  <div class="ce-input-error">Plate is required</div>
+          </div>
+          <div class="ce-input-group">
+            <label class="ce-input-label" for="ev-owner">Owner name</label>
+            <div class="ce-input-wrapper">
+              <input id="ev-owner" class="ce-input" placeholder="e.g. Maria Silva" formControlName="ownerName" />
+            </div>
+          </div>
+          <ce-apartment-picker formControlName="apartmentId" label="Apartment" inputId="ev-apartment" placeholder="Select block and unit..." />
+          <div class="ce-input-group">
+            <label class="ce-input-label" for="ev-brand">Brand</label>
+            <div class="ce-input-wrapper">
+              <input id="ev-brand" class="ce-input" placeholder="e.g. Toyota" formControlName="brand" />
+            </div>
+          </div>
+          <div class="ce-input-group">
+            <label class="ce-input-label" for="ev-model">Model</label>
+            <div class="ce-input-wrapper">
+              <input id="ev-model" class="ce-input" placeholder="e.g. Corolla" formControlName="model" />
+            </div>
+          </div>
+          <div class="ce-input-group">
+            <label class="ce-input-label" for="ev-color">Color</label>
+            <div class="ce-input-wrapper">
+              <input id="ev-color" class="ce-input" placeholder="e.g. Silver" formControlName="color" />
+            </div>
+          </div>
+          <div class="ce-input-group">
+            <label class="ce-input-label" for="ev-type">Vehicle type</label>
+            <div class="ce-input-wrapper">
+              <select id="ev-type" class="ce-input" formControlName="vehicleType">
+                <option [ngValue]="null">Select type...</option>
+                @for (vt of vehicleTypes; track vt.value) {
+                  <option [ngValue]="vt.value">{{ vt.label }}</option>
                 }
-              </div>
-              <div class="ce-input-group">
-                <label class="ce-input-label" for="ev-owner">Owner name</label>
-                <div class="ce-input-wrapper">
-                  <input id="ev-owner" class="ce-input" placeholder="e.g. Maria Silva" formControlName="ownerName" />
-                </div>
-              </div>
-              <ce-apartment-picker
-                formControlName="apartmentId"
-                label="Apartment"
-                inputId="ev-apartment"
-                placeholder="Select block and unit..." />
-              <div class="ce-input-group">
-                <label class="ce-input-label" for="ev-brand">Brand</label>
-                <div class="ce-input-wrapper">
-                  <input id="ev-brand" class="ce-input" placeholder="e.g. Toyota" formControlName="brand" />
-                </div>
-              </div>
-              <div class="ce-input-group">
-                <label class="ce-input-label" for="ev-model">Model</label>
-                <div class="ce-input-wrapper">
-                  <input id="ev-model" class="ce-input" placeholder="e.g. Corolla" formControlName="model" />
-                </div>
-              </div>
-              <div class="ce-input-group">
-                <label class="ce-input-label" for="ev-color">Color</label>
-                <div class="ce-input-wrapper">
-                  <input id="ev-color" class="ce-input" placeholder="e.g. Silver" formControlName="color" />
-                </div>
-              </div>
-              <div class="ce-input-group">
-                <label class="ce-input-label" for="ev-type">Vehicle type</label>
-                <div class="ce-input-wrapper">
-                  <select id="ev-type" class="ce-input" formControlName="vehicleType">
-                    <option [ngValue]="null">Select type...</option>
-                    @for (vt of vehicleTypes; track vt.value) {
-                      <option [ngValue]="vt.value">{{ vt.label }}</option>
-                    }
-                  </select>
-                </div>
-              </div>
-            </form>
+              </select>
+            </div>
           </div>
-          <div class="ce-modal-footer">
-            <button class="ce-button variant-ghost size-sm" (click)="closeEditModal()">Cancel</button>
-            <button class="ce-button variant-primary size-sm"
-                    (click)="onEditVehicle()"
-                    [class.disabled]="editForm.invalid || saving()"
-                    [attr.aria-busy]="saving()"
-                    [disabled]="editForm.invalid || saving()">
-              @if (saving()) {
-                <span class="ce-spinner tone-current size-sm"></span>
-              }
-              Save changes
-            </button>
-          </div>
-        </div>
+        </form>
+      } @else {
+        <ce-photo-panel entityType="vehicle" [entity]="editingVehiclePhotoEntity()" [canAdd]="canWrite()" [canDelete]="canWrite()" />
+      }
+      <div ce-modal-footer>
+        @if (editModalStep() === 'form') {
+          <ce-button variant="ghost" size="sm" (click)="closeEditModal()">Cancel</ce-button>
+          <ce-button variant="primary" size="sm" [disabled]="editForm.invalid || saving()" [loading]="saving()" (click)="onEditVehicle()">Save changes</ce-button>
+        } @else {
+          <ce-button variant="primary" size="sm" (click)="closeEditModal()">Done</ce-button>
+        }
       </div>
-    }
+    </ce-modal>
 
     <ce-modal
       [open]="photosModalOpen()"
@@ -578,6 +557,19 @@ export class VehiclesPage {
   createError = signal<string | null>(null);
   editError = signal<string | null>(null);
   editingVehicle = signal<VehicleResponse | null>(null);
+  createModalStep = signal<'form' | 'photos'>('form');
+  editModalStep = signal<'form' | 'photos'>('form');
+  createdVehicle = signal<VehicleResponse | null>(null);
+
+  readonly createdVehiclePhotoEntity = computed(() => {
+    const vehicle = this.createdVehicle();
+    return vehicle ? { id: vehicle.id, displayName: vehicle.plate } : null;
+  });
+
+  readonly editingVehiclePhotoEntity = computed(() => {
+    const vehicle = this.editingVehicle();
+    return vehicle ? { id: vehicle.id, displayName: vehicle.plate } : null;
+  });
 
   createForm: FormGroup = this.fb.group({
     plate: ['', Validators.required],
@@ -645,11 +637,19 @@ export class VehiclesPage {
   openCreateModal(): void {
     this.createForm.reset();
     this.createError.set(null);
+    this.createModalStep.set('form');
+    this.createdVehicle.set(null);
     this.createModalOpen.set(true);
   }
 
   closeCreateModal(): void {
     this.createModalOpen.set(false);
+    this.createModalStep.set('form');
+    this.createdVehicle.set(null);
+  }
+
+  onCreateModalOpenChange(open: boolean): void {
+    if (!open && !this.creating()) this.closeCreateModal();
   }
 
   onCreate(): void {
@@ -666,7 +666,12 @@ export class VehiclesPage {
       color: v.color || null,
       vehicleType: v.vehicleType ?? null,
     }).subscribe({
-      next: () => { this.creating.set(false); this.closeCreateModal(); this.load(); },
+      next: (created) => {
+        this.creating.set(false);
+        this.createdVehicle.set(created);
+        this.createModalStep.set('photos');
+        this.load();
+      },
       error: (err) => {
         this.creating.set(false);
         this.createError.set(getApiErrorMessage(err, 'Failed to create vehicle'));
@@ -686,12 +691,18 @@ export class VehiclesPage {
       vehicleType: String(vehicle.vehicleType),
     });
     this.editError.set(null);
+    this.editModalStep.set('form');
     this.editModalOpen.set(true);
   }
 
   closeEditModal(): void {
     this.editModalOpen.set(false);
     this.editingVehicle.set(null);
+    this.editModalStep.set('form');
+  }
+
+  onEditModalOpenChange(open: boolean): void {
+    if (!open && !this.saving()) this.closeEditModal();
   }
 
   onEditVehicle(): void {
@@ -710,7 +721,12 @@ export class VehiclesPage {
       color: v.color || null,
       vehicleType: v.vehicleType ?? null,
     }).subscribe({
-      next: () => { this.saving.set(false); this.closeEditModal(); this.load(); },
+      next: (updated) => {
+        this.saving.set(false);
+        this.editingVehicle.set(updated);
+        this.editModalStep.set('photos');
+        this.load();
+      },
       error: (err) => {
         this.saving.set(false);
         this.editError.set(getApiErrorMessage(err, 'Failed to update vehicle'));

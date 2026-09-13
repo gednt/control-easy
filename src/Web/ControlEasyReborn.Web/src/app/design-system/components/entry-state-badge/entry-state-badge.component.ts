@@ -18,11 +18,10 @@ const STATE_META: Record<EntryState, EntryStateMeta> = {
   entered_with_consent: { tone: 'success', icon: 'check-circle', label: 'With consent' },
   entered_override: { tone: 'warning', icon: 'alert-triangle', label: 'Override' },
   gatehouse_only: { tone: 'neutral', icon: 'package', label: 'No entry' },
-  denied: { tone: 'danger', icon: 'x-circle', label: 'Refused' },
   entered_without_consent: {
-    tone: 'warning',
-    icon: 'alert-circle',
-    label: 'No consent',
+    tone: 'danger',
+    icon: 'x-circle',
+    label: 'Refused',
   },
 };
 

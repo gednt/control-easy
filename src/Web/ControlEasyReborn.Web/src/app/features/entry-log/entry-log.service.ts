@@ -4,18 +4,17 @@ import { Observable } from 'rxjs';
 
 /**
  * Phase 13 entry-state discriminator. Includes the Phase 11 defensive state
- * (`entered_without_consent`) so the UI can render it if the backend ever
- * produces it. Hardcoded mapping per ROADMAP — no rules engine.
+ * (`entered_without_consent`) used when a visitor declines consent.
  */
 export type EntryState =
   | 'entered_with_consent'
   | 'entered_override'
   | 'gatehouse_only'
-  | 'denied'
   | 'entered_without_consent';
 
-/** Subject categories used by the entry-log endpoint. */
-export type SubjectType = 'dweller' | 'visitor' | 'service-provider' | 'vehicle';
+/** Subject categories used by the entry-log endpoint.
+ * Note: backend `EntryLogRequestValidator` accepts underscore forms. */
+export type SubjectType = 'dweller' | 'visitor' | 'service_provider' | 'vehicle';
 
 /** Hardcoded override reasons per ROADMAP — no free-text. */
 export type OverrideReason = 'emergency' | 'vouched';

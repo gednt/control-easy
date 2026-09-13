@@ -77,7 +77,7 @@ describe('CeAuditRowComponent', () => {
   it('does NOT apply override-row class for other states', () => {
     fixture.componentRef.setInput('entry', {
       ...baseEntry,
-      entryState: 'denied',
+       entryState: 'entered_without_consent',
     });
     fixture.detectChanges();
     const row = fixture.nativeElement.querySelector('tr');
@@ -98,9 +98,9 @@ describe('CeAuditRowComponent', () => {
     expect(component.subjectTypeLabel()).toBe('Visitor');
     fixture.componentRef.setInput('entry', {
       ...baseEntry,
-      subjectType: 'service-provider',
+      subjectType: 'service_provider',
     });
     fixture.detectChanges();
-    expect(component.subjectTypeLabel()).toBe('Service-provider');
+    expect(component.subjectTypeLabel()).toBe('Service provider');
   });
 });

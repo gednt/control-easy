@@ -23,7 +23,6 @@ import {
   type OverrideReason,
   type SubjectType,
 } from '../../../features/entry-log/entry-log.service';
-import { ConsentPolicyService } from '../../../features/consent-policy/consent-policy.service';
 import { getApiErrorMessage } from '../../../core/utils/api-error.util';
 
 type WorkflowStep = 'tiles' | 'subject-info';
@@ -128,9 +127,10 @@ const TILES: TileDescriptor[] = [
         <ce-photo-capture
           [entityType]="photoEntityType()"
           [entityId]="subjectName() || 'unknown'"
-          mode="camera"
+          [mode]="captureMode()"
           [open]="showCapture()"
           (closed)="onCaptureClosed()"
+          (modeChange)="onCaptureModeChange($event)"
           (photoUploaded)="onPhotoUploaded($event)"
         />
       }
@@ -242,10 +242,10 @@ const TILES: TileDescriptor[] = [
 })
 export class CeEntryWorkflowComponent {
   private readonly entryLogService = inject(EntryLogService);
-  private readonly consentPolicyService = inject(ConsentPolicyService);
   private readonly toast = inject(ToastService);
 
   open = input<boolean>(false);
+  closeOnEntry = input(false);
   defaultCategory = input<SubjectType>('visitor');
 
   entryLogged = output<EntryLogResponse>();
@@ -257,6 +257,7 @@ export class CeEntryWorkflowComponent {
   pendingState = signal<EntryState | null>(null);
   showCapture = signal(false);
   showOverrideReason = signal(false);
+  captureMode = signal<'camera' | 'upload'>('camera');
   loading = signal(false);
 
   subjectName = signal('');
@@ -265,11 +266,13 @@ export class CeEntryWorkflowComponent {
   photoId = signal<string | null>(null);
   pendingOverrideReason = signal<OverrideReason | null>(null);
 
-  /** CePhotoCapture expects PhotoEntityType values: resident/visitor/vehicle/service-provider. */
+  /** CePhotoCapture expects PhotoEntityType values: resident/visitor/vehicle/service-provider.
+   *  Note: SubjectType uses `service_provider` (underscore) for the entry-log API contract,
+   *  but the photo binding layer still uses `service-provider` (hyphen). */
   photoEntityType = computed<'resident' | 'visitor' | 'vehicle' | 'service-provider'>(() => {
     const cat = this.selectedCategory();
     if (cat === 'dweller') return 'resident';
-    if (cat === 'service-provider') return 'service-provider';
+    if (cat === 'service_provider') return 'service-provider';
     if (cat === 'vehicle') return 'vehicle';
     return 'visitor';
   });
@@ -287,30 +290,20 @@ export class CeEntryWorkflowComponent {
     );
   }
 
-  async onTileTap(action: TileAction): Promise<void> {
+  onTileTap(action: TileAction): void {
     if (action === 'register') {
       this.pendingState.set('entered_with_consent');
       this.selectedCategory.set('visitor');
-      try {
-        const policies = await firstValueFrom(this.consentPolicyService.getAll());
-        const policy = policies.find((p) => p.subjectCategory === 'visitors');
-        if (policy?.photoRequired) {
-          this.showCapture.set(true);
-        } else {
-          this.step.set('subject-info');
-        }
-      } catch {
-        // Backend unreachable — fall through to subject info so the user
-        // isn't stranded; the create call will surface the real error.
-        this.step.set('subject-info');
-      }
+      this.captureMode.set('camera');
+      this.showCapture.set(true);
     } else if (action === 'denied') {
-      this.pendingState.set('denied');
+      this.pendingState.set('entered_without_consent');
       this.selectedCategory.set('visitor');
-      this.step.set('subject-info');
+      this.captureMode.set('camera');
+      this.showCapture.set(true);
     } else if (action === 'gatehouse') {
       this.pendingState.set('gatehouse_only');
-      this.selectedCategory.set('service-provider');
+      this.selectedCategory.set('service_provider');
       this.step.set('subject-info');
     } else if (action === 'override') {
       this.pendingState.set('entered_override');
@@ -345,6 +338,10 @@ export class CeEntryWorkflowComponent {
     }
   }
 
+  onCaptureModeChange(mode: 'camera' | 'upload'): void {
+    this.captureMode.set(mode);
+  }
+
   onOverrideReason(reason: OverrideReason): void {
     this.pendingOverrideReason.set(reason);
     this.showOverrideReason.set(false);
@@ -367,7 +364,11 @@ export class CeEntryWorkflowComponent {
       const entry = await firstValueFrom(this.entryLogService.create(request));
       this.toast.success('Entry logged');
       this.entryLogged.emit(entry);
-      this.close();
+      if (this.closeOnEntry()) {
+        this.close();
+      } else {
+        this.reset();
+      }
     } catch (err) {
       this.toast.error(getApiErrorMessage(err, 'Failed to log entry. Retry?'));
       this.loading.set(false);
@@ -379,6 +380,7 @@ export class CeEntryWorkflowComponent {
     this.pendingState.set(null);
     this.showCapture.set(false);
     this.showOverrideReason.set(false);
+    this.captureMode.set('camera');
     this.subjectName.set('');
     this.subjectDocument.set('');
     this.photoId.set(null);

@@ -88,6 +88,7 @@ export class CeAuditRowComponent {
 
   subjectTypeLabel = computed(() => {
     const t = this.entry().subjectType;
+    if (t === 'service_provider') return 'Service provider';
     return t.charAt(0).toUpperCase() + t.slice(1);
   });
 }

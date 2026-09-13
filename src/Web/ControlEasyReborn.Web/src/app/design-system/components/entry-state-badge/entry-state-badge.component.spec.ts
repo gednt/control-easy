@@ -22,8 +22,7 @@ describe('CeEntryStateBadgeComponent', () => {
     { state: 'entered_with_consent', label: 'With consent', tone: 'success' },
     { state: 'entered_override', label: 'Override', tone: 'warning' },
     { state: 'gatehouse_only', label: 'No entry', tone: 'neutral' },
-    { state: 'denied', label: 'Refused', tone: 'danger' },
-    { state: 'entered_without_consent', label: 'No consent', tone: 'warning' },
+    { state: 'entered_without_consent', label: 'Refused', tone: 'danger' },
   ];
 
   for (const c of cases) {
@@ -41,7 +40,7 @@ describe('CeEntryStateBadgeComponent', () => {
   }
 
   it('updates reactively when state input changes', () => {
-    fixture.componentRef.setInput('state', 'denied');
+    fixture.componentRef.setInput('state', 'entered_without_consent');
     fixture.detectChanges();
     expect(component.meta().label).toBe('Refused');
     expect(component.meta().tone).toBe('danger');

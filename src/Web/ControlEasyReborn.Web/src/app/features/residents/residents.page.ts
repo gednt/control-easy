@@ -244,96 +244,127 @@ type SortKey = 'nameAsc' | 'newest';
 
     <ce-modal
       [open]="createModalOpen()"
-      title="Add new resident"
-      size="md"
+      [title]="createModalStep() === 'photos' ? 'Add photos for ' + (createdResident()?.name ?? 'resident') : 'Add new resident'"
+      [size]="createModalStep() === 'photos' ? 'lg' : 'md'"
       (openChange)="onCreateModalOpenChange($event)"
     >
-      @if (createError()) {
-        <div class="form-error-banner">{{ createError() }}</div>
-      }
-      <form class="resident-form" [formGroup]="createForm" (ngSubmit)="onCreateResident()">
-        <ce-input
-          label="Full name"
-          inputId="ar-name"
-          placeholder="e.g. Maria Silva"
-          formControlName="name"
-          [error]="fieldError(createForm, 'name', 'Name is required')"
-        />
-        <ce-input
-          label="CPF"
-          inputId="ar-cpf"
-          placeholder="000.000.000-00"
-          formControlName="cpf"
-          [error]="cpfError(createForm, 'cpf')"
-        />
-        <ce-apartment-picker
-          formControlName="apartmentId"
-          label="Apartment"
-          inputId="ar-apartment"
-          placeholder="Select block and unit..."
-          [hasError]="fieldError(createForm, 'apartmentId', 'Apartment is required') !== null"
-        />
-        @if (fieldError(createForm, 'apartmentId', 'Apartment is required') !== null) {
-          <div class="field-error">Apartment is required</div>
+      @if (createModalStep() === 'form') {
+        @if (createError()) {
+          <div class="form-error-banner">{{ createError() }}</div>
         }
-        <ce-input label="Phone" inputId="ar-phone" placeholder="(11) 99999-0000" formControlName="phone" />
-      </form>
+        <form class="resident-form" [formGroup]="createForm" (ngSubmit)="onCreateResident()">
+          <ce-input
+            label="Full name"
+            inputId="ar-name"
+            placeholder="e.g. Maria Silva"
+            formControlName="name"
+            [error]="fieldError(createForm, 'name', 'Name is required')"
+          />
+          <ce-input
+            label="CPF"
+            inputId="ar-cpf"
+            placeholder="000.000.000-00"
+            formControlName="cpf"
+            [error]="cpfError(createForm, 'cpf')"
+          />
+          <ce-apartment-picker
+            formControlName="apartmentId"
+            label="Apartment"
+            inputId="ar-apartment"
+            placeholder="Select block and unit..."
+            [hasError]="fieldError(createForm, 'apartmentId', 'Apartment is required') !== null"
+          />
+          @if (fieldError(createForm, 'apartmentId', 'Apartment is required') !== null) {
+            <div class="field-error">Apartment is required</div>
+          }
+          <ce-input label="Phone" inputId="ar-phone" placeholder="(11) 99999-0000" formControlName="phone" />
+        </form>
+      } @else {
+        <ce-photo-panel
+          entityType="resident"
+          [entity]="createdResidentPhotoEntity()"
+          [canAdd]="canWrite()"
+          [canDelete]="canWrite()"
+        />
+      }
       <div ce-modal-footer>
-        <ce-button variant="ghost" size="sm" (click)="closeCreateModal()">Cancel</ce-button>
-        <ce-button
-          variant="primary"
-          size="sm"
-          [disabled]="createForm.invalid || creating()"
-          [loading]="creating()"
-          (click)="onCreateResident()"
-        >
-          Add resident
-        </ce-button>
+        @if (createModalStep() === 'form') {
+          <ce-button variant="ghost" size="sm" (click)="closeCreateModal()">Cancel</ce-button>
+          <ce-button
+            variant="primary"
+            size="sm"
+            [disabled]="createForm.invalid || creating()"
+            [loading]="creating()"
+            (click)="onCreateResident()"
+          >
+            Add resident
+          </ce-button>
+        } @else {
+          <ce-button variant="primary" size="sm" (click)="closeCreateModal()">Done</ce-button>
+        }
       </div>
     </ce-modal>
 
-    <ce-modal [open]="editModalOpen()" title="Edit resident" size="md" (openChange)="onEditModalOpenChange($event)">
-      @if (editError()) {
-        <div class="form-error-banner">{{ editError() }}</div>
-      }
-      <form class="resident-form" [formGroup]="editForm" (ngSubmit)="onEditResident()">
-        <ce-input
-          label="Full name"
-          inputId="er-name"
-          placeholder="e.g. Maria Silva"
-          formControlName="name"
-          [error]="fieldError(editForm, 'name', 'Name is required')"
-        />
-        <ce-input
-          label="CPF"
-          inputId="er-cpf"
-          placeholder="000.000.000-00"
-          formControlName="cpf"
-          [error]="cpfError(editForm, 'cpf')"
-        />
-        <ce-apartment-picker
-          formControlName="apartmentId"
-          label="Apartment"
-          inputId="er-apartment"
-          placeholder="Select block and unit..."
-          [hasError]="fieldError(editForm, 'apartmentId', 'Apartment is required') !== null"
-        />
-        @if (fieldError(editForm, 'apartmentId', 'Apartment is required') !== null) {
-          <div class="field-error">Apartment is required</div>
+    <ce-modal
+      [open]="editModalOpen()"
+      [title]="editModalStep() === 'photos' ? 'Photos for ' + (editingResident()?.name ?? 'resident') : 'Edit resident'"
+      [size]="editModalStep() === 'photos' ? 'lg' : 'md'"
+      (openChange)="onEditModalOpenChange($event)"
+    >
+      @if (editModalStep() === 'form') {
+        @if (editError()) {
+          <div class="form-error-banner">{{ editError() }}</div>
         }
-        <ce-input label="Phone" inputId="er-phone" placeholder="(11) 99999-0000" formControlName="phone" />
-      </form>
+        <form class="resident-form" [formGroup]="editForm" (ngSubmit)="onEditResident()">
+          <ce-input
+            label="Full name"
+            inputId="er-name"
+            placeholder="e.g. Maria Silva"
+            formControlName="name"
+            [error]="fieldError(editForm, 'name', 'Name is required')"
+          />
+          <ce-input
+            label="CPF"
+            inputId="er-cpf"
+            placeholder="000.000.000-00"
+            formControlName="cpf"
+            [error]="cpfError(editForm, 'cpf')"
+          />
+          <ce-apartment-picker
+            formControlName="apartmentId"
+            label="Apartment"
+            inputId="er-apartment"
+            placeholder="Select block and unit..."
+            [hasError]="fieldError(editForm, 'apartmentId', 'Apartment is required') !== null"
+          />
+          @if (fieldError(editForm, 'apartmentId', 'Apartment is required') !== null) {
+            <div class="field-error">Apartment is required</div>
+          }
+          <ce-input label="Phone" inputId="er-phone" placeholder="(11) 99999-0000" formControlName="phone" />
+        </form>
+      } @else {
+        <ce-photo-panel
+          entityType="resident"
+          [entity]="editingResidentPhotoEntity()"
+          [canAdd]="canWrite()"
+          [canDelete]="canWrite()"
+        />
+      }
       <div ce-modal-footer>
-        <ce-button variant="ghost" size="sm" (click)="closeEditModal()">Cancel</ce-button>
-        <ce-button
-          variant="primary"
-          size="sm"
-          [disabled]="editForm.invalid || saving()"
-          [loading]="saving()"
-          (click)="onEditResident()"
-        >
-          Save changes
-        </ce-button>
+        @if (editModalStep() === 'form') {
+          <ce-button variant="ghost" size="sm" (click)="closeEditModal()">Cancel</ce-button>
+          <ce-button
+            variant="primary"
+            size="sm"
+            [disabled]="editForm.invalid || saving()"
+            [loading]="saving()"
+            (click)="onEditResident()"
+          >
+            Save changes
+          </ce-button>
+        } @else {
+          <ce-button variant="primary" size="sm" (click)="closeEditModal()">Done</ce-button>
+        }
       </div>
     </ce-modal>
 
@@ -632,9 +663,26 @@ export class ResidentsPage implements OnDestroy {
   editingResident = signal<ResidentResponse | null>(null);
   residentBeingViewed = signal<ResidentResponse | null>(null);
 
+  /** Two-step flow state: form → photos (after success). */
+  createModalStep = signal<'form' | 'photos'>('form');
+  editModalStep = signal<'form' | 'photos'>('form');
+  createdResident = signal<ResidentResponse | null>(null);
+
   /** Wraps the resident under view in the shape expected by ce-photo-panel. */
   readonly residentPhotoEntity = computed(() => {
     const r = this.residentBeingViewed();
+    return r ? { id: r.id, displayName: r.name } : null;
+  });
+
+  /** Photo entity for the freshly-created resident (post-create step). */
+  readonly createdResidentPhotoEntity = computed(() => {
+    const r = this.createdResident();
+    return r ? { id: r.id, displayName: r.name } : null;
+  });
+
+  /** Photo entity for the resident being edited (post-edit step). */
+  readonly editingResidentPhotoEntity = computed(() => {
+    const r = this.editingResident();
     return r ? { id: r.id, displayName: r.name } : null;
   });
 
@@ -846,11 +894,15 @@ export class ResidentsPage implements OnDestroy {
   openCreateModal(): void {
     this.createForm.reset();
     this.createError.set(null);
+    this.createModalStep.set('form');
+    this.createdResident.set(null);
     this.createModalOpen.set(true);
   }
 
   closeCreateModal(): void {
     this.createModalOpen.set(false);
+    this.createModalStep.set('form');
+    this.createdResident.set(null);
   }
 
   onCreateModalOpenChange(open: boolean): void {
@@ -870,9 +922,10 @@ export class ResidentsPage implements OnDestroy {
         apartmentId: value.apartmentId,
       })
       .subscribe({
-        next: () => {
+        next: (created) => {
           this.creating.set(false);
-          this.closeCreateModal();
+          this.createdResident.set(created);
+          this.createModalStep.set('photos');
           this.loadResidents();
         },
         error: (err) => {
@@ -892,12 +945,14 @@ export class ResidentsPage implements OnDestroy {
       phone: resident.phone,
     });
     this.editError.set(null);
+    this.editModalStep.set('form');
     this.editModalOpen.set(true);
   }
 
   closeEditModal(): void {
     this.editModalOpen.set(false);
     this.editingResident.set(null);
+    this.editModalStep.set('form');
   }
 
   onEditModalOpenChange(open: boolean): void {
@@ -920,9 +975,11 @@ export class ResidentsPage implements OnDestroy {
         active: resident.active,
       })
       .subscribe({
-        next: () => {
+        next: (updated) => {
           this.saving.set(false);
-          this.closeEditModal();
+          // Refresh editingResident so photo panel sees the latest name/id
+          this.editingResident.set(updated);
+          this.editModalStep.set('photos');
           this.loadResidents();
         },
         error: (err) => {

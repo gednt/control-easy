@@ -23,7 +23,7 @@ const CATEGORY_OPTIONS: DropdownOption[] = [
   { value: '', label: 'All categories' },
   { value: 'dweller', label: 'Dwellers' },
   { value: 'visitor', label: 'Visitors' },
-  { value: 'service-provider', label: 'Service providers' },
+  { value: 'service_provider', label: 'Service providers' },
   { value: 'vehicle', label: 'Vehicles' },
 ];
 
@@ -32,7 +32,7 @@ const STATE_OPTIONS: DropdownOption[] = [
   { value: 'entered_with_consent', label: 'With consent' },
   { value: 'entered_override', label: 'Override' },
   { value: 'gatehouse_only', label: 'No entry' },
-  { value: 'denied', label: 'Refused' },
+  { value: 'entered_without_consent', label: 'Refused' },
 ];
 
 /**

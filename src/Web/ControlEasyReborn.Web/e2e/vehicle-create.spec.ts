@@ -25,12 +25,15 @@ test.describe('Vehicle create with apartment', () => {
 
     await page.locator('input[formControlName="plate"]').fill(plate);
     await page.locator('input[formControlName="ownerName"]').fill(ownerName);
-    const apartmentLabel = await selectFirstApartmentOption(page, 'vh-apartment');
+    const apartmentLabel = await selectFirstApartmentOption(page, 'cv-apartment');
     await page.locator('input[formControlName="brand"]').fill('Toyota');
     await page.locator('input[formControlName="model"]').fill('Corolla');
 
     await submitCreateAndWait(page, '/api/v1/vehicles', 'Create');
-    await expect(page.getByRole('heading', { name: 'Add vehicle' })).toBeHidden();
+    await expect(page.getByRole('heading', { name: `Add photos for ${plate}` })).toBeVisible();
+    await expect(page.locator('ce-photo-panel')).toBeVisible();
+    await page.getByRole('button', { name: 'Done' }).click();
+    await expect(page.getByRole('heading', { name: `Add photos for ${plate}` })).toBeHidden();
 
     const row = page.getByRole('row').filter({ hasText: plate });
     await expect(row).toBeVisible({ timeout: 15_000 });

@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import {
   demoAdminEmail,
   demoAdminPassword,
@@ -17,18 +17,10 @@ import {
  * for content (millisecond timestamps), not for byte-for-byte shape.
  */
 
-async function dismissDemoBannerIfPresent(page: Page): Promise<void> {
-  const dismiss = page.getByRole('button', { name: 'Dismiss demo banner' });
-  if (await dismiss.isVisible().catch(() => false)) {
-    await dismiss.click();
-  }
-}
-
 test.describe('Gatehouse Workflow', () => {
   test.beforeEach(async ({ page, context }) => {
     await context.grantPermissions(['camera']);
     await loginAsDemoUser(page, demoAdminEmail, demoAdminPassword);
-    await dismissDemoBannerIfPresent(page);
   });
 
   test('shows 4 tiles when opened from FAB', async ({ page }) => {
@@ -42,9 +34,26 @@ test.describe('Gatehouse Workflow', () => {
     await expect(page.getByRole('button', { name: /Override/i })).toBeVisible();
   });
 
-  test('entry denied flow: tile → subject info → continue → success toast', async ({ page }) => {
+  test('entry denied flow: tile → photo → subject info → continue → success toast', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'mediaDevices', {
+        configurable: true,
+        value: {
+          getUserMedia: async () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 640;
+            canvas.height = 480;
+            const ctx = canvas.getContext('2d')!;
+            ctx.fillStyle = 'red';
+            ctx.fillRect(0, 0, 640, 480);
+            return (canvas as unknown as { captureStream: (fps: number) => MediaStream }).captureStream(30);
+          },
+        },
+      });
+    });
     await page.goto('/gatehouse');
     await page.getByRole('button', { name: /Entry denied/i }).click();
+    await page.getByRole('button', { name: 'Capture photo' }).click();
     await expect(page.getByText('Name (optional)')).toBeVisible({ timeout: 5_000 });
     await page.getByPlaceholder('Visitor name').fill('Refused Person');
     await page.getByRole('button', { name: 'Continue' }).click();
@@ -137,7 +146,6 @@ test.describe('Gatehouse Workflow', () => {
 test.describe('Audit Review', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsDemoUser(page, demoAdminEmail, demoAdminPassword);
-    await dismissDemoBannerIfPresent(page);
   });
 
   test('audit page loads with filter row and export button', async ({ page }) => {
@@ -206,7 +214,6 @@ test.describe('Audit Review', () => {
 test.describe('Consent Policy Editor', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsDemoUser(page, demoAdminEmail, demoAdminPassword);
-    await dismissDemoBannerIfPresent(page);
   });
 
   test('editor page renders with 4 toggle rows and Save button disabled when clean', async ({ page }) => {

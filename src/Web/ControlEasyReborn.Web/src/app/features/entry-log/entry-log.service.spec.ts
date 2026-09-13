@@ -24,7 +24,7 @@ describe('EntryLogService', () => {
   it('create POSTs to /api/v1/entry-log with the request body', () => {
     service
       .create({
-        entryState: 'denied',
+        entryState: 'entered_without_consent',
         subjectType: 'visitor',
         subjectName: 'Refused',
       })
@@ -33,7 +33,7 @@ describe('EntryLogService', () => {
     const req = httpMock.expectOne('/api/v1/entry-log');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({
-      entryState: 'denied',
+      entryState: 'entered_without_consent',
       subjectType: 'visitor',
       subjectName: 'Refused',
     });
@@ -78,14 +78,14 @@ describe('EntryLogService', () => {
     const filters: AuditFilters = {
       skip: 0,
       take: 50,
-      entryState: 'denied',
+      entryState: 'entered_without_consent',
     };
     service.export(filters).subscribe();
 
     const req = httpMock.expectOne((r) => r.url === '/api/v1/entry-log/export');
     expect(req.request.method).toBe('GET');
     expect(req.request.responseType).toBe('blob');
-    expect(req.request.params.get('entryState')).toBe('denied');
+    expect(req.request.params.get('entryState')).toBe('entered_without_consent');
     req.flush(new Blob(['id,recorded_at\n']));
   });
 });

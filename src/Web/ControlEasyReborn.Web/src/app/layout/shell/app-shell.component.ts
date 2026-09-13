@@ -1,16 +1,17 @@
-import { Component, ChangeDetectionStrategy, inject, OnInit, effect, DestroyRef, HostListener, PLATFORM_ID } from '@angular/core';
+import { AfterViewInit, Component, ChangeDetectionStrategy, inject, OnInit, effect, DestroyRef, HostListener, PLATFORM_ID, ViewChild } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { TopbarComponent } from '../topbar/topbar.component';
 import { DemoBannerComponent } from '../demo-banner/demo-banner.component';
+import { CeToastHostComponent, ToastService } from '../../design-system/components/toast/toast.component';
 import { AuthService } from '../../core/services/auth.service';
 import { DrawerService } from '../../core/services/drawer.service';
 
 @Component({
   selector: 'ce-app-shell',
   standalone: true,
-  imports: [RouterOutlet, SidebarComponent, TopbarComponent, DemoBannerComponent],
+  imports: [RouterOutlet, SidebarComponent, TopbarComponent, DemoBannerComponent, CeToastHostComponent],
   template: `
     <div class="app-shell" [class.drawer-open]="drawerService.isOpen()">
       <ce-sidebar />
@@ -29,6 +30,7 @@ import { DrawerService } from '../../core/services/drawer.service';
           <router-outlet />
         </main>
       </div>
+      <ce-toast-host />
     </div>
   `,
   styles: [`
@@ -74,11 +76,14 @@ import { DrawerService } from '../../core/services/drawer.service';
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppShellComponent implements OnInit {
+export class AppShellComponent implements OnInit, AfterViewInit {
   private readonly authService = inject(AuthService);
+  private readonly toastService = inject(ToastService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly destroyRef = inject(DestroyRef);
   readonly drawerService = inject(DrawerService);
+
+  @ViewChild(CeToastHostComponent) private readonly toastHost!: CeToastHostComponent;
 
   constructor() {
     effect(() => {
@@ -100,5 +105,9 @@ export class AppShellComponent implements OnInit {
 
   ngOnInit(): void {
     this.authService.loadSession();
+  }
+
+  ngAfterViewInit(): void {
+    this.toastService.registerHost(this.toastHost);
   }
 }
