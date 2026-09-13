@@ -23,5 +23,7 @@ export type { CePhotoSize } from './components/photo/photo.component';
 export { CePhotoLightboxComponent } from './components/photo/photo-lightbox.component';
 export { CePhotoGalleryComponent } from './components/photo/photo-gallery.component';
 export { CePhotoCaptureComponent } from './components/photo/photo-capture.component';
+export { CePhotoPanelComponent } from './components/photo/photo-panel.component';
+export type { PhotoPanelEntity } from './components/photo/photo-panel.component';
 export { ThemeService } from './theme/theme.service';
 export type { Theme, ResolvedTheme } from './theme/theme.service';

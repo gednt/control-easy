@@ -1,12 +1,13 @@
-import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ServiceProvidersApiService, ServiceProviderResponse } from './service-providers-api.service';
+import { CeButtonComponent, CeModalComponent, CePhotoPanelComponent } from '../../design-system';
 
 @Component({
   selector: 'ce-service-providers-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, CeButtonComponent, CeModalComponent, CePhotoPanelComponent],
   template: `
     <div class="page-header">
       <div>
@@ -27,6 +28,7 @@ import { ServiceProvidersApiService, ServiceProviderResponse } from './service-p
               <th>Document</th>
               <th>Service type</th>
               <th>Status</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -36,9 +38,14 @@ import { ServiceProvidersApiService, ServiceProviderResponse } from './service-p
                 <td>{{ provider.document }}</td>
                 <td>{{ provider.serviceType ?? '—' }}</td>
                 <td><span class="ce-badge">{{ provider.active ? 'Active' : 'Inactive' }}</span></td>
+                <td>
+                  <button class="ce-button variant-ghost size-sm" (click)="openPhotos(provider)">
+                    Photos
+                  </button>
+                </td>
               </tr>
             } @empty {
-              <tr><td colspan="4" class="text-secondary">No service providers yet.</td></tr>
+              <tr><td colspan="5" class="text-secondary">No service providers yet.</td></tr>
             }
           </tbody>
         </table>
@@ -61,6 +68,23 @@ import { ServiceProvidersApiService, ServiceProviderResponse } from './service-p
         </div>
       </div>
     }
+
+    <ce-modal
+      [open]="photosModalOpen()"
+      [title]="photosProvider() ? photosProvider()!.name + ' — Photos' : 'Service provider photos'"
+      size="lg"
+      (openChange)="onPhotosModalOpenChange($event)"
+    >
+      <ce-photo-panel
+        entityType="service-provider"
+        [entity]="photosEntity()"
+        [canAdd]="true"
+        [canDelete]="true"
+      />
+      <div ce-modal-footer>
+        <ce-button variant="ghost" size="sm" (click)="closePhotos()">Close</ce-button>
+      </div>
+    </ce-modal>
   `,
   styles: [`
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6); }
@@ -91,6 +115,13 @@ export class ServiceProvidersPage {
   loading = signal(true);
   creating = signal(false);
   createOpen = signal(false);
+  photosModalOpen = signal(false);
+  photosProvider = signal<ServiceProviderResponse | null>(null);
+
+  readonly photosEntity = computed(() => {
+    const p = this.photosProvider();
+    return p ? { id: p.id, displayName: p.name } : null;
+  });
 
   form = this.fb.group({
     name: ['', Validators.required],
@@ -125,5 +156,19 @@ export class ServiceProvidersPage {
       next: () => { this.creating.set(false); this.closeCreate(); this.load(); },
       error: () => this.creating.set(false),
     });
+  }
+
+  openPhotos(provider: ServiceProviderResponse): void {
+    this.photosProvider.set(provider);
+    this.photosModalOpen.set(true);
+  }
+
+  closePhotos(): void {
+    this.photosModalOpen.set(false);
+    this.photosProvider.set(null);
+  }
+
+  onPhotosModalOpenChange(open: boolean): void {
+    if (!open) this.closePhotos();
   }
 }

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { VisitsApiService, VisitResponse } from './visits-api.service';
@@ -8,13 +8,14 @@ import {
   formatApartmentLabel,
 } from '../apartments/apartments-api.service';
 import { getApiErrorMessage } from '../../core/utils/api-error.util';
+import { CeButtonComponent, CeModalComponent, CePhotoPanelComponent } from '../../design-system';
 
 type StatusFilter = 'all' | 'Pending' | 'CheckedIn';
 
 @Component({
   selector: 'ce-visits-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ApartmentPickerComponent],
+  imports: [CommonModule, ReactiveFormsModule, ApartmentPickerComponent, CeButtonComponent, CeModalComponent, CePhotoPanelComponent],
   template: `
     <div class="page-header">
       <div>
@@ -68,6 +69,11 @@ type StatusFilter = 'all' | 'Pending' | 'CheckedIn';
                 <td>{{ visit.checkedInAtUtc ? (visit.checkedInAtUtc | date:'short') : '—' }}</td>
                 <td>{{ visit.checkedOutAtUtc ? (visit.checkedOutAtUtc | date:'short') : '—' }}</td>
                 <td>
+                  <button
+                    class="ce-button variant-ghost size-sm"
+                    (click)="openPhotos(visit)">
+                    Photos
+                  </button>
                   @if (visit.status === 'Pending') {
                     <button
                       class="ce-button variant-primary size-sm"
@@ -125,6 +131,23 @@ type StatusFilter = 'all' | 'Pending' | 'CheckedIn';
         </div>
       </div>
     }
+
+    <ce-modal
+      [open]="photosModalOpen()"
+      [title]="photosVisit() ? photosVisit()!.visitorName + ' — Photos' : 'Visit photos'"
+      size="lg"
+      (openChange)="onPhotosModalOpenChange($event)"
+    >
+      <ce-photo-panel
+        entityType="visitor"
+        [entity]="photosEntity()"
+        [canAdd]="true"
+        [canDelete]="true"
+      />
+      <div ce-modal-footer>
+        <ce-button variant="ghost" size="sm" (click)="closePhotos()">Close</ce-button>
+      </div>
+    </ce-modal>
   `,
   styles: [`
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4); }
@@ -196,6 +219,13 @@ export class VisitsPage {
   createError = signal<string | null>(null);
   actionError = signal<string | null>(null);
   actionInFlight = signal<string | null>(null);
+  photosModalOpen = signal(false);
+  photosVisit = signal<VisitResponse | null>(null);
+
+  readonly photosEntity = computed(() => {
+    const v = this.photosVisit();
+    return v ? { id: v.id, displayName: v.visitorName } : null;
+  });
 
   form = this.fb.group({
     visitorName: ['', Validators.required],
@@ -322,5 +352,19 @@ export class VisitsPage {
         this.actionError.set(getApiErrorMessage(err, 'Failed to check out visitor'));
       },
     });
+  }
+
+  openPhotos(visit: VisitResponse): void {
+    this.photosVisit.set(visit);
+    this.photosModalOpen.set(true);
+  }
+
+  closePhotos(): void {
+    this.photosModalOpen.set(false);
+    this.photosVisit.set(null);
+  }
+
+  onPhotosModalOpenChange(open: boolean): void {
+    if (!open) this.closePhotos();
   }
 }

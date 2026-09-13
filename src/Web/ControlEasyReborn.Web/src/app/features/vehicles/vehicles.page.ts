@@ -9,6 +9,7 @@ import {
 } from '../apartments/apartments-api.service';
 import { getApiErrorMessage } from '../../core/utils/api-error.util';
 import { AuthService } from '../../core/services/auth.service';
+import { CeButtonComponent, CeModalComponent, CePhotoPanelComponent } from '../../design-system';
 
 const VEHICLE_TYPES = [
   { value: '0', label: 'Car' },
@@ -20,7 +21,7 @@ const VEHICLE_TYPES = [
 @Component({
   selector: 'ce-vehicles-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ApartmentPickerComponent],
+  imports: [CommonModule, ReactiveFormsModule, ApartmentPickerComponent, CeButtonComponent, CeModalComponent, CePhotoPanelComponent],
   template: `
     <div class="page-header">
       <div class="page-title-block">
@@ -82,11 +83,12 @@ const VEHICLE_TYPES = [
                     <span class="ce-badge tone-success size-sm">{{ vehicle.active ? 'Active' : 'Inactive' }}</span>
                   </td>
                   <td>
-                    @if (canWrite()) {
-                      <div class="action-cell">
+                    <div class="action-cell">
+                      <button class="icon-btn-sm" aria-label="Vehicle photos" title="Photos" (click)="openPhotos(vehicle)">&#128247;</button>
+                      @if (canWrite()) {
                         <button class="icon-btn-sm" aria-label="Edit vehicle" title="Edit" (click)="openEditModal(vehicle)">&#9998;</button>
-                      </div>
-                    }
+                      }
+                    </div>
                   </td>
                 </tr>
               } @empty {
@@ -264,6 +266,23 @@ const VEHICLE_TYPES = [
         </div>
       </div>
     }
+
+    <ce-modal
+      [open]="photosModalOpen()"
+      [title]="photosVehicle() ? 'Vehicle ' + photosVehicle()!.plate + ' — Photos' : 'Vehicle photos'"
+      size="lg"
+      (openChange)="onPhotosModalOpenChange($event)"
+    >
+      <ce-photo-panel
+        entityType="vehicle"
+        [entity]="photosEntity()"
+        [canAdd]="canWrite()"
+        [canDelete]="canWrite()"
+      />
+      <div ce-modal-footer>
+        <ce-button variant="ghost" size="sm" (click)="closePhotos()">Close</ce-button>
+      </div>
+    </ce-modal>
   `,
   styles: [`
     .page-header {
@@ -697,5 +716,29 @@ export class VehiclesPage {
         this.editError.set(getApiErrorMessage(err, 'Failed to update vehicle'));
       },
     });
+  }
+
+  // ---------- Photo gallery (Phase 12) ----------
+
+  photosModalOpen = signal(false);
+  photosVehicle = signal<VehicleResponse | null>(null);
+
+  readonly photosEntity = computed(() => {
+    const v = this.photosVehicle();
+    return v ? { id: v.id, displayName: v.plate } : null;
+  });
+
+  openPhotos(vehicle: VehicleResponse): void {
+    this.photosVehicle.set(vehicle);
+    this.photosModalOpen.set(true);
+  }
+
+  closePhotos(): void {
+    this.photosModalOpen.set(false);
+    this.photosVehicle.set(null);
+  }
+
+  onPhotosModalOpenChange(open: boolean): void {
+    if (!open) this.closePhotos();
   }
 }
