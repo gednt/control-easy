@@ -2,15 +2,31 @@ import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { CeStatTileComponent } from '../../design-system/components/stat-tile/stat-tile.component';
-import { CeButtonComponent, CeCardComponent, CeSpinnerComponent } from '../../design-system';
+import {
+  CeButtonComponent,
+  CeCardComponent,
+  CeEntryWorkflowComponent,
+  CeIconComponent,
+  CeSpinnerComponent,
+} from '../../design-system';
 import { DashboardApiService, DashboardStatsResponse, RecentVisit } from './dashboard-api.service';
+import { AuthService } from '../../core/services/auth.service';
 import { getApiErrorMessage } from '../../core/utils/api-error.util';
 
 @Component({
   selector: 'ce-dashboard-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, CeStatTileComponent, CeButtonComponent, CeCardComponent, CeSpinnerComponent],
-  template: `
+  imports: [
+    CommonModule,
+    RouterLink,
+    CeStatTileComponent,
+    CeButtonComponent,
+    CeCardComponent,
+    CeEntryWorkflowComponent,
+    CeIconComponent,
+    CeSpinnerComponent,
+  ],
+template: `
     <div class="page-header">
       <div class="page-title-block">
         <h1 class="page-title">Dashboard</h1>
@@ -20,6 +36,23 @@ import { getApiErrorMessage } from '../../core/utils/api-error.util';
         &#8635; Refresh
       </ce-button>
     </div>
+
+    @if (canUseGatehouse()) {
+      <button
+        type="button"
+        class="fab"
+        aria-label="New entry"
+        (click)="entryWorkflowOpen.set(true)"
+      >
+        <ce-icon name="plus" [size]="28" />
+      </button>
+
+      <ce-entry-workflow
+        [open]="entryWorkflowOpen()"
+        (closed)="entryWorkflowOpen.set(false)"
+        (entryLogged)="onEntryLogged()"
+      />
+    }
 
     @if (pageError()) {
       <div class="page-error">{{ pageError() }}</div>
@@ -119,6 +152,39 @@ import { getApiErrorMessage } from '../../core/utils/api-error.util';
     }
   `,
   styles: [`
+    .fab {
+      position: fixed;
+      bottom: var(--space-6, 24px);
+      right: var(--space-6, 24px);
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--color-primary, #0066cc);
+      color: white;
+      border: 0;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      transition: transform 100ms ease-out, box-shadow 100ms ease-out;
+    }
+    .fab:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    }
+    .fab:active {
+      transform: scale(0.95);
+    }
+    .fab:focus-visible {
+      outline: 2px solid var(--color-primary, #0066cc);
+      outline-offset: 4px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .fab:hover,
+      .fab:active { transform: none; }
+    }
     .page-header {
       display: flex;
       align-items: center;
@@ -269,10 +335,26 @@ import { getApiErrorMessage } from '../../core/utils/api-error.util';
 })
 export class DashboardPage {
   private readonly api = inject(DashboardApiService);
+  private readonly auth = inject(AuthService);
 
   stats = signal<DashboardStatsResponse | null>(null);
   loading = signal(true);
   pageError = signal<string | null>(null);
+  entryWorkflowOpen = signal(false);
+
+  /** Porteiro (AttendantProfile) users can use the gatehouse workflow. */
+  canUseGatehouse = (): boolean => {
+    const roles = this.auth.roles();
+    return roles.includes('AttendantProfile') || roles.includes('TenantAdmin');
+  };
+
+  onEntryLogged(): void {
+    // Phase 13 keeps the dashboard recent-visit table as-is; the workflow
+    // closes itself and the user can refresh manually. Future work: wire an
+    // entry-log feed into the dashboard so the recent-activity widget
+    // includes new entries automatically.
+    this.refresh();
+  }
 
   constructor() {
     this.load();

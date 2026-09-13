@@ -3,6 +3,9 @@ import { authGuard } from './core/guards/auth.guard';
 import { changePasswordGuard } from './core/guards/change-password.guard';
 import { demoModeGuard } from './core/guards/demo-mode.guard';
 import { platformAdminGuard } from './core/guards/platform-admin.guard';
+import { porteiroGuard } from './core/guards/porteiro.guard';
+import { syndicGuard } from './core/guards/syndic.guard';
+import { tenantAdminGuard } from './core/guards/tenant-admin.guard';
 
 export const routes: Routes = [
   {
@@ -23,6 +26,24 @@ export const routes: Routes = [
         path: '',
         data: { breadcrumb: 'Dashboard' },
         loadComponent: () => import('./features/dashboard/dashboard.page').then(m => m.DashboardPage),
+      },
+      {
+        path: 'gatehouse',
+        canActivate: [porteiroGuard],
+        data: { breadcrumb: 'New entry' },
+        loadComponent: () => import('./features/entry-workflow/entry-workflow.page').then(m => m.EntryWorkflowPage),
+      },
+      {
+        path: 'audit',
+        canActivate: [syndicGuard],
+        data: { breadcrumb: 'Audit Log' },
+        loadComponent: () => import('./features/audit/audit.page').then(m => m.AuditPage),
+      },
+      {
+        path: 'admin/consent-policy',
+        canActivate: [tenantAdminGuard],
+        data: { breadcrumb: 'Consent Policy' },
+        loadComponent: () => import('./features/consent-policy/consent-policy-editor.page').then(m => m.ConsentPolicyEditorPage),
       },
       {
         path: 'help/demo',
