@@ -49,11 +49,15 @@ import { DrawerService } from '../../core/services/drawer.service';
       display: flex;
       flex-direction: column;
       min-width: 0;
+      background: var(--color-background);
     }
     .page-content {
       flex: 1;
-      padding: var(--space-6);
+      padding: var(--space-8);
       overflow-x: auto;
+      max-width: calc(var(--content-max-width) + var(--space-16));
+      width: 100%;
+      margin: 0 auto;
     }
     @media (max-width: 639px) {
       .page-content { padding: var(--space-4); }

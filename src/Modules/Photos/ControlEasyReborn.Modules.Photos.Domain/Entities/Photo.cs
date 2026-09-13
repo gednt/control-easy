@@ -9,6 +9,8 @@ public sealed class Photo
     public string MimeType { get; private set; } = string.Empty;
     public long SizeBytes { get; private set; }
     public DateTime? CapturedAtUtc { get; private set; }
+    public string? EntityType { get; private set; }
+    public string? EntityId { get; private set; }
     public DateTime CreatedAtUtc { get; private set; }
     public DateTime? DeletedAtUtc { get; private set; }
 
@@ -21,7 +23,9 @@ public sealed class Photo
         long sizeBytes,
         DateTime? capturedAtUtc,
         DateTime createdAtUtc,
-        DateTime? deletedAtUtc = null)
+        DateTime? deletedAtUtc = null,
+        string? entityType = null,
+        string? entityId = null)
     {
         Id = id;
         TenantId = tenantId;
@@ -30,6 +34,8 @@ public sealed class Photo
         MimeType = mimeType;
         SizeBytes = sizeBytes;
         CapturedAtUtc = capturedAtUtc;
+        EntityType = entityType;
+        EntityId = entityId;
         CreatedAtUtc = createdAtUtc;
         DeletedAtUtc = deletedAtUtc;
     }

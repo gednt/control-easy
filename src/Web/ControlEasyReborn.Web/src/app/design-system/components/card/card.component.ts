@@ -15,17 +15,18 @@ import { Component, input, ChangeDetectionStrategy } from '@angular/core';
   `,
   styles: [`
     .ce-card {
-      background: var(--color-surface-elevated);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-xl);
+      background: var(--color-surface);
+      border: 0;
+      border-top: 3px solid var(--color-sidebar);
+      border-radius: 0;
       box-shadow: var(--shadow-card);
       overflow: hidden;
     }
-    .ce-card.accent-primary { border-left: 4px solid var(--color-primary); }
-    .ce-card.accent-success { border-left: 4px solid var(--color-success); }
-    .ce-card.accent-warning { border-left: 4px solid var(--color-warning); }
-    .ce-card.accent-danger { border-left: 4px solid var(--color-danger); }
-    .ce-card.accent-info { border-left: 4px solid var(--color-info); }
+    .ce-card.accent-primary { background: var(--color-primary-light); }
+    .ce-card.accent-success { background: var(--color-success-light); }
+    .ce-card.accent-warning { background: var(--color-warning-light); }
+    .ce-card.accent-danger { background: var(--color-danger-light); }
+    .ce-card.accent-info { background: var(--color-info-light); }
     .ce-card-body {
       padding: var(--space-6);
     }
@@ -35,7 +36,9 @@ import { Component, input, ChangeDetectionStrategy } from '@angular/core';
     :host ::ng-deep [card-header], :host ::ng-deep [ce-card-header] {
       padding: var(--space-4) var(--space-6);
       border-bottom: 1px solid var(--color-border);
-      font-weight: var(--font-weight-semibold);
+      font: var(--font-weight-semibold) var(--font-size-xs)/1.2 var(--font-family-mono);
+      letter-spacing: .07em;
+      text-transform: uppercase;
     }
     :host ::ng-deep [card-footer], :host ::ng-deep [ce-card-footer] {
       padding: var(--space-4) var(--space-6);

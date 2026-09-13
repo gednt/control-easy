@@ -53,8 +53,9 @@ type SortKey = 'nameAsc' | 'newest';
   template: `
     <div class="page-header">
       <div class="page-title-block">
-        <h1 class="page-title">Residents</h1>
-        <p class="page-subtitle">{{ activeCount() }} active residents across all apartments in this condominium.</p>
+        <p class="eyebrow">Directory / verified records</p>
+        <h1 class="page-title">Resident register</h1>
+        <p class="page-subtitle">{{ activeCount() }} active residents across the condominium record.</p>
       </div>
       <div class="page-header-actions">
         <ce-button variant="secondary" size="md" (click)="refresh()">
@@ -167,8 +168,8 @@ type SortKey = 'nameAsc' | 'newest';
                   />
                 </td>
                 <td class="resident-actions">
-                  <ce-dropdown>
-                    <button class="action-menu-btn" ceDropdownTrigger type="button" aria-label="Resident actions">
+                  <ce-dropdown align="end">
+                    <button class="action-menu-btn" ceDropdownTrigger type="button" aria-label="Resident actions" aria-haspopup="menu">
                       <ce-icon name="more-horizontal" [size]="16" />
                     </button>
                     <button role="menuitem" type="button" (click)="openViewModal(resident)">
@@ -422,8 +423,12 @@ type SortKey = 'nameAsc' | 'newest';
       .page-title-block {
         min-width: 0;
       }
+      .eyebrow { margin: 0 0 var(--space-2); color: var(--color-text-secondary); font: 700 var(--font-size-xs)/1 var(--font-family-mono); letter-spacing: .13em; text-transform: uppercase; }
       .page-title {
-        font-size: var(--font-size-2xl);
+        font-family: var(--font-family-display);
+        font-size: clamp(2rem, 3vw, 3rem);
+        font-weight: 500;
+        letter-spacing: -.04em;
         margin-bottom: var(--space-1);
       }
       .page-subtitle {
@@ -439,8 +444,9 @@ type SortKey = 'nameAsc' | 'newest';
       .stat-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-        gap: var(--space-4);
+        gap: 1px;
         margin-bottom: var(--space-6);
+        background: var(--color-border);
       }
 
       .loading-state {
@@ -465,8 +471,9 @@ type SortKey = 'nameAsc' | 'newest';
         border: 0;
         background: transparent;
         color: var(--color-text-secondary);
-        font-size: var(--font-size-sm);
-        font-weight: var(--font-weight-medium);
+        font: 700 var(--font-size-xs)/1 var(--font-family-mono);
+        letter-spacing: .06em;
+        text-transform: uppercase;
         cursor: pointer;
         border-bottom: 2px solid transparent;
         font-family: inherit;
@@ -509,7 +516,7 @@ type SortKey = 'nameAsc' | 'newest';
         background: var(--color-surface);
         color: var(--color-text-primary);
         border: 1px solid var(--color-border);
-        border-radius: var(--radius-lg);
+        border-radius: 0;
         font-size: var(--font-size-sm);
         font-family: inherit;
         cursor: pointer;
@@ -532,42 +539,31 @@ type SortKey = 'nameAsc' | 'newest';
         width: 1%;
         white-space: nowrap;
       }
-      .resident-actions ce-dropdown {
-        visibility: hidden;
-        opacity: 0;
-        transition:
-          opacity var(--duration-fast) var(--ease-out),
-          visibility var(--duration-fast) var(--ease-out);
-      }
-      .resident-actions ce-dropdown:focus-within {
-        visibility: visible;
-        opacity: 1;
-      }
-      tr:hover .resident-actions ce-dropdown {
-        visibility: visible;
-        opacity: 1;
-      }
-      @media (hover: none) {
-        .resident-actions ce-dropdown {
-          visibility: visible;
-          opacity: 1;
-        }
-      }
       .action-menu-btn {
-        width: 2rem;
-        height: 2rem;
+        width: 2.75rem;
+        height: 2.75rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: transparent;
-        border: 0;
-        border-radius: var(--radius-md);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 0;
         cursor: pointer;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
+        box-shadow: var(--shadow-sm);
+        transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
       }
-      .action-menu-btn:hover {
-        background: var(--color-neutral-light);
-        color: var(--color-text-primary);
+      .action-menu-btn:hover, .action-menu-btn:focus-visible {
+        background: var(--color-primary-light);
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+        outline: none;
+      }
+      @media (max-width: 640px) {
+        .action-menu-btn {
+          width: 3rem;
+          height: 3rem;
+        }
       }
 
       .table-footer {

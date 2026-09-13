@@ -17,22 +17,26 @@ import { Component, input, ChangeDetectionStrategy } from '@angular/core';
   `,
   styles: [`
     .ce-stat-tile {
-      background: var(--color-surface-elevated);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-xl);
-      padding: var(--space-5);
+      background: var(--color-surface);
+      border: 0;
+      border-radius: 0;
+      padding: var(--space-4) var(--space-5);
+      box-shadow: none;
       display: flex;
       flex-direction: column;
       gap: var(--space-1);
     }
     .ce-stat-label {
-      font-size: var(--font-size-sm);
+      font: 700 var(--font-size-xs)/1.2 var(--font-family-mono);
+      letter-spacing: .06em;
+      text-transform: uppercase;
       color: var(--color-text-secondary);
       font-weight: var(--font-weight-medium);
     }
     .ce-stat-value {
-      font-size: var(--font-size-2xl);
-      font-weight: var(--font-weight-bold);
+      font-family: var(--font-family-display);
+      font-size: var(--font-size-3xl);
+      font-weight: 500;
       color: var(--color-text-primary);
       line-height: var(--line-height-tight);
     }

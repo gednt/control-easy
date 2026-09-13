@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { CeIconComponent } from '../icon/icon.component';
 import { CeButtonComponent } from '../button/button.component';
+import { CePhotoComponent } from './photo.component';
 import type { PhotoResponse } from '../../../features/photos/photos-api.service';
 
 /**
@@ -21,7 +22,7 @@ import type { PhotoResponse } from '../../../features/photos/photos-api.service'
 @Component({
   selector: 'ce-photo-lightbox',
   standalone: true,
-  imports: [CeIconComponent, CeButtonComponent],
+  imports: [CeIconComponent, CeButtonComponent, CePhotoComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (open()) {
@@ -62,10 +63,11 @@ import type { PhotoResponse } from '../../../features/photos/photos-api.service'
 
         <div class="photo-container" (click)="stop($event)">
           @if (currentPhoto(); as photo) {
-            <img
-              [src]="currentSrc()"
-              [alt]="'Photo ' + (currentIndex() + 1)"
+            <ce-photo
               class="lightbox-image"
+              [photoId]="photo.id"
+              size="source"
+              [clickable]="false"
             />
             <div class="caption">
               <span class="caption-text">
@@ -110,7 +112,7 @@ import type { PhotoResponse } from '../../../features/photos/photos-api.service'
         padding: var(--space-2, 8px);
         gap: var(--space-2, 8px);
       }
-      .lightbox-image {
+      :host ::ng-deep ce-photo.lightbox-image img {
         max-width: 100%;
         max-height: 70vh;
         object-fit: contain;
@@ -202,11 +204,6 @@ export class CePhotoLightboxComponent {
     const idx = Math.min(this.currentIndex(), list.length - 1);
     return list[idx] ?? null;
   });
-  currentSrc = computed(() => {
-    const photo = this.currentPhoto();
-    return photo ? `/api/v1/photos/${photo.id}` : '';
-  });
-
   constructor() {
     // Reset currentIndex whenever the photos array identity or startIndex changes.
     // allowSignalWrites: required because we write to currentIndex inside the effect.

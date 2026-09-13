@@ -5,6 +5,7 @@ namespace ControlEasyReborn.Modules.Photos.Application.Abstractions;
 public interface IPhotoRepository
 {
     Task<Photo?> FindAsync(Guid id, CancellationToken ct);
+    Task<IReadOnlyList<Photo>> ListByEntityAsync(string entityType, string entityId, CancellationToken ct);
     Task AddAsync(Photo photo, CancellationToken ct);
     Task SoftDeleteAsync(Photo photo, CancellationToken ct);
 }

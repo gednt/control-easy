@@ -54,14 +54,16 @@ public sealed class UploadPhotoHandler
             mimeType: metadata.MimeType,
             sizeBytes: content.CanSeek ? content.Length : 0,
             capturedAtUtc: metadata.CapturedAtUtc,
-            createdAtUtc: DateTime.UtcNow);
+            createdAtUtc: DateTime.UtcNow,
+            entityType: metadata.EntityType,
+            entityId: metadata.EntityId);
 
         await _photos.AddAsync(photo, ct);
         return ToResponse(photo);
     }
 
     internal static PhotoResponse ToResponse(Photo p) =>
-        new(p.Id, p.TenantId, p.FilePath, p.ThumbnailPath, p.MimeType, p.SizeBytes, p.CapturedAtUtc, p.CreatedAtUtc, p.DeletedAtUtc);
+        new(p.Id, p.TenantId, p.FilePath, p.ThumbnailPath, p.MimeType, p.SizeBytes, p.CapturedAtUtc, p.CreatedAtUtc, p.DeletedAtUtc, p.EntityType, p.EntityId);
 
     private static string ExtensionFor(string mimeType) => mimeType switch
     {

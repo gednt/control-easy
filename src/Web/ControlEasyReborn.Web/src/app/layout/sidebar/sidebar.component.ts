@@ -7,7 +7,7 @@ import { CeIconComponent } from '../../design-system/components/icon/icon.compon
 import { CeAvatarComponent } from '../../design-system/components/avatar/avatar.component';
 import type { LucideIconName } from '../../design-system/components/icon/icon.types';
 
-const BRAND_GRADIENT = 'linear-gradient(135deg, var(--color-primary), var(--color-accent-pink))';
+const BRAND_GRADIENT = 'var(--color-primary)';
 
 @Component({
   selector: 'ce-sidebar',
@@ -105,7 +105,7 @@ const BRAND_GRADIENT = 'linear-gradient(135deg, var(--color-primary), var(--colo
       display: flex;
       align-items: center;
       gap: var(--space-3);
-      padding: var(--space-5) var(--space-4);
+      padding: var(--space-5) var(--space-4) var(--space-4);
       border-bottom: 1px solid var(--color-sidebar-border);
       min-height: var(--topbar-height);
     }
@@ -117,7 +117,7 @@ const BRAND_GRADIENT = 'linear-gradient(135deg, var(--color-primary), var(--colo
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      border-radius: var(--radius-md);
+      border-radius: 50%;
       font-weight: var(--font-weight-bold);
       font-size: 1.1rem;
       flex-shrink: 0;
@@ -154,12 +154,12 @@ const BRAND_GRADIENT = 'linear-gradient(135deg, var(--color-primary), var(--colo
       gap: var(--space-3);
       padding: var(--space-2) var(--space-3);
       color: var(--color-sidebar-text);
-      border-radius: var(--radius-md);
+      border-radius: var(--radius-sm);
       font-size: var(--font-size-sm);
       font-weight: var(--font-weight-medium);
       text-decoration: none;
-      margin-bottom: var(--space-1);
-      transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+      margin-bottom: 2px;
+      transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
     }
     .sidebar-nav-item:hover {
       background: var(--color-sidebar-hover-bg);
@@ -168,6 +168,7 @@ const BRAND_GRADIENT = 'linear-gradient(135deg, var(--color-primary), var(--colo
     .sidebar-nav-item.active {
       background: var(--color-sidebar-active-bg);
       color: var(--color-sidebar-active-text);
+      transform: translateX(2px);
     }
     .sidebar-nav-icon {
       width: 1.25rem;

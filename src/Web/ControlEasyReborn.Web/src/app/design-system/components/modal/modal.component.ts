@@ -44,8 +44,10 @@ import { Component, input, output, ChangeDetectionStrategy, signal, ElementRef, 
       padding: var(--space-4);
     }
     .ce-card {
-      background: var(--color-surface-elevated);
-      border-radius: var(--radius-xl);
+      background-color: var(--color-surface);
+      background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 31px, rgb(93 75 50 / 0.08) 31px, rgb(93 75 50 / 0.08) 32px);
+      border-top: 4px solid var(--color-sidebar);
+      border-radius: 0;
       box-shadow: var(--shadow-lg);
       width: 100%;
       max-height: 85vh;
@@ -65,8 +67,9 @@ import { Component, input, output, ChangeDetectionStrategy, signal, ElementRef, 
       border-bottom: 1px solid var(--color-border);
     }
     .ce-modal-title {
-      font-size: var(--font-size-lg);
-      font-weight: var(--font-weight-semibold);
+      font-family: var(--font-family-display);
+      font-size: var(--font-size-xl);
+      font-weight: 500;
       color: var(--color-text-primary);
       margin: 0;
     }
@@ -80,7 +83,7 @@ import { Component, input, output, ChangeDetectionStrategy, signal, ElementRef, 
       background: transparent;
       color: var(--color-text-secondary);
       cursor: pointer;
-      border-radius: var(--radius-md);
+      border-radius: 0;
       font-size: 1.25rem;
       transition: background var(--duration-fast) var(--ease-out);
     }

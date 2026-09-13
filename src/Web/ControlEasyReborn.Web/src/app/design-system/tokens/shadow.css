@@ -1,10 +1,10 @@
 :root {
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --shadow-primary-glow: 0 8px 24px -8px var(--color-primary);
+  --shadow-sm: 0 2px 5px rgb(24 40 49 / 0.08);
+  --shadow-card: 0 9px 22px rgb(24 40 49 / 0.08);
+  --shadow-md: 0 14px 30px rgb(24 40 49 / 0.12);
+  --shadow-lg: 0 22px 48px rgb(24 40 49 / 0.15);
+  --shadow-xl: 0 30px 70px rgb(24 40 49 / 0.18);
+  --shadow-primary-glow: 0 12px 26px rgb(168 77 61 / 0.22);
 }
 
 [data-theme="dark"] {

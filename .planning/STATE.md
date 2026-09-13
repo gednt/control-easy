@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Gatehouse Photo & Consent Ledger
 status: completed
-last_updated: "2026-09-13T10:30:00.000Z"
+last_updated: "2026-09-13T16:50:00.000Z"
 last_activity: 2026-09-13
 progress:
   total_phases: 3
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-09-13)
 Phase: All v2.0 phases complete
 Plan: —
 Status: Milestone archived
-Last activity: 2026-09-13 — v2.0 milestone lifecycle complete (audit ✅, archived, ROADMAP collapsed to one-line)
+Last activity: 2026-09-13 — restored persisted photo entity bindings, authenticated previews, actionable upload errors, and resident action-menu positioning
 
 ## Performance Metrics
 
@@ -59,14 +59,13 @@ Last activity: 2026-09-13 — v2.0 milestone lifecycle complete (audit ✅, arch
 - v1.1 Phase 9 partial work (residents page only) deferred to future milestone.
 - v2.1 (Phases 14-15) gated on hardware.
 - OpenAPI client not yet consumed by handwritten Angular services (carried over from v1.0 tech debt).
-- Forward-compatible shims (Phase 12/13) require future backend work to remove.
+- Photo entity binding is now persisted by the Photos API; existing MySQL databases need the versioned migration once.
 
 ## Deferred Items
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
 | v1.1 | UI Parity & Functional Fixes (Phase 9 partial) | Residents page only; login/dashboard/showcase/visits/vehicles/etc. pending | 2026-09-13 |
-| v2.0 (tech debt) | Backend photos entity_type + entity_id columns + /api/v1/photos list | Forward-compatible shim in place | 2026-09-13 |
 | v2.0 (tech debt) | Backend /api/v1/photos/{id}/thumbnail route | Forward-compatible shim in place (CSS object-fit cover) | 2026-09-13 |
 | v2.0 (tech debt) | Backend /api/v1/consent-policy list endpoint | Forward-compatible shim (4× parallel calls) | 2026-09-13 |
 | v2.0 (tech debt) | Backend X-Total-Count header on /api/v1/entry-log | Forward-compatible shim (entries.length approximation) | 2026-09-13 |

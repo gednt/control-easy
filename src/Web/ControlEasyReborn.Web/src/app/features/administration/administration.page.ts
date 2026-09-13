@@ -10,20 +10,22 @@ import { AdministrationApiService, AuditLogResponse, ConfigurationResponse } fro
   template: `
     <div class="page-header">
       <div>
-        <h1 class="page-title">Administration</h1>
-        <p class="page-subtitle">Audit logs and tenant configuration</p>
+        <p class="eyebrow">Control room / retained record</p>
+        <h1 class="page-title">Administration ledger</h1>
+        <p class="page-subtitle">Audit trail and tenant configuration, kept as a verifiable record.</p>
       </div>
       <button class="ce-button variant-primary size-md" (click)="openCreate()">+ Add configuration</button>
     </div>
 
     <div class="tabs">
-      <button class="tab" [class.active]="tab() === 'audit'" (click)="tab.set('audit')">Audit logs</button>
-      <button class="tab" [class.active]="tab() === 'config'" (click)="tab.set('config')">Configurations</button>
+      <button class="tab" [class.active]="tab() === 'audit'" (click)="tab.set('audit')">Audit ledger</button>
+      <button class="tab" [class.active]="tab() === 'config'" (click)="tab.set('config')">Configuration register</button>
     </div>
 
     @if (loading()) {
       <p class="text-secondary">Loading...</p>
     } @else if (tab() === 'audit') {
+      @if (auditLogs().length) {
       <div class="ce-card">
         <table class="ce-table">
           <thead>
@@ -37,12 +39,18 @@ import { AdministrationApiService, AuditLogResponse, ConfigurationResponse } fro
                 <td>{{ log.performedByName ?? '—' }}</td>
                 <td>{{ log.createdAtUtc | date:'short' }}</td>
               </tr>
-            } @empty {
-              <tr><td colspan="4" class="text-secondary">No audit logs yet.</td></tr>
             }
           </tbody>
         </table>
       </div>
+      } @else {
+        <section class="empty-record" aria-labelledby="empty-audit-title">
+          <p class="eyebrow">Audit file / awaiting first entry</p>
+          <h2 id="empty-audit-title">The audit ledger is clear</h2>
+          <p>Configuration changes and administrative actions will be retained here once recorded.</p>
+          <button class="ce-button variant-primary" type="button" (click)="openCreate()">Create first configuration</button>
+        </section>
+      }
     } @else {
       <div class="ce-card">
         <table class="ce-table">
@@ -82,25 +90,30 @@ import { AdministrationApiService, AuditLogResponse, ConfigurationResponse } fro
     }
   `,
   styles: [`
-    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6); }
-    .page-title { font-size: var(--font-size-2xl); margin: 0; }
+    .page-header { display: flex; justify-content: space-between; align-items: end; gap: var(--space-4); margin-bottom: var(--space-6); }
+    .eyebrow { margin: 0 0 var(--space-2); color: var(--color-text-secondary); font: 700 var(--font-size-xs)/1 var(--font-family-mono); letter-spacing: .13em; text-transform: uppercase; }
+    .page-title { font-family: var(--font-family-display); font-size: clamp(2rem, 3vw, 3rem); font-weight: 500; letter-spacing: -.04em; margin: 0; }
     .page-subtitle { color: var(--color-text-secondary); font-size: var(--font-size-sm); }
-    .tabs { display: flex; gap: var(--space-2); margin-bottom: var(--space-4); }
-    .tab { border: 1px solid var(--color-border); background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-2) var(--space-4); cursor: pointer; font-family: inherit; }
-    .tab.active { background: var(--color-primary); color: var(--color-text-on-primary); border-color: var(--color-primary); }
-    .ce-card { background: var(--color-surface-elevated); border: 1px solid var(--color-border); border-radius: var(--radius-xl); overflow: hidden; }
+    .tabs { display: flex; gap: 0; margin-bottom: var(--space-5); border-bottom: 1px solid var(--color-border); }
+    .tab { border: 0; border-bottom: 3px solid transparent; background: transparent; padding: var(--space-3) var(--space-4); cursor: pointer; font: 700 var(--font-size-xs)/1 var(--font-family-mono); letter-spacing: .07em; text-transform: uppercase; }
+    .tab.active { color: var(--color-primary); border-color: var(--color-primary); }
+    .ce-card { background: var(--color-surface); border-top: 4px solid var(--color-sidebar); overflow: hidden; box-shadow: var(--shadow-card); }
+    .empty-record { max-width: 42rem; padding: var(--space-6); background: var(--color-surface); border-left: 3px solid var(--color-primary); border-top: 4px solid var(--color-sidebar); box-shadow: var(--shadow-card); background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 31px, rgb(93 75 50 / .08) 31px, rgb(93 75 50 / .08) 32px); }
+    .empty-record h2 { margin: 0 0 var(--space-2); font: 500 var(--font-size-2xl)/1.1 var(--font-family-display); }
+    .empty-record p:not(.eyebrow) { max-width: 34rem; color: var(--color-text-secondary); margin-bottom: var(--space-5); }
     .ce-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
     .ce-table th, .ce-table td { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); text-align: left; }
-    .ce-table thead { background: var(--color-neutral-light); }
-    .ce-button { border: 0; border-radius: var(--radius-lg); padding: 0 var(--space-4); height: 2.5rem; cursor: pointer; font-family: inherit; }
+    .ce-table thead { background: color-mix(in srgb, var(--color-sidebar) 8%, transparent); font-family: var(--font-family-mono); text-transform: uppercase; letter-spacing: .06em; font-size: .7rem; }
+    .ce-button { border: 0; border-radius: 0; padding: 0 var(--space-4); height: 2.5rem; cursor: pointer; font-family: inherit; }
     .variant-primary { background: var(--color-primary); color: var(--color-text-on-primary); }
     .variant-ghost { background: transparent; }
     .ce-modal-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
-    .ce-modal { background: var(--color-surface-elevated); padding: var(--space-6); border-radius: var(--radius-xl); width: min(28rem, 90vw); display: flex; flex-direction: column; gap: var(--space-3); }
-    .ce-input { width: 100%; padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-lg); margin-top: var(--space-1); }
+    .ce-modal { background: var(--color-surface); padding: var(--space-6); border-top: 4px solid var(--color-primary); width: min(28rem, 90vw); display: flex; flex-direction: column; gap: var(--space-3); }
+    .ce-input { width: 100%; padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-radius: 0; margin-top: var(--space-1); }
     label { display: block; font-size: var(--font-size-sm); }
     .actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-2); }
     .text-secondary { color: var(--color-text-secondary); }
+    @media (max-width: 680px) { .page-header { align-items: start; flex-direction: column; } .tabs { overflow-x: auto; } .tab { white-space: nowrap; } }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

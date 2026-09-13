@@ -22,9 +22,11 @@ import {
   compressImage,
   DEFAULT_COMPRESSION,
   DEFAULT_RETRY,
+  isTransientUploadError,
   uploadWithRetry,
 } from '../../../features/photos/photo-utils';
 import type { PhotoEntityType as PhotoEntityTypeArg } from '../../../features/photos/photos-api.service';
+import { getApiErrorMessage } from '../../../core/utils/api-error.util';
 
 type Mode = 'camera' | 'upload';
 type Status = 'idle' | 'previewing' | 'capturing' | 'compressing' | 'uploading' | 'error';
@@ -378,23 +380,29 @@ export class CePhotoCaptureComponent implements AfterViewInit, OnDestroy {
     const video = this.videoElement;
     if (!video || this.status() !== 'previewing') return;
     this.status.set('capturing');
-    const blob = await this.captureFrame(video);
-    // Hold the shutter flash for 200ms before kicking off compression/upload.
-    setTimeout(() => {
-      void this.processBlob(blob);
-    }, 200);
+    try {
+      const file = await this.captureFrame(video);
+      // Hold the shutter flash for 200ms before using the exact same
+      // compression and multipart path as a file chosen from the device.
+      setTimeout(() => void this.processBlob(file), 200);
+    } catch {
+      this.toast.error('Unable to capture a photo from this camera. Please upload an image instead.');
+      this.status.set('error');
+    }
   }
 
-  private async captureFrame(video: HTMLVideoElement): Promise<Blob> {
+  private async captureFrame(video: HTMLVideoElement): Promise<File> {
     const canvas = document.createElement('canvas');
     canvas.width = video.videoWidth || 1280;
     canvas.height = video.videoHeight || 720;
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('CANVAS_CONTEXT_UNAVAILABLE');
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    return new Promise<Blob>((resolve, reject) => {
+    return new Promise<File>((resolve, reject) => {
       canvas.toBlob(
-        (blob) => (blob ? resolve(blob) : reject(new Error('CANVAS_TO_BLOB_FAILED'))),
+        (blob) => blob
+          ? resolve(new File([blob], this.fileName(), { type: 'image/jpeg', lastModified: Date.now() }))
+          : reject(new Error('CANVAS_TO_BLOB_FAILED')),
         'image/jpeg',
         0.95,
       );
@@ -482,9 +490,14 @@ export class CePhotoCaptureComponent implements AfterViewInit, OnDestroy {
       const photo = await uploadWithRetry(
         () => {
           this.retryAttempt.update((n) => n + 1);
-          return this.photosApi.upload(compressed, this.fileName());
+          return this.photosApi.upload(compressed, this.fileName(), {
+            entityType: this.entityType(),
+            entityId: this.entityId(),
+            capturedAtUtc: new Date().toISOString(),
+          });
         },
         DEFAULT_RETRY,
+        isTransientUploadError,
       );
       this.toast.success('Photo uploaded');
       this.photoUploaded.emit(photo);
@@ -492,7 +505,7 @@ export class CePhotoCaptureComponent implements AfterViewInit, OnDestroy {
       this.closed.emit();
     } catch (err) {
       console.error('[ce-photo-capture] upload failed', err);
-      this.toast.error('Upload failed. Try again.');
+      this.toast.error(getApiErrorMessage(err, 'Upload failed. Check your connection and try again.'));
       this.status.set('error');
     }
   }

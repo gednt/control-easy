@@ -15,8 +15,8 @@ import { Component, input, ChangeDetectionStrategy } from '@angular/core';
     .ce-table-wrapper {
       width: 100%;
       overflow-x: auto;
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
+      border-top: 3px solid var(--color-sidebar);
+      border-radius: 0;
     }
     :host ::ng-deep .ce-table {
       width: 100%;
@@ -27,17 +27,18 @@ import { Component, input, ChangeDetectionStrategy } from '@angular/core';
       position: sticky;
       top: 0;
       z-index: 1;
-      background: var(--color-surface);
+      background: color-mix(in srgb, var(--color-sidebar) 7%, var(--color-surface));
     }
     :host ::ng-deep .ce-table th {
       padding: var(--space-3) var(--space-4);
       text-align: left;
+      font-family: var(--font-family-mono);
       font-weight: var(--font-weight-semibold);
       color: var(--color-text-secondary);
       border-bottom: 1px solid var(--color-border);
       font-size: var(--font-size-xs);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.08em;
     }
     :host ::ng-deep .ce-table td {
       padding: var(--space-3) var(--space-4);

@@ -148,8 +148,10 @@ const TILES: TileDescriptor[] = [
       .tile-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: var(--space-3, 12px);
-        padding: var(--space-1, 4px) 0;
+        gap: 1px;
+        padding: 0;
+        background: var(--color-border, #c9c1b3);
+        border-top: 3px solid var(--color-sidebar, #182a33);
       }
       .tile-button {
         background: transparent;
@@ -157,9 +159,9 @@ const TILES: TileDescriptor[] = [
         padding: 0;
         cursor: pointer;
         font-family: inherit;
-        min-height: 160px;
+        min-height: 172px;
         display: block;
-        transition: transform 100ms ease-out;
+        transition: background-color 150ms ease-out, transform 100ms ease-out;
       }
       .tile-button:active:not(:disabled) {
         transform: scale(0.95);
@@ -178,31 +180,34 @@ const TILES: TileDescriptor[] = [
         align-items: center;
         justify-content: center;
         gap: var(--space-2, 8px);
-        padding: var(--space-4, 16px);
-        border-radius: var(--radius-lg, 8px);
+        padding: var(--space-5, 20px);
+        border-radius: 0;
         width: 100%;
         height: 100%;
       }
-      .tile.primary { background: var(--color-primary, #0066cc); color: white; }
+      .tile.primary { background: var(--color-primary, #a84d3d); color: white; }
       .tile.denied { background: var(--color-danger, #991b1b); color: white; }
       .tile.gatehouse {
-        background: var(--color-surface-alt, #e5e7eb);
+        background: var(--color-surface, #fffdf7);
         color: var(--color-text-primary, #111827);
       }
-      .tile.override { background: var(--color-warning, #f59e0b); color: white; }
+      .tile.override { background: #c28a2c; color: #1c2428; }
       .label {
-        font-size: var(--font-size-base, 18px);
+        font-family: var(--font-family-display, Georgia, serif);
+        font-size: var(--font-size-xl, 20px);
         font-weight: var(--font-weight-semibold, 600);
       }
       .sub {
         font-size: var(--font-size-xs, 13px);
-        opacity: 0.85;
+        opacity: 0.78;
+        font-family: var(--font-family-mono, monospace);
+        letter-spacing: .05em;
       }
       .subject-form {
         display: flex;
         flex-direction: column;
         gap: var(--space-3, 12px);
-        padding: var(--space-1, 4px) 0;
+        padding: var(--space-2, 8px) 0;
       }
       .field {
         display: flex;
@@ -217,10 +222,10 @@ const TILES: TileDescriptor[] = [
       .ce-input {
         padding: var(--space-2, 8px) var(--space-3, 12px);
         border: 1px solid var(--color-border, #e5e7eb);
-        border-radius: var(--radius-md, 6px);
+        border-radius: 0;
         font-family: inherit;
         font-size: var(--font-size-sm, 14px);
-        background: var(--color-surface-elevated, #fff);
+        background: var(--color-surface, #fffdf7);
         color: var(--color-text-primary, #111827);
         min-height: 2.5rem;
       }

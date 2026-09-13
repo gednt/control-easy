@@ -163,18 +163,6 @@ const DEMO_ACCOUNTS = [
       padding: var(--space-4);
       position: relative;
     }
-    .login-page::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 80% 50% at 50% -20%, color-mix(in oklch, var(--color-primary) 12%, transparent), transparent),
-        radial-gradient(ellipse 60% 50% at 80% 100%, color-mix(in oklch, var(--color-info) 8%, transparent), transparent);
-      pointer-events: none;
-      z-index: 0;
-    }
-    .login-page > * { position: relative; z-index: 1; }
-
     .login-card {
       width: 100%;
       max-width: 28rem;
@@ -182,26 +170,35 @@ const DEMO_ACCOUNTS = [
       border-radius: var(--radius-xl);
       padding: var(--space-8);
       box-shadow: var(--shadow-xl);
-      border: 1px solid var(--color-border);
+      border: 0;
+      position: relative;
+    }
+    .login-card::before {
+      content: "";
+      display: block;
+      width: 4rem;
+      height: 3px;
+      background: var(--color-primary);
+      margin-bottom: var(--space-6);
     }
     .login-brand {
       display: flex;
       align-items: center;
       gap: var(--space-3);
-      margin-bottom: var(--space-6);
+      margin-bottom: var(--space-5);
     }
     .login-brand-mark {
       width: 3rem;
       height: 3rem;
-      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+      background: var(--color-primary);
       color: var(--color-text-on-primary);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      border-radius: var(--radius-lg);
+      border-radius: 50%;
       font-weight: var(--font-weight-bold);
       font-size: 1.5rem;
-      box-shadow: var(--shadow-primary-glow);
+      box-shadow: 0 5px 12px rgb(168 77 61 / 0.2);
     }
     .login-brand-text {
       font-size: var(--font-size-lg);
@@ -209,8 +206,9 @@ const DEMO_ACCOUNTS = [
       color: var(--color-text-primary);
     }
     .login-title {
-      font-size: var(--font-size-2xl);
-      margin-bottom: var(--space-1);
+      font-size: var(--font-size-3xl);
+      letter-spacing: -0.03em;
+      margin-bottom: var(--space-2);
     }
     .login-subtitle {
       color: var(--color-text-secondary);
@@ -288,7 +286,6 @@ const DEMO_ACCOUNTS = [
     .tenant-card {
       background: var(--color-surface);
       border: 1px solid var(--color-border);
-      border-left: 4px solid var(--color-primary);
       border-radius: var(--radius-lg);
       padding: var(--space-4);
       cursor: pointer;

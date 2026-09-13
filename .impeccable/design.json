@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-13T16:00:00.000Z",
+  "title": "Design System: ControlEasy Reborn",
+  "extensions": {
+    "colorMeta": {
+      "ledger-paper": { "role": "neutral", "displayName": "Ledger Paper", "canonical": "#e8e3d7", "tonalRamp": ["#292724", "#4a463f", "#6e685e", "#938b7e", "#b5ad9f", "#d1cabd", "#e8e3d7", "#fffdf7"] },
+      "record-surface": { "role": "neutral", "displayName": "Record Surface", "canonical": "#fffdf7", "tonalRamp": ["#393730", "#625f56", "#888278", "#aaa498", "#cac4b8", "#e3ded3", "#f3eee5", "#fffdf7"] },
+      "charcoal-rail": { "role": "neutral", "displayName": "Charcoal Rail", "canonical": "#182a33", "tonalRamp": ["#101c22", "#182a33", "#263b43", "#465b62", "#667a7f", "#91a2a4", "#bac6c4", "#e2e8e3"] },
+      "brick-stamp": { "role": "primary", "displayName": "Brick Stamp", "canonical": "#a84d3d", "tonalRamp": ["#351713", "#58271f", "#7b382d", "#a84d3d", "#c86d58", "#df9987", "#f3ddd6", "#fff5f1"] },
+      "brass-priority": { "role": "secondary", "displayName": "Brass Priority", "canonical": "#7e5c22", "tonalRamp": ["#2b1e0b", "#463211", "#624718", "#7e5c22", "#9d7933", "#c6a663", "#ead8aa", "#fff8e7"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Ledger Editorial", "purpose": "Page and record titles only." },
+      "body": { "displayName": "Operational Body", "purpose": "Readable descriptions and transactional content." },
+      "label": { "displayName": "Record Metadata", "purpose": "Timestamps, headers, states, and labels." }
+    },
+    "shadows": [
+      { "name": "paper-lift", "value": "0 9px 22px rgb(24 40 49 / 0.08)", "purpose": "Separates a record from the desk." },
+      { "name": "stamp-lift", "value": "0 12px 26px rgb(168 77 61 / 0.22)", "purpose": "Reserved for a primary operational action." }
+    ],
+    "motion": [
+      { "name": "handover-transfer", "value": "1.1s ease-out", "purpose": "A newly logged row settles into the handover record." }
+    ],
+    "breakpoints": [
+      { "name": "ledger-stack", "value": "960px" },
+      { "name": "compact-record", "value": "680px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Stamped Entry Action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single urgent action on an operational surface.",
+      "html": "<button class=\"ds-entry\">+ RECORD ENTRY</button>",
+      "css": ".ds-entry { background:#a84d3d; color:#fffdf7; border:2px solid #a84d3d; box-shadow:3px 3px 0 #702d25; padding:0 16px; min-height:44px; font:700 12px/1 'DM Mono',monospace; letter-spacing:.08em; cursor:pointer; } .ds-entry:hover { transform:translate(-1px,-1px); box-shadow:4px 4px 0 #702d25; } .ds-entry:focus-visible { outline:3px solid #182a33; outline-offset:3px; }"
+    },
+    {
+      "name": "Record State Stamp",
+      "kind": "chip",
+      "refersTo": "record-surface",
+      "description": "A compact status mark that reads like a verified ledger annotation.",
+      "html": "<span class=\"ds-stamp\">ON-SITE</span>",
+      "css": ".ds-stamp { display:inline-block; color:#32694b; background:#e2efe3; border:1px solid currentColor; padding:5px 7px; font:700 10px/1 'DM Mono',monospace; letter-spacing:.08em; transform:rotate(-1deg); }"
+    },
+    {
+      "name": "Paper Record",
+      "kind": "card",
+      "refersTo": "record-surface",
+      "description": "A structural record surface for lists, forms, and handovers.",
+      "html": "<section class=\"ds-record\"><small>QUEUE / CURRENT HANDOVER</small><h3>Arrival record</h3></section>",
+      "css": ".ds-record { background:#fffdf7; border-top:4px solid #182a33; box-shadow:0 9px 22px rgb(24 40 49 / .08); padding:24px; color:#182831; } .ds-record small { color:#52646b; font:700 11px/1 'DM Mono',monospace; letter-spacing:.1em; } .ds-record h3 { margin:10px 0 0; font:500 24px/1.1 Fraunces,Georgia,serif; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Shift Ledger",
+    "overview": "ControlEasy is a trustworthy working record passed between gatehouse attendants, administrators, and residents. Warm paper, ruled rows, stamps, and a dark operational rail make work legible without turning it into a generic dashboard.",
+    "keyCharacteristics": ["Charcoal rail with warm paper workspace", "Editorial display type and monospaced metadata", "Structural rules and stamps over floating cards"],
+    "rules": [
+      { "name": "Rare Stamp Rule", "body": "Brick is never a decorative wash. Use it to identify the next consequential action, a selected location, or a recorded exception.", "section": "colors" },
+      { "name": "Paper Stack Rule", "body": "Lift only a record that needs separation from the desk. Use borders, rules, and tonal paper before adding shadow.", "section": "elevation" }
+    ],
+    "dos": ["Do make the next operational action obvious with one brick stamp.", "Do use ruled rows, tab dividers, and monospaced labels to make dense records fast to scan."],
+    "donts": ["Don't replace records with a field of isolated rounded cards.", "Don't use gradients, glass effects, or generic blue dashboard accents.", "Don't use system UI fonts for display hierarchy or operational labels."]
+  }
+}

@@ -1,11 +1,12 @@
-import { Component, ChangeDetectionStrategy, computed, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, computed, effect, inject, input, output, signal } from '@angular/core';
+import { PhotosApiService } from '../../../features/photos/photos-api.service';
 
 export type CePhotoSize = 'thumbnail' | 'source';
 
 /**
- * Display a photo by id. Uses the Phase 11 source endpoint directly; the
- * `size` input is preserved as a forward-compatible affordance for when the
- * backend grows a real /thumbnail route (Phase 12 deviation).
+ * Display a protected photo by id. Image requests cannot carry the SPA's
+ * bearer token when made through a plain img URL, so content is retrieved by
+ * the authenticated HTTP client and rendered with an object URL.
  */
 @Component({
   selector: 'ce-photo',
@@ -30,7 +31,7 @@ export type CePhotoSize = 'thumbnail' | 'source';
       >?</div>
     } @else {
       <img
-        [src]="srcUrl()"
+        [src]="sourceUrl()!"
         [width]="displaySize()"
         [height]="displaySize()"
         loading="lazy"
@@ -81,7 +82,9 @@ export type CePhotoSize = 'thumbnail' | 'source';
     `,
   ],
 })
-export class CePhotoComponent {
+export class CePhotoComponent implements OnDestroy {
+  private readonly photosApi = inject(PhotosApiService);
+
   photoId = input.required<string>();
   /** Logical size; rendered as a square. Phase 11 has only the source endpoint. */
   size = input<CePhotoSize | number>('thumbnail');
@@ -91,6 +94,8 @@ export class CePhotoComponent {
 
   loading = signal(true);
   error = signal(false);
+  sourceUrl = signal<string | null>(null);
+  private objectUrl: string | null = null;
 
   photoClicked = output<void>();
 
@@ -101,17 +106,30 @@ export class CePhotoComponent {
     return s === 'source' ? 800 : 128;
   });
 
-  srcUrl = computed<string>(() => {
-    const s = this.size();
-    if (s === 'source') {
-      return `/api/v1/photos/${this.photoId()}`;
-    }
-    // Phase 12 deviation: backend has no /thumbnail endpoint yet. Use the
-    // source; the <img> applies object-fit: cover to crop to the requested
-    // displaySize. The `size` input is preserved so adding a real thumbnail
-    // route later is non-breaking.
-    return `/api/v1/photos/${this.photoId()}`;
-  });
+  constructor() {
+    effect((onCleanup) => {
+      const id = this.photoId();
+      this.releaseObjectUrl();
+      this.loading.set(true);
+      this.error.set(false);
+      const subscription = this.photosApi.get(id).subscribe({
+        next: (blob) => {
+          this.objectUrl = URL.createObjectURL(blob);
+          this.sourceUrl.set(this.objectUrl);
+          this.loading.set(false);
+        },
+        error: () => {
+          this.sourceUrl.set(null);
+          this.loading.set(false);
+          this.error.set(true);
+        },
+      });
+      onCleanup(() => {
+        subscription.unsubscribe();
+        this.releaseObjectUrl();
+      });
+    }, { allowSignalWrites: true });
+  }
 
   onLoad(): void {
     this.loading.set(false);
@@ -123,9 +141,19 @@ export class CePhotoComponent {
     this.error.set(true);
   }
 
+  ngOnDestroy(): void {
+    this.releaseObjectUrl();
+  }
+
   onClick(): void {
     if (this.clickable()) {
       this.photoClicked.emit();
     }
+  }
+
+  private releaseObjectUrl(): void {
+    if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
+    this.objectUrl = null;
+    this.sourceUrl.set(null);
   }
 }

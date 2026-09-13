@@ -26,7 +26,7 @@ import { clsx } from 'clsx';
       justify-content: center;
       gap: var(--space-2);
       font-weight: var(--font-weight-medium);
-      border-radius: var(--radius-lg);
+      border-radius: var(--radius-md);
       cursor: pointer;
       user-select: none;
       white-space: nowrap;
@@ -49,11 +49,11 @@ import { clsx } from 'clsx';
     .variant-primary {
       background: var(--color-primary);
       color: var(--color-text-on-primary);
-      box-shadow: var(--shadow-sm);
+      box-shadow: 0 5px 12px rgb(168 77 61 / 0.2);
     }
     .variant-primary:hover:not(:disabled) {
       background: var(--color-primary-hover);
-      transform: translateY(-1px);
+      transform: translateY(-2px);
       box-shadow: var(--shadow-primary-glow);
     }
     .variant-secondary {

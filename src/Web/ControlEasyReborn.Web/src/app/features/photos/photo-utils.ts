@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Observable, firstValueFrom } from 'rxjs';
 
 export interface CompressionOptions {
@@ -132,6 +133,7 @@ export const DEFAULT_RETRY: RetryOptions = {
 export async function uploadWithRetry<T>(
   upload: () => Observable<T>,
   options: RetryOptions = DEFAULT_RETRY,
+  shouldRetry: (error: unknown) => boolean = () => true,
 ): Promise<T> {
   let lastError: unknown;
   for (let attempt = 0; attempt < options.maxAttempts; attempt++) {
@@ -139,12 +141,20 @@ export async function uploadWithRetry<T>(
       return await firstValueFrom(upload());
     } catch (err) {
       lastError = err;
-      if (attempt < options.maxAttempts - 1) {
+      if (attempt < options.maxAttempts - 1 && shouldRetry(err)) {
         await sleep(options.delays[attempt] ?? options.delays[options.delays.length - 1] ?? 0);
+      } else {
+        break;
       }
     }
   }
   throw lastError;
+}
+
+/** Only network, rate-limit, timeout, and server failures are worth retrying. */
+export function isTransientUploadError(error: unknown): boolean {
+  if (!(error instanceof HttpErrorResponse)) return true;
+  return error.status === 0 || error.status === 408 || error.status === 429 || error.status >= 500;
 }
 
 function sleep(ms: number): Promise<void> {

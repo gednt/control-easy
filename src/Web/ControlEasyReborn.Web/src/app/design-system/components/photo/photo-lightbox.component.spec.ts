@@ -1,7 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { importProvidersFrom } from '@angular/core';
+import { of } from 'rxjs';
 import { CePhotoLightboxComponent } from './photo-lightbox.component';
-import type { PhotoResponse } from '../../../features/photos/photos-api.service';
+import { PhotosApiService, type PhotoResponse } from '../../../features/photos/photos-api.service';
 import { CE_LUCIDE_ICONS } from '../icon/icon.registry';
 
 function makePhoto(id: string): PhotoResponse {
@@ -21,11 +22,17 @@ function makePhoto(id: string): PhotoResponse {
 describe('CePhotoLightboxComponent', () => {
   let fixture: ComponentFixture<CePhotoLightboxComponent>;
   let component: CePhotoLightboxComponent;
+  let photosApi: jasmine.SpyObj<PhotosApiService>;
 
   beforeEach(async () => {
+    photosApi = jasmine.createSpyObj<PhotosApiService>('PhotosApiService', ['get']);
+    photosApi.get.and.returnValue(of(new Blob(['photo'], { type: 'image/jpeg' })));
     await TestBed.configureTestingModule({
       imports: [CePhotoLightboxComponent],
-      providers: [importProvidersFrom(CE_LUCIDE_ICONS)],
+      providers: [
+        importProvidersFrom(CE_LUCIDE_ICONS),
+        { provide: PhotosApiService, useValue: photosApi },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CePhotoLightboxComponent);
@@ -44,6 +51,14 @@ describe('CePhotoLightboxComponent', () => {
     fixture.componentRef.setInput('open', true);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.lightbox-overlay')).toBeTruthy();
+  });
+
+  it('loads the selected source through the authenticated photo service', () => {
+    fixture.componentRef.setInput('open', true);
+    fixture.detectChanges();
+
+    expect(photosApi.get).toHaveBeenCalledWith('a');
+    expect(fixture.nativeElement.querySelector('ce-photo.lightbox-image')).toBeTruthy();
   });
 
   it('shows prev/next buttons only when multiple photos', () => {

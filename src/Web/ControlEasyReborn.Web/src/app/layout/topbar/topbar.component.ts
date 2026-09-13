@@ -21,7 +21,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { TenantSessionService } from '../../core/services/tenant-session.service';
 import { DrawerService } from '../../core/services/drawer.service';
 
-const BRAND_GRADIENT = 'linear-gradient(135deg, var(--color-primary), var(--color-accent-pink))';
+const BRAND_GRADIENT = 'var(--color-primary)';
 
 @Component({
   selector: 'ce-topbar',
@@ -62,7 +62,7 @@ const BRAND_GRADIENT = 'linear-gradient(135deg, var(--color-primary), var(--colo
 
       <div class="topbar-actions">
         @if (auth.isDemoPersona()) {
-          <a class="topbar-help-link" routerLink="/help/demo">Help → Demo guide</a>
+          <a class="topbar-help-link" routerLink="/help/demo"><span class="help-full">Help → Demo guide</span><span class="help-short">Demo</span></a>
         }
 
         <button class="icon-btn" type="button" aria-label="Notifications" ceTooltip="Notifications">
@@ -134,14 +134,17 @@ const BRAND_GRADIENT = 'linear-gradient(135deg, var(--color-primary), var(--colo
       gap: var(--space-4);
       height: var(--topbar-height);
       padding: 0 var(--space-6);
-      background: var(--color-surface);
+      background: color-mix(in oklch, var(--color-surface) 92%, var(--color-background));
       border-bottom: 1px solid var(--color-border);
-      backdrop-filter: blur(8px);
     }
     @media (max-width: 639px) {
       .topbar { padding: 0 var(--space-3); gap: var(--space-2); }
       .topbar-search { display: none; }
+      .topbar-help-link { white-space: nowrap; padding-inline: var(--space-1); font-size: var(--font-size-xs); }
+      .help-full { display: none; }
+      .help-short { display: inline; }
     }
+    .help-short { display: none; }
     .topbar-menu-btn {
       display: none;
       background: transparent;
@@ -168,7 +171,7 @@ const BRAND_GRADIENT = 'linear-gradient(135deg, var(--color-primary), var(--colo
       height: 2.5rem;
       padding: 0 var(--space-3) 0 2.5rem;
       border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
+      border-radius: var(--radius-md);
       background: var(--color-background);
       font-size: var(--font-size-sm);
       color: var(--color-text-primary);
