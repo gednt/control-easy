@@ -134,10 +134,52 @@ This project is **Source-Available**.
 
 The application source code is publicly accessible for evaluation, inspection, security auditing, and educational reference. However, **modifications, derivative works, and production or commercial use require prior written authorization** from the copyright holder.
 
-### Open-Source Components (DBTools)
-
-ControlEasy Reborn incorporates and relies upon **[DBTools](https://www.nuget.org/packages/DBTools)** (`Linq<TModel>`, `IAsyncSqlClient`), an open-source ORM and data-access library also authored and created by Felipe Coelho R. Silva. DBTools is distributed independently under its own open-source license.
-
 For complete license terms, restrictions, and authorization inquiries, please see [LICENSE.md](LICENSE.md).
 
 Copyright (c) 2026 Felipe Coelho R. Silva. All rights reserved.
+
+---
+
+## Open-Source Acknowledgments
+
+ControlEasy Reborn builds upon and acknowledges the open-source ecosystem, incorporating the following open-source frameworks, libraries, and tools:
+
+### Data Access & Custom ORM
+- **[DBTools](https://www.nuget.org/packages/DBTools)** — High-performance LINQ-to-SQL custom ORM authored by Felipe Coelho R. Silva (in development since 2014)
+
+### Backend & Core (.NET)
+- **[ASP.NET Core & .NET 8](https://github.com/dotnet/aspnetcore)** — Web framework and runtime (MIT)
+- **[MySqlConnector](https://mysqlconnector.net/)** — High-performance asynchronous ADO.NET provider for MySQL (MIT)
+- **[Serilog](https://serilog.net/)** — Structured diagnostic logging framework and sinks (`Serilog.AspNetCore`, Console, Seq, File) (Apache 2.0)
+- **[FluentValidation](https://fluentvalidation.net/)** — Fluent business rule and request validation (Apache 2.0)
+- **[Mapster](https://github.com/MapsterMapper/Mapster)** — High-performance object-to-object mapping (MIT)
+- **[Swashbuckle.AspNetCore](https://github.com/domaindrivendev/Swashbuckle.AspNetCore)** — OpenAPI 3 / Swagger documentation tooling (MIT)
+- **[BCrypt.Net-Next](https://github.com/BcryptNet/bcrypt.net)** — Secure password hashing (Apache 2.0 / MIT)
+- **[NPOI](https://github.com/nissl-lab/npoi)** & **[SharpZipLib](https://github.com/icsharpcode/SharpZipLib)** — Excel spreadsheet generation and zip archive management (Apache 2.0 / MIT)
+- **[AWSSDK.S3](https://github.com/aws/aws-sdk-net)** — S3-compatible photo and blob storage client (Apache 2.0)
+
+### Frontend (Angular & Web)
+- **[Angular 18](https://angular.dev/)** — Single-page web application framework (MIT)
+- **[RxJS](https://rxjs.dev/)** — Reactive extensions for asynchronous streams (Apache 2.0)
+- **[Tailwind CSS](https://tailwindcss.com/)** — Utility-first styling framework (MIT)
+- **[Lucide Angular](https://lucide.dev/)** — Icon set for Angular (ISC)
+- **[clsx](https://github.com/lukeed/clsx)** — Dynamic class binding utility (MIT)
+- **[exifr](https://github.com/MikeKovarik/exifr)** — Client-side image metadata/EXIF parser (MIT)
+- **[ng-openapi-gen](https://github.com/cyclosproject/ng-openapi-gen)** — Angular HTTP client generator from OpenAPI 3 specs (MIT)
+
+### Testing & Code Quality
+- **[xUnit](https://xunit.net/)** — .NET unit testing framework (Apache 2.0)
+- **[FluentAssertions](https://fluentassertions.com/)** — Fluent assertion library for .NET tests (Apache 2.0)
+- **[NSubstitute](https://nsubstitute.github.io/)** — Mocking framework for .NET (BSD-3-Clause)
+- **[Testcontainers for .NET](https://dotnet.testcontainers.org/)** — Disposable containerized MySQL testing (MIT)
+- **[NetArchTest.Rules](https://github.com/BenMorris/NetArchTest)** — Architectural fitness and Clean Architecture rules engine (MIT)
+- **[Playwright](https://playwright.dev/)** — Cross-browser end-to-end testing framework (Apache 2.0)
+- **[Axe Core](https://github.com/dequelabs/axe-core)** (`@axe-core/playwright`) — Automated accessibility testing engine (MPL 2.0)
+- **[ESLint](https://eslint.org/)** & **[Prettier](https://prettier.io/)** — Code linting and formatting (MIT)
+- **[Karma](https://karma-runner.github.io/)** & **[Jasmine](https://jasmine.github.io/)** — Frontend unit testing runner and assertion framework (MIT)
+
+### Infrastructure & Operations
+- **[MySQL 8](https://www.mysql.com/)** — Relational database engine (GPL v2 with FOSS Exception)
+- **[Traefik](https://traefik.io/)** — Edge router and reverse proxy (MIT)
+- **[Adminer](https://www.adminer.org/)** — Database management tool (Apache 2.0 / GPL 2)
+- **[Seq](https://datalust.co/seq)** — Centralized structured log server (Free development license)
