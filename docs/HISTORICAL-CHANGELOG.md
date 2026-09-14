@@ -292,3 +292,12 @@
 ### Version Z 3.6.0.6
 - Fixed cold-start QR card image saving bug where an error dialog appeared without persisting files.
 - Final recorded desktop release of the classic era before the conceptual leap to modern web architecture and multi-tenancy in **ControlEasy Reborn**.
+
+---
+
+## Evolution: ControlEasy Reborn
+
+Following Version Z 3.6.0.6, the desktop era concluded. The platform was completely rebuilt from the ground up as **ControlEasy Reborn** — an enterprise-grade, multi-tenant web modular monolith on ASP.NET Core 8 minimal APIs, Angular 18, and DBTools.
+
+For all release notes of the modern platform (v1.0.0, v1.1.0, v2.0.0, and beyond), see the primary [CHANGELOG.md](../CHANGELOG.md).
+

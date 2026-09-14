@@ -163,6 +163,7 @@ Comprehensive documentation is available in the [`docs/`](docs/) directory:
 - [API Documentation](docs/API.md) — REST API endpoints, authentication, request/response formats
 - [Deployment Guide](docs/DEPLOYMENT.md) — Docker container deployment, CI/CD pipeline, and monitoring
 - [Demo Mode Specification](docs/demo-mode.md) — Demo data schemas, credentials, walkthroughs
+- [Changelog](CHANGELOG.md) — Release notes and milestone deliveries for ControlEasy Reborn (v1.0.0 to v2.0.0+)
 - [Historical Changelog](docs/HISTORICAL-CHANGELOG.md) — Complete desktop release chronicle (v0.1 to v3.6.0.6)
 - [Agent Flow Cheatsheet](docs/agent-flow-cheatsheet.md) — Multi-agent orchestrations and lifecycle conventions
 - [AGENTS.md](AGENTS.md) — Authoritative contributor rules and architectural invariants
