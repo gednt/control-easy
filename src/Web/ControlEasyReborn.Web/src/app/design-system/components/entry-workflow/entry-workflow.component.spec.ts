@@ -46,6 +46,21 @@ describe('CeEntryWorkflowComponent', () => {
     });
   }
 
+  function resident(overrides: Partial<{ id: string; name: string; cpf: string; active: boolean }> = {}) {
+    return {
+      id: 'b42c6db0-3c39-4f49-aec4-8ce8c98f3ad8',
+      tenantId: 't-1',
+      name: 'Ana Silva',
+      cpf: '12345678909',
+      email: 'ana@example.com',
+      phone: '11999999999',
+      apartmentId: 'a-1',
+      active: true,
+      createdAtUtc: new Date().toISOString(),
+      ...overrides,
+    };
+  }
+
   it('renders entry and exit tiles', () => {
     const tiles: NodeListOf<HTMLButtonElement> = fixture.nativeElement.querySelectorAll('[data-action]');
     const actions = Array.from(tiles).map((t) => t.getAttribute('data-action'));
@@ -135,6 +150,62 @@ describe('CeEntryWorkflowComponent', () => {
     expect(component.selectedCategory()).toBe('vehicle');
     component.onCategorySelect('visitor');
     expect(component.selectedCategory()).toBe('vehicle');
+  }));
+
+  it('finds an active resident by formatted CPF and fills the known record', fakeAsync(() => {
+    void component.onTileTap('exit');
+    tick();
+
+    component.onResidentLookupInput('123.456.789-09');
+    void component.findResident();
+    tick();
+
+    const lookupRequest = httpMock.expectOne(
+      (request) =>
+        request.url === '/api/v1/residents' &&
+        request.params.get('search') === '12345678909' &&
+        request.params.get('skip') === '0' &&
+        request.params.get('take') === '10',
+    );
+    lookupRequest.flush([resident()]);
+    tick();
+
+    expect(component.selectedResident()?.id).toBe('b42c6db0-3c39-4f49-aec4-8ce8c98f3ad8');
+    expect(component.subjectName()).toBe('Ana Silva');
+    expect(component.subjectDocument()).toBe('12345678909');
+  }));
+
+  it('finds an active resident directly by resident ID for QR lookup', fakeAsync(() => {
+    void component.onTileTap('exit');
+    tick();
+
+    component.onResidentLookupInput('b42c6db0-3c39-4f49-aec4-8ce8c98f3ad8');
+    void component.findResident();
+    tick();
+
+    const lookupRequest = httpMock.expectOne('/api/v1/residents/b42c6db0-3c39-4f49-aec4-8ce8c98f3ad8');
+    expect(lookupRequest.request.method).toBe('GET');
+    lookupRequest.flush(resident());
+    tick();
+
+    expect(component.selectedResident()?.name).toBe('Ana Silva');
+    expect(component.subjectDocument()).toBe('12345678909');
+  }));
+
+  it('shows a clear lookup message when no active resident matches', fakeAsync(() => {
+    void component.onTileTap('exit');
+    tick();
+
+    component.onResidentLookupInput('00000000000');
+    void component.findResident();
+    tick();
+
+    const lookupRequest = httpMock.expectOne((request) => request.url === '/api/v1/residents');
+    lookupRequest.flush([]);
+    tick();
+
+    expect(component.selectedResident()).toBeNull();
+    expect(component.residentSearchError()).toContain('No active resident');
   }));
 
   it('override tile opens reason modal without opening camera', fakeAsync(() => {

@@ -18,3 +18,9 @@
 - [x] T008 [US3] Render and filter exit records in `src/Web/ControlEasyReborn.Web/src/app/design-system/components/entry-state-badge/entry-state-badge.component.ts` and `audit-filters.component.ts`.
 - [x] T009 [US3] Extend the entry workflow and entry-state badge tests in their corresponding `.spec.ts` files.
 - [x] T010 Run the Docker Compose build, health check, and all required test suites.
+
+## Phase 4: Resident lookup during access registration
+
+- [x] T011 [US4] Add CPF and resident-ID lookup, active-result selection, and record prefill to `src/Web/ControlEasyReborn.Web/src/app/design-system/components/entry-workflow/entry-workflow.component.ts` using `features/residents/residents-api.service.ts`.
+- [x] T012 [US4] Add Angular tests for CPF lookup, resident-ID lookup, selection, and no-result feedback in `src/Web/ControlEasyReborn.Web/src/app/design-system/components/entry-workflow/entry-workflow.component.spec.ts`.
+- [x] T013 Run the Docker Compose rebuild, health check, and affected test suites.

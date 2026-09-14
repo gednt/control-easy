@@ -4,7 +4,7 @@
 
 ## Summary
 
-Unify dashboard and Visits-page visit creation behind one standard modal that requires a destination apartment. Extend the tenant-scoped append-only access log with resident and vehicle exits, and expose the new event in the gatehouse workflow and audit UI.
+Unify dashboard and Visits-page visit creation behind one standard modal that requires a destination apartment. Extend the tenant-scoped append-only access log with resident and vehicle exits, and expose the new event in the gatehouse workflow and audit UI. Add resident lookup to the access workflow by CPF or resident ID, reusing the tenant-scoped Residents API and pre-filling the known record.
 
 ## Technical Context
 
@@ -29,6 +29,7 @@ Unify dashboard and Visits-page visit creation behind one standard modal that re
 - Data access remains DBTools based.
 - Backend and Angular tests cover new exit behavior; final verification must run in Docker Compose.
 - Access logs remain append-only and errors continue through the existing validation/ProblemDetails flow.
+- Resident lookup reuses existing tenant-scoped read paths; no additional cross-tenant query or resident identifier is introduced.
 
 ## Project Structure
 
@@ -37,6 +38,7 @@ Unify dashboard and Visits-page visit creation behind one standard modal that re
 src/Web/ControlEasyReborn.Web/src/app/features/visits/
 src/Web/ControlEasyReborn.Web/src/app/features/dashboard/
 src/Web/ControlEasyReborn.Web/src/app/features/entry-log/
+src/Web/ControlEasyReborn.Web/src/app/features/residents/
 src/Web/ControlEasyReborn.Web/src/app/design-system/components/
 src/Modules/Photos/ControlEasyReborn.Modules.Photos.{Domain,Application,Infrastructure}/
 tests/ControlEasyReborn.UnitTests/Modules/Photos/

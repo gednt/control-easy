@@ -15,6 +15,7 @@ import {
   type SubjectType,
 } from '../../../features/entry-log/entry-log.service';
 import { ConsentPolicyService } from '../../../features/consent-policy/consent-policy.service';
+import { ResidentsApiService, type ResidentResponse } from '../../../features/residents/residents-api.service';
 import { getApiErrorMessage } from '../../../core/utils/api-error.util';
 
 type WorkflowStep = 'tiles' | 'subject-info';
@@ -130,27 +131,74 @@ function toSubjectCategory(subjectType: SubjectType): 'dwellers' | 'visitors' | 
             </div>
           </div>
 
-          <label class="field">
-            <span class="field-label">Name (optional)</span>
-            <input
-              type="text"
-              class="ce-input"
-              [placeholder]="subjectNamePlaceholder()"
-              [value]="subjectName()"
-              (input)="subjectName.set($any($event.target).value)"
-            />
-          </label>
+          @if (selectedCategory() === 'dweller') {
+            <section class="resident-lookup" aria-label="Resident lookup">
+              <label class="field" for="resident-lookup">
+                <span class="field-label">Find registered resident</span>
+                <span class="field-hint">Search by CPF or resident ID (QR)</span>
+              </label>
+              <div class="lookup-row">
+                <input
+                  id="resident-lookup"
+                  type="search"
+                  class="ce-input"
+                  placeholder="CPF or resident ID"
+                  [value]="residentLookupQuery()"
+                  (input)="onResidentLookupInput($any($event.target).value)"
+                  (keydown.enter)="findResident()"
+                />
+                <ce-button variant="secondary" size="md" (click)="findResident()" [loading]="residentSearchLoading()">
+                  Search
+                </ce-button>
+              </div>
 
-          <label class="field">
-            <span class="field-label">Document (optional)</span>
-            <input
-              type="text"
-              class="ce-input"
-              placeholder="CPF or RG"
-              [value]="subjectDocument()"
-              (input)="subjectDocument.set($any($event.target).value)"
-            />
-          </label>
+              @if (residentSearchError()) {
+                <p class="lookup-message error" role="alert">{{ residentSearchError() }}</p>
+              }
+
+              @if (residentSearchResults().length) {
+                <div class="lookup-results" role="listbox" aria-label="Resident search results">
+                  @for (resident of residentSearchResults(); track resident.id) {
+                    <button type="button" class="lookup-result" role="option" (click)="selectResident(resident)">
+                      <strong>{{ resident.name }}</strong>
+                      <span>{{ resident.cpf }}</span>
+                    </button>
+                  }
+                </div>
+              }
+
+              @if (selectedResident(); as resident) {
+                <div class="selected-resident" aria-live="polite">
+                  <ce-icon name="check-circle" [size]="16" />
+                  <span
+                    ><strong>{{ resident.name }}</strong> · {{ resident.cpf }}</span
+                  >
+                </div>
+              }
+            </section>
+          } @else {
+            <label class="field">
+              <span class="field-label">Name (optional)</span>
+              <input
+                type="text"
+                class="ce-input"
+                [placeholder]="subjectNamePlaceholder()"
+                [value]="subjectName()"
+                (input)="subjectName.set($any($event.target).value)"
+              />
+            </label>
+
+            <label class="field">
+              <span class="field-label">Document (optional)</span>
+              <input
+                type="text"
+                class="ce-input"
+                placeholder="CPF or RG"
+                [value]="subjectDocument()"
+                (input)="subjectDocument.set($any($event.target).value)"
+              />
+            </label>
+          }
 
           @if (
             (pendingState() === 'entered_with_consent' || pendingState() === 'entered_without_consent') && !photoId()
@@ -289,6 +337,10 @@ function toSubjectCategory(subjectType: SubjectType): 'dwellers' | 'visitors' | 
         font-weight: var(--font-weight-medium, 500);
         color: var(--color-text-primary, #111827);
       }
+      .field-hint {
+        font-size: var(--font-size-xs, 12px);
+        color: var(--color-text-secondary, #4b5563);
+      }
       .category-selector {
         display: flex;
         gap: var(--space-2, 8px);
@@ -335,6 +387,64 @@ function toSubjectCategory(subjectType: SubjectType): 'dwellers' | 'visitors' | 
         outline-offset: 1px;
         border-color: var(--color-primary, #0066cc);
       }
+      .resident-lookup {
+        display: grid;
+        gap: var(--space-2, 8px);
+        padding: var(--space-3, 12px);
+        border: 1px solid var(--color-border, #e5e7eb);
+        background: color-mix(in srgb, var(--color-primary, #a84d3d) 4%, var(--color-surface, #fffdf7));
+      }
+      .lookup-row {
+        display: flex;
+        gap: var(--space-2, 8px);
+      }
+      .lookup-row .ce-input {
+        min-width: 0;
+        flex: 1;
+      }
+      .lookup-message {
+        margin: 0;
+        font-size: var(--font-size-xs, 12px);
+      }
+      .lookup-message.error {
+        color: var(--color-danger, #991b1b);
+      }
+      .lookup-results {
+        display: grid;
+        border: 1px solid var(--color-border, #e5e7eb);
+      }
+      .lookup-result {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--space-3, 12px);
+        padding: var(--space-2, 8px) var(--space-3, 12px);
+        border: 0;
+        border-bottom: 1px solid var(--color-border, #e5e7eb);
+        background: var(--color-surface, #fffdf7);
+        color: var(--color-text-primary, #111827);
+        cursor: pointer;
+        font: inherit;
+        text-align: left;
+      }
+      .lookup-result:last-child {
+        border-bottom: 0;
+      }
+      .lookup-result:hover,
+      .lookup-result:focus-visible {
+        background: color-mix(in srgb, var(--color-primary, #a84d3d) 10%, var(--color-surface, #fffdf7));
+      }
+      .lookup-result span {
+        font-family: var(--font-family-mono, monospace);
+        font-size: var(--font-size-xs, 12px);
+      }
+      .selected-resident {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2, 8px);
+        color: var(--color-success, #16a34a);
+        font-size: var(--font-size-sm, 14px);
+      }
       .photo-capture-trigger {
         display: inline-flex;
         align-items: center;
@@ -376,6 +486,7 @@ function toSubjectCategory(subjectType: SubjectType): 'dwellers' | 'visitors' | 
 export class CeEntryWorkflowComponent {
   private readonly entryLogService = inject(EntryLogService);
   private readonly consentPolicyService = inject(ConsentPolicyService);
+  private readonly residentsApi = inject(ResidentsApiService);
   private readonly toast = inject(ToastService);
 
   open = input<boolean>(false);
@@ -397,6 +508,11 @@ export class CeEntryWorkflowComponent {
   subjectName = signal('');
   subjectDocument = signal('');
   selectedCategory = signal<SubjectType>('visitor');
+  residentLookupQuery = signal('');
+  residentSearchResults = signal<ResidentResponse[]>([]);
+  residentSearchError = signal<string | null>(null);
+  residentSearchLoading = signal(false);
+  selectedResident = signal<ResidentResponse | null>(null);
   photoId = signal<string | null>(null);
   pendingOverrideReason = signal<OverrideReason | null>(null);
 
@@ -450,7 +566,67 @@ export class CeEntryWorkflowComponent {
 
   onCategorySelect(category: SubjectType): void {
     if (!this.isCategoryAllowed(category)) return;
+    if (this.selectedCategory() !== category) {
+      this.clearSubject();
+    }
     this.selectedCategory.set(category);
+  }
+
+  onResidentLookupInput(value: string): void {
+    this.residentLookupQuery.set(value);
+    this.residentSearchResults.set([]);
+    this.residentSearchError.set(null);
+    this.selectedResident.set(null);
+    this.subjectName.set('');
+    this.subjectDocument.set('');
+  }
+
+  async findResident(): Promise<void> {
+    const rawIdentifier = this.residentLookupQuery().trim();
+    if (!rawIdentifier) {
+      this.residentSearchError.set('Enter a CPF or resident ID to search.');
+      return;
+    }
+
+    const isResidentId = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      rawIdentifier,
+    );
+    const normalizedIdentifier = isResidentId ? rawIdentifier : rawIdentifier.replace(/\D/g, '');
+    const searchValue = normalizedIdentifier || rawIdentifier;
+
+    this.residentSearchLoading.set(true);
+    this.residentSearchError.set(null);
+    this.residentSearchResults.set([]);
+    this.selectedResident.set(null);
+
+    try {
+      const residents = isResidentId
+        ? [await firstValueFrom(this.residentsApi.get(rawIdentifier))]
+        : await firstValueFrom(this.residentsApi.list(searchValue, 0, 10));
+      const activeResidents = residents.filter((resident) => resident.active);
+
+      if (!activeResidents.length) {
+        this.residentSearchError.set('No active resident was found for this CPF or ID.');
+      } else if (activeResidents.length === 1) {
+        const resident = activeResidents[0];
+        if (resident) this.selectResident(resident);
+      } else {
+        this.residentSearchResults.set(activeResidents);
+      }
+    } catch {
+      this.residentSearchError.set('No active resident was found for this CPF or ID.');
+    } finally {
+      this.residentSearchLoading.set(false);
+    }
+  }
+
+  selectResident(resident: ResidentResponse): void {
+    this.selectedResident.set(resident);
+    this.residentLookupQuery.set(resident.cpf);
+    this.residentSearchResults.set([]);
+    this.residentSearchError.set(null);
+    this.subjectName.set(resident.name);
+    this.subjectDocument.set(resident.cpf);
   }
 
   openCapture(): void {
@@ -508,8 +684,7 @@ export class CeEntryWorkflowComponent {
 
   back(): void {
     this.step.set('tiles');
-    this.subjectName.set('');
-    this.subjectDocument.set('');
+    this.clearSubject();
     this.photoId.set(null);
     this.pendingOverrideReason.set(null);
   }
@@ -552,6 +727,10 @@ export class CeEntryWorkflowComponent {
   async continue(): Promise<void> {
     const state = this.pendingState();
     if (!state) return;
+    if (this.selectedCategory() === 'dweller' && !this.selectedResident()) {
+      this.toast.error('Search and select the registered resident before logging access.');
+      return;
+    }
     this.loading.set(true);
     try {
       const request: CreateEntryLogRequest = {
@@ -584,9 +763,23 @@ export class CeEntryWorkflowComponent {
     this.captureMode.set('camera');
     this.subjectName.set('');
     this.subjectDocument.set('');
+    this.residentLookupQuery.set('');
+    this.residentSearchResults.set([]);
+    this.residentSearchError.set(null);
+    this.residentSearchLoading.set(false);
+    this.selectedResident.set(null);
     this.photoId.set(null);
     this.pendingOverrideReason.set(null);
     this.loading.set(false);
     this.selectedCategory.set(this.defaultCategory());
+  }
+
+  private clearSubject(): void {
+    this.subjectName.set('');
+    this.subjectDocument.set('');
+    this.residentLookupQuery.set('');
+    this.residentSearchResults.set([]);
+    this.residentSearchError.set(null);
+    this.selectedResident.set(null);
   }
 }
