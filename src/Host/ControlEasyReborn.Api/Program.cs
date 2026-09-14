@@ -32,6 +32,8 @@ using ControlEasyReborn.Modules.Visits.Infrastructure.DI;
 using ControlEasyReborn.Modules.Photos.Api.DI;
 using ControlEasyReborn.Modules.Photos.Api.Endpoints;
 using ControlEasyReborn.Modules.Photos.Infrastructure.DI;
+using ControlEasyReborn.Modules.AccessControl.Api.Endpoints;
+using ControlEasyReborn.Modules.AccessControl.Infrastructure.DI;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.FeatureManagement;
 using Serilog;
@@ -141,6 +143,7 @@ try
     builder.Services.AddVisitsModule();
     builder.Services.AddReportsModule();
     builder.Services.AddPhotosModule();
+    builder.Services.AddAccessControlModule();
 
     builder.Services.AddControlEasyDemo(builder.Configuration);
     builder.Services.AddControlEasyBootstrap(builder.Configuration);
@@ -190,6 +193,7 @@ try
     app.MapReportsApi();
     app.MapAdministrationApi();
     app.MapPhotosApi();
+    app.MapAccessControlApi();
 
     app.Run();
 }
@@ -240,6 +244,9 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
             ControlEasyReborn.Modules.Administration.Application.Errors.NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
             ControlEasyReborn.Modules.Administration.Application.Errors.ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
             ControlEasyReborn.Modules.Administration.Application.Errors.ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
+            ControlEasyReborn.Modules.AccessControl.Application.Errors.NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
+            ControlEasyReborn.Modules.AccessControl.Application.Errors.ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
+            ControlEasyReborn.Modules.AccessControl.Application.Errors.ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
             _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred")
         };
 
@@ -289,6 +296,10 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
         else if (exception is ControlEasyReborn.Modules.Photos.Application.Errors.ValidationException phoValEx)
         {
             problemDetails.Extensions["errors"] = phoValEx.Errors;
+        }
+        else if (exception is ControlEasyReborn.Modules.AccessControl.Application.Errors.ValidationException acValEx)
+        {
+            problemDetails.Extensions["errors"] = acValEx.Errors;
         }
 
         httpContext.Response.StatusCode = status;
