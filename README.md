@@ -28,6 +28,18 @@ Following the conclusion of the course, custody and ownership of the code remain
 2. **Second Generation (C# Windows Forms):** Ported to C# to improve type safety, maintainability, and code structure, continuing desktop-based operations.
 3. **Third Generation — ControlEasy Reborn (Modern Web & Multi-Tenancy):** Complete architectural rebirth into a high-performance web platform — engineered as a Clean Architecture modular monolith on ASP.NET Core 8 minimal APIs, an Angular 18 SPA with reactive signals, and native multi-tenancy supporting multiple condominium complexes on a shared, isolated infrastructure.
 
+### The Core Objective: True Enterprise-Grade Engineering
+
+A central objective of this rebirth was to showcase what **genuine enterprise-grade software engineering** looks like when built from first principles — deliberately moving beyond corporate bureaucracy and default framework templates in favor of uncompromised architectural rigor:
+
+- **Modular Monolith over Premature Microservices:** Avoids the network latency, distributed transaction failures, and eventual-consistency nightmares of premature microservices by structuring the platform into 9 cleanly decoupled bounded contexts within a unified, high-performance runtime.
+- **Architectural Fitness Automated via Tests (`NetArchTest`):** Rather than treating Clean Architecture as aspirational documentation, layer boundaries and module independence are programmatically enforced via automated architecture tests — any illicit cross-module or cross-layer dependency immediately fails the build.
+- **Root-Level Multi-Tenant Isolation (`ITenantAwareLinqFactory`):** Multi-tenancy is not an afterthought left to developer diligence or error-prone manual `WHERE` clauses. Tenant filters are injected at the query factory level, rendering cross-tenant data leakage architecturally impossible.
+- **Predictable Data Access over Heavyweight ORMs (DBTools):** While commodity enterprise shops default to Entity Framework Core, ControlEasy deliberately leverages DBTools (`Linq<TModel>`, `IAsyncSqlClient`). This eliminates change-tracker memory bloat, Cartesian explosions, and opaque query generation in favor of predictable, high-throughput LINQ-to-SQL execution.
+- **Zero Schema Drift by Design:** Strong typing is guaranteed across the network boundary by automatically compiling backend OpenAPI 3 specifications into Angular client services (`ng-openapi-gen`), with CI verification (`openapi-check`) blocking any frontend/backend model divergence.
+- **High-Fidelity Integration Testing (`Testcontainers`):** Replaces unrealistic in-memory database mocks with disposable MySQL 8 Docker containers spun up dynamically during test execution, ensuring 100% production database parity.
+- **Accessible, Reactive Frontend Architecture:** Combines Angular 18 reactive Signals and `OnPush` change detection with automated Axe Core accessibility audits integrated directly into Playwright end-to-end suites.
+
 ### The Story of DBTools (Custom ORM)
 
 A defining architectural characteristic across ControlEasy's history is the intentional use of **[DBTools](https://www.nuget.org/packages/DBTools)** instead of standard heavyweight ORMs like Entity Framework Core. 
