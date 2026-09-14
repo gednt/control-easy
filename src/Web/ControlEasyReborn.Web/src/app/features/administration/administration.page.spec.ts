@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { AdministrationPage } from './administration.page';
 import {
   AdministrationApiService,
@@ -125,10 +125,57 @@ describe('AdministrationPage', () => {
   });
 
   it('should inspect and close an audit event', () => {
-    component.inspectEvent(mockLogs[0]);
-    expect(component.inspectedEvent()).toEqual(mockLogs[0]);
+    component.inspectEvent(mockLogs[0]!);
+    expect(component.inspectedEvent()).toEqual(mockLogs[0]!);
 
     component.closeInspect();
     expect(component.inspectedEvent()).toBeNull();
+  });
+
+  it('should show an audit-load error and recover when retry succeeds', () => {
+    apiMock.listAuditLogs.and.returnValue(throwError(() => new Error('Audit service unavailable')));
+
+    component.loadAuditLogs();
+    component.setTab('audit');
+    fixture.detectChanges();
+
+    expect(component.auditLogs()).toEqual([]);
+    expect(component.auditLoadError()).toBe('Unable to load audit records. Please retry.');
+    expect(fixture.nativeElement.textContent).toContain('Unable to load audit records');
+    expect(fixture.nativeElement.textContent).not.toContain('No audit records found');
+
+    apiMock.listAuditLogs.and.returnValue(of(mockLogs));
+    component.loadAuditLogs();
+    fixture.detectChanges();
+
+    expect(component.auditLoadError()).toBeNull();
+    expect(component.auditLogs()).toEqual(mockLogs);
+    expect(fixture.nativeElement.textContent).toContain('OverrideAuthorized');
+  });
+
+  it('should ignore an older audit request that fails after a newer one succeeds', () => {
+    const olderRequest = new Subject<AuditLogResponse[]>();
+    const newerRequest = new Subject<AuditLogResponse[]>();
+    apiMock.listAuditLogs.calls.reset();
+    apiMock.listAuditLogs.and.returnValues(olderRequest, newerRequest);
+
+    component.loadAuditLogs();
+    component.loadAuditLogs();
+    newerRequest.next(mockLogs);
+    olderRequest.error(new Error('Stale request failed'));
+
+    expect(component.auditLogs()).toEqual(mockLogs);
+    expect(component.auditLoadError()).toBeNull();
+    expect(component.auditLoading()).toBeFalse();
+  });
+
+  it('should display a safe ProblemDetails title without exposing its detail', () => {
+    apiMock.listAuditLogs.and.returnValue(
+      throwError(() => ({ error: { title: 'Audit service unavailable', detail: 'Connection details are private' } })),
+    );
+
+    component.loadAuditLogs();
+
+    expect(component.auditLoadError()).toBe('Unable to load audit records: Audit service unavailable. Please retry.');
   });
 });

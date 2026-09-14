@@ -1,4 +1,4 @@
-using System.Data;
+using System.Text;
 using ControlEasyReborn.Api;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
@@ -119,18 +119,45 @@ public sealed class MySqlContainerFixture : IAsyncLifetime
 
         foreach (var script in scripts)
         {
-            var sql = await File.ReadAllTextAsync(script);
+            var sql = NormalizeScriptForMySqlConnector(await File.ReadAllTextAsync(script));
             using var conn = new MySqlConnection(_connectionString);
             await conn.OpenAsync();
 
-            var commands = sql.Split(";", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            foreach (var cmdText in commands)
-            {
-                if (string.IsNullOrWhiteSpace(cmdText)) continue;
-                using var cmd = new MySqlCommand(cmdText, conn);
-                await cmd.ExecuteNonQueryAsync();
-            }
+            // MySqlConnector parses semicolon-delimited batches, including compound
+            // stored-program statements. Splitting on semicolons would break BEGIN/END bodies.
+            using var cmd = new MySqlCommand(sql, conn);
+            await cmd.ExecuteNonQueryAsync();
         }
+    }
+
+    private static string NormalizeScriptForMySqlConnector(string sql)
+    {
+        const string DelimiterDirective = "DELIMITER";
+        var delimiter = ";";
+        var normalized = new StringBuilder();
+
+        using var reader = new StringReader(sql);
+        string? line;
+        while ((line = reader.ReadLine()) is not null)
+        {
+            var trimmed = line.Trim();
+            if (trimmed.StartsWith(DelimiterDirective, StringComparison.OrdinalIgnoreCase))
+            {
+                delimiter = trimmed[DelimiterDirective.Length..].Trim();
+                continue;
+            }
+
+            if (!string.Equals(delimiter, ";", StringComparison.Ordinal) &&
+                trimmed.EndsWith(delimiter, StringComparison.Ordinal))
+            {
+                var delimiterIndex = line.LastIndexOf(delimiter, StringComparison.Ordinal);
+                line = $"{line[..delimiterIndex]};{line[(delimiterIndex + delimiter.Length)..]}";
+            }
+
+            normalized.AppendLine(line);
+        }
+
+        return normalized.ToString();
     }
 
     private static string FindInitScriptsDirectory()

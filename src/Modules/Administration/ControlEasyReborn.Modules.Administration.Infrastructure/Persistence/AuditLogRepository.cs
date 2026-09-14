@@ -144,7 +144,7 @@ public sealed class AuditLogRepository : IAuditLogRepository
             paramIndex++;
         }
 
-        var whereClause = string.Join(" AND ", whereParts) + " ORDER BY CreatedAtUtc DESC";
+        var whereClause = string.Join(" AND ", whereParts);
 
         var rows = await db.SelectAsync(
             fields: "*",
@@ -153,7 +153,10 @@ public sealed class AuditLogRepository : IAuditLogRepository
             parameters: parameters.ToArray(),
             ct: ct);
 
-        var list = MapList(rows);
+        var list = MapList(rows)
+            .OrderByDescending(entry => entry.CreatedAtUtc)
+            .ThenByDescending(entry => entry.Id)
+            .ToList();
         if (skip > 0 || take > 0)
         {
             var paged = list.AsEnumerable();
@@ -171,11 +174,14 @@ public sealed class AuditLogRepository : IAuditLogRepository
         var rows = await db.SelectAsync(
             fields: "*",
             table: TableName,
-            whereClause: "EntityId = @param0 ORDER BY CreatedAtUtc DESC",
+            whereClause: "EntityId = @param0",
             parameters: new object[] { entityId },
             ct: ct);
 
-        var list = MapList(rows);
+        var list = MapList(rows)
+            .OrderByDescending(entry => entry.CreatedAtUtc)
+            .ThenByDescending(entry => entry.Id)
+            .ToList();
         if (skip > 0 || take > 0)
         {
             var paged = list.AsEnumerable();

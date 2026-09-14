@@ -355,7 +355,22 @@ import { CeToggleComponent } from '../../design-system/components/toggle/toggle.
           </div>
         </div>
 
-        @if (auditLogs().length) {
+        @if (auditLoading()) {
+          <section class="empty-record" aria-live="polite">
+            <p class="eyebrow">Audit file / loading</p>
+            <h2>Loading audit records</h2>
+            <p>Retrieving the latest tenant-scoped audit trail.</p>
+          </section>
+        } @else if (auditLoadError()) {
+          <section class="empty-record audit-load-error" aria-labelledby="audit-load-error-title" role="alert">
+            <p class="eyebrow">Audit file / unavailable</p>
+            <h2 id="audit-load-error-title">Unable to load audit records</h2>
+            <p>{{ auditLoadError() }}</p>
+            <button class="ce-button variant-primary" type="button" (click)="loadAuditLogs()">
+              Retry loading audit trail
+            </button>
+          </section>
+        } @else if (auditLogs().length) {
           <div class="ce-card table-card">
             <table class="ce-table" aria-label="System audit log table">
               <thead>
@@ -534,19 +549,22 @@ import { CeToggleComponent } from '../../design-system/components/toggle/toggle.
     .variant-ghost { background: transparent; color: var(--color-text-secondary, #4b5563); }
     .variant-ghost:not(:disabled):hover { background: #f3f4f6; }
 
-    .ce-modal-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(2px); }
-    .ce-modal { background: var(--color-surface, #fff); border-radius: 8px; width: min(44rem, 92vw); max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15); border-top: 4px solid var(--color-primary, #0066cc); }
-    .modal-header { display: flex; justify-content: space-between; align-items: flex-start; padding: var(--space-4, 16px) var(--space-5, 20px); border-bottom: 1px solid var(--color-border, #e5e7eb); }
+    .ce-modal-backdrop { position: fixed; inset: 0; background: rgb(24 40 49 / 0.62); display: flex; align-items: center; justify-content: center; z-index: 100; }
+    .ce-modal { background-color: var(--color-surface, #fffdf7); background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 31px, rgb(93 75 50 / 0.08) 31px, rgb(93 75 50 / 0.08) 32px); border: 1px solid var(--color-border, #c9c1b3); border-top: 4px solid var(--color-sidebar-bg, #182a33); border-radius: 0; width: min(44rem, 92vw); max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-lg, 0 20px 25px -5px rgb(24 40 49 / 0.28)); }
+    .modal-header { display: flex; justify-content: space-between; align-items: flex-start; padding: var(--space-4, 16px) var(--space-5, 20px); border-bottom: 1px solid var(--color-border, #c9c1b3); background: color-mix(in srgb, var(--color-surface, #fffdf7) 92%, var(--color-background, #e8e3d7)); }
+    .modal-header .eyebrow { color: var(--color-warning, #7e5c22); }
     .modal-header h3 { margin: 0; font-size: 1.25rem; font-weight: 600; }
-    .close-icon { background: none; border: none; font-size: 1.5rem; line-height: 1; cursor: pointer; color: var(--color-text-secondary, #6b7280); }
+    .close-icon { background: none; border: none; font-size: 1.5rem; line-height: 1; cursor: pointer; color: var(--color-text-secondary, #52646b); }
+    .close-icon:hover { background: var(--color-neutral-light, #ebe6dc); color: var(--color-text-primary, #182831); }
+    .close-icon:focus-visible { outline: 2px solid var(--color-primary, #a84d3d); outline-offset: 2px; }
     .modal-body { padding: var(--space-5, 20px); overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-4, 16px); }
-    .meta-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: var(--space-3, 12px); background: #f9fafb; padding: var(--space-3, 12px); border-radius: 6px; }
+    .meta-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: var(--space-3, 12px); background: var(--color-surface-elevated, #f6f1e8); border: 1px solid var(--color-border, #c9c1b3); padding: var(--space-3, 12px); border-radius: 0; }
     .meta-item { display: flex; flex-direction: column; gap: 2px; }
     .meta-label { font-size: var(--font-size-xs, 12px); font-weight: 600; color: var(--color-text-secondary, #6b7280); text-transform: uppercase; letter-spacing: .05em; }
     .meta-val { font-size: var(--font-size-sm, 14px); color: var(--color-text-primary, #111827); word-break: break-all; }
     .details-box, .metadata-box { display: flex; flex-direction: column; gap: 4px; }
-    .json-code { background: #1f2937; color: #f9fafb; padding: var(--space-3, 12px); border-radius: 6px; font-size: 0.8rem; overflow-x: auto; max-height: 14rem; margin: 0; }
-    .modal-footer { padding: var(--space-3, 12px) var(--space-5, 20px); border-top: 1px solid var(--color-border, #e5e7eb); display: flex; justify-content: flex-end; background: #f9fafb; }
+    .json-code { background: var(--color-sidebar-bg, #182a33); border: 1px solid var(--color-sidebar-border, #34474c); color: var(--color-sidebar-text, #d7ddd5); padding: var(--space-3, 12px); border-radius: 0; font-size: 0.8rem; overflow-x: auto; max-height: 14rem; margin: 0; }
+    .modal-footer { padding: var(--space-3, 12px) var(--space-5, 20px); border-top: 1px solid var(--color-border, #c9c1b3); display: flex; justify-content: flex-end; background: var(--color-surface-elevated, #f6f1e8); }
 
     @media (max-width: 768px) {
       .page-header { flex-direction: column; align-items: flex-start; }
@@ -586,11 +604,14 @@ export class AdministrationPage {
 
   // Audit State
   auditLogs = signal<AuditLogResponse[]>([]);
+  auditLoading = signal(false);
+  auditLoadError = signal<string | null>(null);
   inspectedEvent = signal<AuditLogResponse | null>(null);
   searchTerm = signal<string>('');
   selectedCategory = signal<string>('');
   selectedSeverity = signal<string>('');
   selectedTimeframe = signal<'all' | 'today' | '7d' | '30d'>('all');
+  private auditRequestId = 0;
 
   constructor() {
     this.loadAll();
@@ -688,6 +709,9 @@ export class AdministrationPage {
   }
 
   loadAuditLogs(callback?: () => void): void {
+    const requestId = ++this.auditRequestId;
+    this.auditLoading.set(true);
+    this.auditLoadError.set(null);
     const query: AuditLogQueryParams = {
       skip: 0,
       take: 100,
@@ -714,13 +738,38 @@ export class AdministrationPage {
 
     this.api.listAuditLogs(query).subscribe({
       next: (logs) => {
+        if (requestId !== this.auditRequestId) {
+          callback?.();
+          return;
+        }
+
         this.auditLogs.set(logs);
+        this.auditLoading.set(false);
         callback?.();
       },
-      error: () => {
+      error: (error: unknown) => {
+        if (requestId !== this.auditRequestId) {
+          callback?.();
+          return;
+        }
+
+        this.auditLogs.set([]);
+        this.auditLoading.set(false);
+        this.auditLoadError.set(this.getAuditLoadErrorMessage(error));
         callback?.();
       },
     });
+  }
+
+  private getAuditLoadErrorMessage(error: unknown): string {
+    if (typeof error === 'object' && error !== null) {
+      const response = error as { error?: { title?: unknown } };
+      if (typeof response.error?.title === 'string' && response.error.title.trim()) {
+        return `Unable to load audit records: ${response.error.title.trim()}. Please retry.`;
+      }
+    }
+
+    return 'Unable to load audit records. Please retry.';
   }
 
   onSearchInput(event: Event): void {
