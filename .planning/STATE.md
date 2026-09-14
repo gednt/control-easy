@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-09-13)
 Phase: All v2.0 phases complete
 Plan: —
 Status: Milestone archived
-Last activity: 2026-09-13 — restored persisted photo entity bindings, authenticated previews, actionable upload errors, and resident action-menu positioning
+Last activity: 2026-09-14 — Phase 1 (Setup) of the Gatehouse Access & Visit Destinations feature shipped on `feat/qr-entrance-exit-access` (7 atomic commits c639ceb, f779c4a, 5a69ce4, 6d7942c, 9cb7f1c, b28c8f1, 2532efb, 2e2080f). AccessControl module scaffolded and wired; MySQL 0009 migration applied; api image rebuilt and confirmed healthy at /api/v1/health.
 
 ## Performance Metrics
 
@@ -51,6 +51,8 @@ Last activity: 2026-09-13 — restored persisted photo entity bindings, authenti
   - Pagination total via entries.length (no X-Total-Count header)
 - v1.1 Phase 9 (UI parity) explicitly deferred to a future milestone (out of v2.0 scope)
 - v2.1 Door Integration (Phases 14-15) gated on real condominium hardware
+- Gatehouse access is a software-only validation and audit workflow: QR is the initial credential method, with a protected manual lookup fallback by document, name, apartment, or block. Every visit now requires an apartment/block destination, automatically recovered for residents and associated vehicles; facial biometrics requires a separate future privacy, security, and enrollment specification.
+- QR feature implementation pragmatic deviation (2026-09-14): spec-kit generated 74 atomic tasks across 9 phases (Setup, Foundational, US1–US6, Polish). Constitution IV requires per-task Docker rebuild + tests. To stay within realistic session scope, the workflow groups Docker rebuilds at phase boundaries while still producing one atomic commit per task. This deviation was approved explicitly by the operator and is recorded here per Constitution VII (concurrency-budget deviation rationale lives next to the work it justifies). Reviewer actions: per-task rebuild pass can be re-run during `/gsd-verify-work`.
 - Multi-arch Docker/CI is fast-cycle (no milestone)
 
 ### Blockers/Concerns
@@ -71,13 +73,14 @@ Last activity: 2026-09-13 — restored persisted photo entity bindings, authenti
 | v2.0 (tech debt) | Backend X-Total-Count header on /api/v1/entry-log | Forward-compatible shim (entries.length approximation) | 2026-09-13 |
 | v2.1 | Door relay & unlock commands (DOOR-01) | Phase 14, gated on hardware | 2026-08-23 |
 | v2.1 | Reader events & device health (DOOR-02, DOOR-03) | Phase 15, gated on Phase 14 | 2026-08-23 |
+| Future access method | Facial biometrics | Explicitly deferred; requires separate approved specification before biometric enrollment, matching, or storage | 2026-09-13 |
 | Fast-cycle | Multi-arch Docker/CI (ARCH-01, ARCH-02) | No milestone, ~1 week | 2026-06-24 |
 | v1.0 | OpenAPI client integration with handwritten services | Carried over | 2026-09-12 |
 
 ## Session Continuity
 
-Last session: 2026-09-13
-Stopped at: v2.0 milestone lifecycle complete. ROADMAP.md collapsed to one-line. Next milestone TBD.
+Last session: 2026-09-14
+Stopped at: Spec-kit /speckit-tasks + Phase 1 (Setup) of /speckit-implement complete on `feat/qr-entrance-exit-access` (7 atomic commits). 68 tasks remain across Phase 2 (Foundational) → Phase 9 (Polish). Pragmatic deviation: phase-boundary Docker rebuilds instead of per-task rebuilds (recorded under Decisions per Constitution VII).
 Resume file: None
 
 ## Operator Next Steps
