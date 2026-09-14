@@ -45,6 +45,7 @@ Rather than unconstrained, prompt-and-pray code generation, the modernization fr
 - **Exhaustive Automated Verification:** Every task must pass comprehensive automated test suites (xUnit unit tests, Testcontainers MySQL integration tests, Playwright E2E suites, and Axe Core accessibility checks) before completion.
 - **Adversarial Multi-Agent Review:** Proposed changes are systematically stress-tested by parallel adversarial review personas (Blind Hunter, Edge-Case Hunter, Acceptance Auditor) prior to human review and commit.
 - **Complete Human Architectural Direction:** System design, domain modeling, security policies, and final merge decisions remain strictly directed and approved by the author.
+- **Uncompromising Standards (and Authorial Stubbornness):** It is worth stating candidly that the author is notoriously meticulous — at times to the point of being downright annoying — whenever any part of the codebase is not strictly to his liking. This perfectionism can be readily evidenced throughout the repository: zero-tolerance compiler warnings (`<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`), automated NetArchTest architectural boundaries, rigid Docker-only and Git worktree isolation rules, and relentless refactoring passes across every module.
 
 The agent frameworks facilitating this AI-augmented development include:
 
