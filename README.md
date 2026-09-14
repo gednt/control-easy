@@ -28,6 +28,8 @@ Following the conclusion of the course, custody and ownership of the code remain
 2. **Second Generation (C# Windows Forms):** Ported to C# to improve type safety, maintainability, and code structure, continuing desktop-based operations.
 3. **Third Generation — ControlEasy Reborn (Modern Web & Multi-Tenancy):** Complete architectural rebirth into a high-performance web platform — engineered as a Clean Architecture modular monolith on ASP.NET Core 8 minimal APIs, an Angular 18 SPA with reactive signals, and native multi-tenancy supporting multiple condominium complexes on a shared, isolated infrastructure.
 
+> 📜 **Historical Archive:** For the complete chronological release chronicle of the classic desktop era (from v0.1 to v3.6.0.6), see the [Historical Changelog](docs/HISTORICAL-CHANGELOG.md).
+
 ### The Core Objective: True Enterprise-Grade Engineering
 
 A central objective of this rebirth was to showcase what **genuine enterprise-grade software engineering** looks like when built from first principles — deliberately moving beyond corporate bureaucracy and default framework templates in favor of uncompromised architectural rigor:
@@ -161,6 +163,7 @@ Comprehensive documentation is available in the [`docs/`](docs/) directory:
 - [API Documentation](docs/API.md) — REST API endpoints, authentication, request/response formats
 - [Deployment Guide](docs/DEPLOYMENT.md) — Docker container deployment, CI/CD pipeline, and monitoring
 - [Demo Mode Specification](docs/demo-mode.md) — Demo data schemas, credentials, walkthroughs
+- [Historical Changelog](docs/HISTORICAL-CHANGELOG.md) — Complete desktop release chronicle (v0.1 to v3.6.0.6)
 - [Agent Flow Cheatsheet](docs/agent-flow-cheatsheet.md) — Multi-agent orchestrations and lifecycle conventions
 - [AGENTS.md](AGENTS.md) — Authoritative contributor rules and architectural invariants
 
