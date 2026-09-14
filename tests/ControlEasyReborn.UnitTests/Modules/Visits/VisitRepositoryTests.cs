@@ -57,7 +57,11 @@ public sealed class VisitRepositoryTests
     {
         await _sut.ListAsync(_tenantId, "Pending", 0, 10, CancellationToken.None);
 
-        var op = _fakeClient.Operations.First(o => o.OperationType == "Select" && o.Sql.Contains("FROM Visits"));
+        var op = _fakeClient.Operations
+            .Where(o => o.OperationType == "Select")
+            .Should()
+            .ContainSingle()
+            .Which;
         op.Sql.Should().Contain("Status = @param0");
         op.Parameters[0].Should().Be(0);
     }

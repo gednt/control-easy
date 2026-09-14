@@ -49,86 +49,7 @@ public sealed class VisitRepository : IVisitRepository
             parameters: parameters,
             ct: ct);
 
-        var visits = MapList(rows).ToList();
-        var existingIds = new HashSet<Guid>(visits.Select(v => v.Id));
-
-        try
-        {
-            var auditRows = await db.SelectAsync(
-                fields: "Id, TenantId, EntryState, OverrideReason, PhotoId, SubjectType, SubjectName, SubjectDocument, PerformedByProfileId, RecordedAt",
-                table: "ConsentAuditLog",
-                whereClause: "1=1",
-                parameters: Array.Empty<object>(),
-                ct: ct);
-
-            if (auditRows is not null && auditRows.Rows.Count > 0)
-            {
-                foreach (DataRow ar in auditRows.Rows)
-                {
-                    var id = Guid.Parse(ar["Id"].ToString() ?? string.Empty);
-                    if (existingIds.Contains(id)) continue;
-
-                    var entryState = ar["EntryState"]?.ToString() ?? string.Empty;
-                    var subjectType = ar["SubjectType"]?.ToString() ?? "visitor";
-                    var subjectName = ar["SubjectName"]?.ToString();
-                    var overrideReason = ar["OverrideReason"]?.ToString();
-                    var recordedAt = Convert.ToDateTime(ar["RecordedAt"]);
-                    var attendantIdStr = ar["PerformedByProfileId"]?.ToString();
-                    Guid? attendantId = string.IsNullOrEmpty(attendantIdStr) ? null : Guid.Parse(attendantIdStr);
-
-                    var visitStatus = entryState switch
-                    {
-                        "entered_with_consent" or "entered_override" => VisitStatus.CheckedIn,
-                        "gatehouse_only" => VisitStatus.CheckedOut,
-                        "entered_without_consent" => VisitStatus.Cancelled,
-                        _ => VisitStatus.Pending
-                    };
-
-                    if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<VisitStatus>(status, true, out var filterStatus) && visitStatus != filterStatus)
-                    {
-                        continue;
-                    }
-
-                    var defaultName = subjectType switch
-                    {
-                        "service_provider" => "Service provider",
-                        "dweller" => "Resident",
-                        "vehicle" => "Vehicle",
-                        _ => "Visitor"
-                    };
-
-                    var purpose = entryState switch
-                    {
-                        "gatehouse_only" => "Package drop / delivery",
-                        "entered_without_consent" => "Consent refused — entry denied",
-                        "entered_override" => string.IsNullOrWhiteSpace(overrideReason) ? "Override entry" : $"Override ({overrideReason})",
-                        _ => subjectType == "service_provider" ? "Service provider entry" : subjectType == "dweller" ? "Resident entry" : "Visitor entry"
-                    };
-
-                    visits.Add(new Visit(
-                        id: id,
-                        tenantId: Guid.Parse(ar["TenantId"].ToString() ?? string.Empty),
-                        visitorName: !string.IsNullOrWhiteSpace(subjectName) ? subjectName : defaultName,
-                        visitorDocument: ar["SubjectDocument"]?.ToString() ?? "N/A",
-                        visitorPhone: null,
-                        apartmentId: null,
-                        purpose: purpose,
-                        status: visitStatus,
-                        attendantProfileId: attendantId,
-                        gatehouseId: null,
-                        checkedInAtUtc: (visitStatus == VisitStatus.CheckedIn || visitStatus == VisitStatus.CheckedOut) ? recordedAt : null,
-                        checkedOutAtUtc: visitStatus == VisitStatus.CheckedOut ? recordedAt : null,
-                        createdAtUtc: recordedAt,
-                        updatedAtUtc: null));
-                }
-            }
-        }
-        catch
-        {
-            // Fallback gracefully
-        }
-
-        return visits.OrderByDescending(v => v.CreatedAtUtc).Skip(skip).Take(take).ToList();
+        return MapList(rows).OrderByDescending(v => v.CreatedAtUtc).Skip(skip).Take(take).ToList();
     }
 
     public async Task<IReadOnlyList<Visit>> ListOpenAsync(Guid tenantId, CancellationToken ct)
@@ -141,64 +62,7 @@ public sealed class VisitRepository : IVisitRepository
             parameters: Array.Empty<object>(),
             ct: ct);
 
-        var visits = MapList(rows).ToList();
-        var existingIds = new HashSet<Guid>(visits.Select(v => v.Id));
-
-        try
-        {
-            var auditRows = await db.SelectAsync(
-                fields: "Id, TenantId, EntryState, OverrideReason, PhotoId, SubjectType, SubjectName, SubjectDocument, PerformedByProfileId, RecordedAt",
-                table: "ConsentAuditLog",
-                whereClause: "EntryState IN ('entered_with_consent', 'entered_override')",
-                parameters: Array.Empty<object>(),
-                ct: ct);
-
-            if (auditRows is not null && auditRows.Rows.Count > 0)
-            {
-                foreach (DataRow ar in auditRows.Rows)
-                {
-                    var id = Guid.Parse(ar["Id"].ToString() ?? string.Empty);
-                    if (existingIds.Contains(id)) continue;
-
-                    var subjectType = ar["SubjectType"]?.ToString() ?? "visitor";
-                    var subjectName = ar["SubjectName"]?.ToString();
-                    var overrideReason = ar["OverrideReason"]?.ToString();
-                    var recordedAt = Convert.ToDateTime(ar["RecordedAt"]);
-                    var attendantIdStr = ar["PerformedByProfileId"]?.ToString();
-                    Guid? attendantId = string.IsNullOrEmpty(attendantIdStr) ? null : Guid.Parse(attendantIdStr);
-
-                    var defaultName = subjectType switch
-                    {
-                        "service_provider" => "Service provider",
-                        "dweller" => "Resident",
-                        "vehicle" => "Vehicle",
-                        _ => "Visitor"
-                    };
-
-                    visits.Add(new Visit(
-                        id: id,
-                        tenantId: Guid.Parse(ar["TenantId"].ToString() ?? string.Empty),
-                        visitorName: !string.IsNullOrWhiteSpace(subjectName) ? subjectName : defaultName,
-                        visitorDocument: ar["SubjectDocument"]?.ToString() ?? "N/A",
-                        visitorPhone: null,
-                        apartmentId: null,
-                        purpose: $"Arrival: {subjectType}",
-                        status: VisitStatus.CheckedIn,
-                        attendantProfileId: attendantId,
-                        gatehouseId: null,
-                        checkedInAtUtc: recordedAt,
-                        checkedOutAtUtc: null,
-                        createdAtUtc: recordedAt,
-                        updatedAtUtc: null));
-                }
-            }
-        }
-        catch
-        {
-            // Fallback gracefully
-        }
-
-        return visits.OrderByDescending(v => v.CreatedAtUtc).ToList();
+        return MapList(rows).OrderByDescending(v => v.CreatedAtUtc).ToList();
     }
 
     public async Task AddAsync(Visit visit, CancellationToken ct)

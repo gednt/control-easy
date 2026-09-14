@@ -34,15 +34,22 @@ describe('CeEntryWorkflowComponent', () => {
     httpMock.verify();
   });
 
-  it('renders 4 tiles', () => {
-    const tiles: NodeListOf<HTMLButtonElement> =
-      fixture.nativeElement.querySelectorAll('[data-action]');
-    const actions = Array.from(tiles).map((t) =>
-      t.getAttribute('data-action'),
-    );
-    expect(actions.sort()).toEqual(
-      ['denied', 'gatehouse', 'override', 'register'],
-    );
+  function flushVisitorPolicy(photoRequired: boolean): void {
+    const policyReq = httpMock.expectOne('/api/v1/consent-policy/visitors');
+    expect(policyReq.request.method).toBe('GET');
+    policyReq.flush({
+      id: 'p-1',
+      tenantId: 't-1',
+      subjectCategory: 'visitors',
+      photoRequired,
+      createdAtUtc: new Date().toISOString(),
+    });
+  }
+
+  it('renders entry and exit tiles', () => {
+    const tiles: NodeListOf<HTMLButtonElement> = fixture.nativeElement.querySelectorAll('[data-action]');
+    const actions = Array.from(tiles).map((t) => t.getAttribute('data-action'));
+    expect(actions.sort()).toEqual(['denied', 'exit', 'gatehouse', 'override', 'register']);
   });
 
   it('register tile opens photo capture when consent policy requires photo', fakeAsync(() => {
@@ -84,14 +91,26 @@ describe('CeEntryWorkflowComponent', () => {
     expect(component.step()).toBe('subject-info');
   }));
 
-  it('denied tile bypasses photo capture and advances directly to subject info', fakeAsync(() => {
+  it('denied tile advances directly to subject info when the policy does not require a photo', fakeAsync(() => {
     void component.onTileTap('denied');
+    tick();
+    flushVisitorPolicy(false);
     tick();
 
     expect(component.pendingState()).toBe('entered_without_consent');
     expect(component.showCapture()).toBe(false);
     expect(component.step()).toBe('subject-info');
     expect(component.selectedCategory()).toBe('visitor');
+  }));
+
+  it('denied tile opens photo capture when the policy requires a photo', fakeAsync(() => {
+    void component.onTileTap('denied');
+    tick();
+    flushVisitorPolicy(true);
+    tick();
+
+    expect(component.pendingState()).toBe('entered_without_consent');
+    expect(component.showCapture()).toBe(true);
   }));
 
   it('gatehouse tile forces service_provider subject type', fakeAsync(() => {
@@ -101,6 +120,21 @@ describe('CeEntryWorkflowComponent', () => {
     expect(component.pendingState()).toBe('gatehouse_only');
     expect(component.step()).toBe('subject-info');
     expect(component.selectedCategory()).toBe('service_provider');
+  }));
+
+  it('exit tile records resident or vehicle exits without requiring a photo', fakeAsync(() => {
+    void component.onTileTap('exit');
+    tick();
+
+    expect(component.pendingState()).toBe('exited');
+    expect(component.showCapture()).toBe(false);
+    expect(component.step()).toBe('subject-info');
+    expect(component.selectedCategory()).toBe('dweller');
+
+    component.onCategorySelect('vehicle');
+    expect(component.selectedCategory()).toBe('vehicle');
+    component.onCategorySelect('visitor');
+    expect(component.selectedCategory()).toBe('vehicle');
   }));
 
   it('override tile opens reason modal without opening camera', fakeAsync(() => {
@@ -121,6 +155,8 @@ describe('CeEntryWorkflowComponent', () => {
 
   it('allows category selection in subject-info for general entries', fakeAsync(() => {
     void component.onTileTap('denied');
+    tick();
+    flushVisitorPolicy(false);
     tick();
 
     expect(component.step()).toBe('subject-info');
@@ -144,6 +180,8 @@ describe('CeEntryWorkflowComponent', () => {
     fixture.componentRef.setInput('closeOnEntry', true);
 
     void component.onTileTap('denied');
+    tick();
+    flushVisitorPolicy(false);
     tick();
 
     component.subjectName.set('Refused Person');
@@ -173,15 +211,14 @@ describe('CeEntryWorkflowComponent', () => {
   it('continue surfaces toast and stays open on error', fakeAsync(() => {
     void component.onTileTap('denied');
     tick();
+    flushVisitorPolicy(false);
+    tick();
 
     void component.continue();
     tick();
 
     const createReq = httpMock.expectOne('/api/v1/entry-log');
-    createReq.flush(
-      { detail: 'Invalid request' },
-      { status: 400, statusText: 'Bad Request' },
-    );
+    createReq.flush({ detail: 'Invalid request' }, { status: 400, statusText: 'Bad Request' });
     tick();
 
     expect(component.loading()).toBe(false);

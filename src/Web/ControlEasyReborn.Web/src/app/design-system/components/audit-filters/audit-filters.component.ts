@@ -1,18 +1,8 @@
-import {
-  Component,
-  ChangeDetectionStrategy,
-  computed,
-  input,
-  output,
-} from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CeButtonComponent } from '../button/button.component';
-import {
-  type AuditFilters,
-  type EntryState,
-  type SubjectType,
-} from '../../../features/entry-log/entry-log.service';
+import { type AuditFilters, type EntryState, type SubjectType } from '../../../features/entry-log/entry-log.service';
 
 interface DropdownOption {
   value: string;
@@ -33,6 +23,7 @@ const STATE_OPTIONS: DropdownOption[] = [
   { value: 'entered_override', label: 'Override' },
   { value: 'gatehouse_only', label: 'No entry' },
   { value: 'entered_without_consent', label: 'Refused' },
+  { value: 'exited', label: 'Exit' },
 ];
 
 /**
@@ -53,29 +44,15 @@ const STATE_OPTIONS: DropdownOption[] = [
     <div class="filters" role="group" aria-label="Audit filters">
       <label class="field">
         <span class="field-label">From</span>
-        <input
-          type="date"
-          class="ce-input"
-          [value]="fromDate()"
-          (change)="onFromDateChange($event)"
-        />
+        <input type="date" class="ce-input" [value]="fromDate()" (change)="onFromDateChange($event)" />
       </label>
       <label class="field">
         <span class="field-label">To</span>
-        <input
-          type="date"
-          class="ce-input"
-          [value]="toDate()"
-          (change)="onToDateChange($event)"
-        />
+        <input type="date" class="ce-input" [value]="toDate()" (change)="onToDateChange($event)" />
       </label>
       <label class="field">
         <span class="field-label">Category</span>
-        <select
-          class="ce-input"
-          [value]="category() || ''"
-          (change)="onCategoryChange($event)"
-        >
+        <select class="ce-input" [value]="category() || ''" (change)="onCategoryChange($event)">
           @for (opt of categoryOptions; track opt.value) {
             <option [value]="opt.value">{{ opt.label }}</option>
           }
@@ -83,20 +60,14 @@ const STATE_OPTIONS: DropdownOption[] = [
       </label>
       <label class="field">
         <span class="field-label">Entry state</span>
-        <select
-          class="ce-input"
-          [value]="state() || ''"
-          (change)="onStateChange($event)"
-        >
+        <select class="ce-input" [value]="state() || ''" (change)="onStateChange($event)">
           @for (opt of stateOptions; track opt.value) {
             <option [value]="opt.value">{{ opt.label }}</option>
           }
         </select>
       </label>
       <div class="reset-wrap">
-        <ce-button variant="ghost" size="sm" (click)="reset()">
-          Reset filters
-        </ce-button>
+        <ce-button variant="ghost" size="sm" (click)="reset()"> Reset filters </ce-button>
       </div>
     </div>
   `,

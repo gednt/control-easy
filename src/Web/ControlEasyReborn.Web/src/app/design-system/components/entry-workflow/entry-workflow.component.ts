@@ -1,13 +1,4 @@
-import {
-  Component,
-  ChangeDetectionStrategy,
-  computed,
-  effect,
-  inject,
-  input,
-  output,
-  signal,
-} from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, effect, inject, input, output, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { CeModalComponent } from '../modal/modal.component';
 import { CeButtonComponent } from '../button/button.component';
@@ -27,11 +18,11 @@ import { ConsentPolicyService } from '../../../features/consent-policy/consent-p
 import { getApiErrorMessage } from '../../../core/utils/api-error.util';
 
 type WorkflowStep = 'tiles' | 'subject-info';
-type TileAction = 'register' | 'denied' | 'gatehouse' | 'override';
+type TileAction = 'register' | 'exit' | 'denied' | 'gatehouse' | 'override';
 
 interface TileDescriptor {
   action: TileAction;
-  icon: 'user-check' | 'x-circle' | 'package' | 'alert-triangle';
+  icon: 'user-check' | 'log-out' | 'x-circle' | 'package' | 'alert-triangle';
   label: string;
   sub: string;
   cssClass: string;
@@ -39,43 +30,43 @@ interface TileDescriptor {
 
 const TILES: TileDescriptor[] = [
   { action: 'register', icon: 'user-check', label: 'Register entry', sub: 'with consent', cssClass: 'tile primary' },
+  { action: 'exit', icon: 'log-out', label: 'Register exit', sub: 'resident / vehicle', cssClass: 'tile exit' },
   { action: 'denied', icon: 'x-circle', label: 'Entry denied', sub: 'consent refused', cssClass: 'tile denied' },
   { action: 'gatehouse', icon: 'package', label: 'Gatehouse only', sub: 'package drop', cssClass: 'tile gatehouse' },
-  { action: 'override', icon: 'alert-triangle', label: 'Override', sub: 'emergency / vouched', cssClass: 'tile override' },
+  {
+    action: 'override',
+    icon: 'alert-triangle',
+    label: 'Override',
+    sub: 'emergency / vouched',
+    cssClass: 'tile override',
+  },
 ];
 
 function toSubjectCategory(subjectType: SubjectType): 'dwellers' | 'visitors' | 'service-providers' | 'vehicles' {
   switch (subjectType) {
-    case 'dweller': return 'dwellers';
-    case 'visitor': return 'visitors';
-    case 'service_provider': return 'service-providers';
-    case 'vehicle': return 'vehicles';
+    case 'dweller':
+      return 'dwellers';
+    case 'visitor':
+      return 'visitors';
+    case 'service_provider':
+      return 'service-providers';
+    case 'vehicle':
+      return 'vehicles';
   }
 }
 
 /**
- * Gatehouse entry workflow. Hosts the 4-tile selection screen and the
+ * Gatehouse access workflow. Hosts the entry/exit selection screen and the
  * subsequent subject-info form. Wires `ce-photo-capture` for the auto-camera
  * path and `ce-override-reason` for the override decision modal.
  */
 @Component({
   selector: 'ce-entry-workflow',
   standalone: true,
-  imports: [
-    CeModalComponent,
-    CeButtonComponent,
-    CeIconComponent,
-    CePhotoCaptureComponent,
-    CeOverrideReasonComponent,
-  ],
+  imports: [CeModalComponent, CeButtonComponent, CeIconComponent, CePhotoCaptureComponent, CeOverrideReasonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <ce-modal
-      [open]="open()"
-      title="New entry"
-      size="lg"
-      (closed)="close()"
-    >
+    <ce-modal [open]="open()" title="Access movement" size="lg" (closed)="close()">
       @if (step() === 'tiles') {
         <div class="tile-grid">
           @for (tile of tiles; track tile.action) {
@@ -161,7 +152,9 @@ function toSubjectCategory(subjectType: SubjectType): 'dwellers' | 'visitors' | 
             />
           </label>
 
-          @if (pendingState() === 'entered_with_consent' && !photoId()) {
+          @if (
+            (pendingState() === 'entered_with_consent' || pendingState() === 'entered_without_consent') && !photoId()
+          ) {
             <div class="photo-prompt">
               <button type="button" class="photo-capture-trigger" (click)="openCapture()">
                 <ce-icon name="camera" [size]="16" /> Capture photo
@@ -175,15 +168,8 @@ function toSubjectCategory(subjectType: SubjectType): 'dwellers' | 'visitors' | 
           }
 
           <div class="actions">
-            <ce-button variant="ghost" size="md" (click)="back()" [disabled]="loading()">
-              Back
-            </ce-button>
-            <ce-button
-              variant="primary"
-              size="md"
-              (click)="continue()"
-              [loading]="loading()"
-            >
+            <ce-button variant="ghost" size="md" (click)="back()" [disabled]="loading()"> Back </ce-button>
+            <ce-button variant="primary" size="md" (click)="continue()" [loading]="loading()">
               {{ loading() ? 'Logging…' : 'Continue' }}
             </ce-button>
           </div>
@@ -211,7 +197,9 @@ function toSubjectCategory(subjectType: SubjectType): 'dwellers' | 'visitors' | 
   `,
   styles: [
     `
-      :host { display: contents; }
+      :host {
+        display: contents;
+      }
       .tile-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -228,7 +216,9 @@ function toSubjectCategory(subjectType: SubjectType): 'dwellers' | 'visitors' | 
         font-family: inherit;
         min-height: 172px;
         display: block;
-        transition: background-color 150ms ease-out, transform 100ms ease-out;
+        transition:
+          background-color 150ms ease-out,
+          transform 100ms ease-out;
       }
       .tile-button:active:not(:disabled) {
         transform: scale(0.95);
@@ -252,13 +242,26 @@ function toSubjectCategory(subjectType: SubjectType): 'dwellers' | 'visitors' | 
         width: 100%;
         height: 100%;
       }
-      .tile.primary { background: var(--color-primary, #a84d3d); color: white; }
-      .tile.denied { background: var(--color-danger, #991b1b); color: white; }
+      .tile.primary {
+        background: var(--color-primary, #a84d3d);
+        color: white;
+      }
+      .tile.denied {
+        background: var(--color-danger, #991b1b);
+        color: white;
+      }
       .tile.gatehouse {
         background: var(--color-surface, #fffdf7);
         color: var(--color-text-primary, #111827);
       }
-      .tile.override { background: #c28a2c; color: #1c2428; }
+      .tile.exit {
+        background: var(--color-sidebar, #182a33);
+        color: white;
+      }
+      .tile.override {
+        background: #c28a2c;
+        color: #1c2428;
+      }
       .label {
         font-family: var(--font-family-display, Georgia, serif);
         font-size: var(--font-size-xl, 20px);
@@ -268,7 +271,7 @@ function toSubjectCategory(subjectType: SubjectType): 'dwellers' | 'visitors' | 
         font-size: var(--font-size-xs, 13px);
         opacity: 0.78;
         font-family: var(--font-family-mono, monospace);
-        letter-spacing: .05em;
+        letter-spacing: 0.05em;
       }
       .subject-form {
         display: flex;
@@ -298,7 +301,7 @@ function toSubjectCategory(subjectType: SubjectType): 'dwellers' | 'visitors' | 
         color: var(--color-text-secondary, #4b5563);
         font-family: var(--font-family-mono, monospace);
         font-size: var(--font-size-xs, 12px);
-        letter-spacing: .04em;
+        letter-spacing: 0.04em;
         text-transform: uppercase;
         cursor: pointer;
         transition: all 150ms ease;
@@ -363,7 +366,9 @@ function toSubjectCategory(subjectType: SubjectType): 'dwellers' | 'visitors' | 
         margin-top: var(--space-2, 8px);
       }
       @media (prefers-reduced-motion: reduce) {
-        .tile-button:active:not(:disabled) { transform: none; }
+        .tile-button:active:not(:disabled) {
+          transform: none;
+        }
       }
     `,
   ],
@@ -405,10 +410,14 @@ export class CeEntryWorkflowComponent {
 
   subjectNamePlaceholder = computed(() => {
     switch (this.selectedCategory()) {
-      case 'dweller': return 'Resident name';
-      case 'service_provider': return 'Company or provider name';
-      case 'vehicle': return 'License plate or driver name';
-      default: return 'Visitor name';
+      case 'dweller':
+        return 'Resident name';
+      case 'service_provider':
+        return 'Company or provider name';
+      case 'vehicle':
+        return 'License plate or driver name';
+      default:
+        return 'Visitor name';
     }
   });
 
@@ -432,6 +441,9 @@ export class CeEntryWorkflowComponent {
     }
     if (state === 'entered_override') {
       return category === 'visitor' || category === 'dweller';
+    }
+    if (state === 'exited') {
+      return category === 'dweller' || category === 'vehicle';
     }
     return true;
   }
@@ -462,11 +474,26 @@ export class CeEntryWorkflowComponent {
       } catch {
         this.step.set('subject-info');
       }
+    } else if (action === 'exit') {
+      this.pendingState.set('exited');
+      this.selectedCategory.set('dweller');
+      this.showCapture.set(false);
+      this.step.set('subject-info');
     } else if (action === 'denied') {
       this.pendingState.set('entered_without_consent');
       this.selectedCategory.set('visitor');
-      this.showCapture.set(false);
-      this.step.set('subject-info');
+      const cat = toSubjectCategory(this.selectedCategory());
+      try {
+        const policy = await firstValueFrom(this.consentPolicyService.getByCategory(cat));
+        if (policy?.photoRequired) {
+          this.captureMode.set('camera');
+          this.showCapture.set(true);
+        } else {
+          this.step.set('subject-info');
+        }
+      } catch {
+        this.step.set('subject-info');
+      }
     } else if (action === 'gatehouse') {
       this.pendingState.set('gatehouse_only');
       this.selectedCategory.set('service_provider');
@@ -536,7 +563,7 @@ export class CeEntryWorkflowComponent {
         overrideReason: this.pendingOverrideReason() || undefined,
       };
       const entry = await firstValueFrom(this.entryLogService.create(request));
-      this.toast.success('Entry logged');
+      this.toast.success(state === 'exited' ? 'Exit logged' : 'Entry logged');
       this.entryLogged.emit(entry);
       if (this.closeOnEntry()) {
         this.close();

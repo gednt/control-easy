@@ -23,6 +23,7 @@ describe('CeEntryStateBadgeComponent', () => {
     { state: 'entered_override', label: 'Override', tone: 'warning' },
     { state: 'gatehouse_only', label: 'No entry', tone: 'neutral' },
     { state: 'entered_without_consent', label: 'Refused', tone: 'danger' },
+    { state: 'exited', label: 'Exit', tone: 'neutral' },
   ];
 
   for (const c of cases) {
