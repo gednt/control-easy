@@ -34,12 +34,22 @@ A defining architectural characteristic across ControlEasy's history is the inte
 
 DBTools was created by **Felipe Coelho** in **2014** during the initial development of ControlEasy. It was conceived to provide fast, predictable, LINQ-to-SQL query composition tailored specifically to access-control workflows without the hidden magic, complex change-tracking, and runtime overhead of general-purpose ORMs. Over more than a decade of active use and refinement, DBTools evolved naturally alongside ControlEasy from internal data-access utilities into the standalone, open-source NuGet package utilized across the solution today. In ControlEasy Reborn, DBTools underpins tenant-isolated query generation through `ITenantAwareLinqFactory` while sustaining high-throughput gatehouse operations.
 
-### AI-Assisted Migration & Agentic Engineering
+### AI-Augmented Engineering (Not "Vibe Coding")
 
-The modernization of ControlEasy from a legacy desktop system into a high-performance modular monolith was accelerated, structured, and executed through an ecosystem of specialized **AI agent frameworks**. These systems continue to govern ongoing development and feature delivery:
+It is important to emphasize: **ControlEasy Reborn was not "vibe coded" — it was rigorously AI-augmented.**
 
-- **[GSD-core](.planning/) (Get Stuff Done):** Orchestrated the macro-level migration roadmap across 14 systematic development phases, tracking live project state, decision logs, codebase maps, and milestone verifications.
-- **[spec-kit](.specify/) (Specification-Driven Development):** Enforces a specification-first engineering methodology anchored by the project constitution (`.specify/memory/constitution.md`). Every non-trivial feature or refactoring undergoes rigorous requirement clarification, architecture planning (`spec.md`, `plan.md`), and ordered task execution (`tasks.md`).
+Rather than unconstrained, prompt-and-pray code generation, the modernization from legacy desktop codebases into a modular monolith was executed through disciplined, human-architected software engineering amplified by AI. Every component conforms to strict architectural invariants, verified specifications, and automated quality gates:
+
+- **Specification-First, Not Prompt-Driven:** No feature or refactoring is built without upfront requirements elicitation, design specifications, and dependency-ordered tasks (`.specs/`, `openspec/`).
+- **Constitutional Architectural Invariants:** Strict architectural boundaries and Clean Architecture rules are codified in a binding project constitution (`.specify/memory/constitution.md`) and automatically validated on every build via `NetArchTest.Rules`.
+- **Exhaustive Automated Verification:** Every task must pass comprehensive automated test suites (xUnit unit tests, Testcontainers MySQL integration tests, Playwright E2E suites, and Axe Core accessibility checks) before completion.
+- **Adversarial Multi-Agent Review:** Proposed changes are systematically stress-tested by parallel adversarial review personas (Blind Hunter, Edge-Case Hunter, Acceptance Auditor) prior to human review and commit.
+- **Complete Human Architectural Direction:** System design, domain modeling, security policies, and final merge decisions remain strictly directed and approved by the author.
+
+The agent frameworks facilitating this AI-augmented development include:
+
+- **[GSD-core](.planning/) (Get Stuff Done):** Orchestrates the macro-level migration roadmap across 14 systematic development phases, tracking live project state, decision logs, codebase maps, and milestone verifications.
+- **[spec-kit](.specify/) (Specification-Driven Development):** Enforces a specification-first engineering methodology anchored by the project constitution. Every non-trivial feature or refactoring undergoes rigorous requirement clarification, architecture planning (`spec.md`, `plan.md`), and ordered task execution (`tasks.md`).
 - **[OpenSpec](openspec/) (Change & Delta Specifications):** Manages structured change proposals, designs, and delta-specification tracking, allowing targeted feature development and regression prevention.
 - **[BMAD Method](_bmad/) & WDS (Multi-Agent Role Collaboration):** Deploys collaborative agent personas (System Architect Winston, Senior Developer Amelia, Test Architect Murat, Business Analyst Mary, and UX Designers) for adversarial code reviews, edge-case hunting, and automated quality audits.
 - **[agents-template](AGENTS.md) & [Impeccable](.impeccable/):** Defines the binding runtime contract and governance invariants for all AI coding assistants (strict Docker-only development, Git worktree isolation, pre-commit adversarial review gates) alongside design system and frontend excellence standards.
