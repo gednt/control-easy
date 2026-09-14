@@ -8,13 +8,6 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
-## [Unreleased]
-
-### Planned (v2.1)
-- **Door & Relay Integration:** Optional physical door relay controller (`IDoorController`), signed unlock endpoints, and hardware event queue (gated on condominium hardware adoption).
-
----
-
 ## [2.0.0] - 2026-09-13 — Gatehouse Photo & Consent Ledger
 
 ### Added
