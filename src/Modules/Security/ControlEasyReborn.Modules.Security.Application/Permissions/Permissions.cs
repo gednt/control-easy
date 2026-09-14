@@ -17,6 +17,11 @@ public static class Permissions
     public const string PhotosRead = "Photos.Read";
     public const string PhotosWrite = "Photos.Write";
     public const string PhotosDelete = "Photos.Delete";
+    public const string AccessControlIssue = "Access.Control.Issue";
+    public const string AccessControlReplace = "Access.Control.Replace";
+    public const string AccessControlRevoke = "Access.Control.Revoke";
+    public const string AccessOperate = "Access.Access.Operate";
+    public const string AccessRead = "Access.Read";
 
     public static readonly string[] All =
     [
@@ -26,6 +31,8 @@ public static class Permissions
         VehiclesRead, VehiclesWrite,
         ServiceProvidersRead, ServiceProvidersWrite,
         ReportsRead,
-        PhotosRead, PhotosWrite, PhotosDelete
+        PhotosRead, PhotosWrite, PhotosDelete,
+        AccessControlIssue, AccessControlReplace, AccessControlRevoke,
+        AccessOperate, AccessRead
     ];
 }
