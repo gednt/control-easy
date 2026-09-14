@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 
 namespace ControlEasyReborn.Modules.AccessControl.Api.Endpoints;
@@ -10,7 +11,7 @@ public static class AccessControlEndpoints
             .RequireAuthorization()
             .WithTags("AccessControl");
 
-        group.MapGet("/_meta", () => Results.Ok(new
+        group.MapGet("/_meta", () => Microsoft.AspNetCore.Http.Results.Ok(new
         {
             module = "AccessControl",
             status = "scaffold"
