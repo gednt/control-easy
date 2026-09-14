@@ -41,28 +41,22 @@ public sealed class CreateEntryLogHandler
 
         ValidateStateTransitions(request);
 
-        if (request.EntryState == EntryStates.EnteredWithConsent)
-        {
-            if (request.PhotoId is null)
-                throw new Errors.ValidationException(new Dictionary<string, string[]>
-                {
-                    ["PhotoId"] = new[] { "entered_with_consent entries require a photoId." }
-                });
-
-            var photo = await _photos.FindAsync(request.PhotoId.Value, ct);
-            if (photo is null || photo.IsDeleted || photo.TenantId != tenantId)
-                throw new NotFoundException($"Photo {request.PhotoId} was not found.");
-        }
-
         var policy = await _policies.FindByCategoryAsync(tenantId, request.SubjectType, ct);
-        if (policy is { PhotoRequired: true }
-            && request.EntryState is EntryStates.EnteredWithConsent
-            && request.PhotoId is null)
+        var photoRequired = request.EntryState == EntryStates.EnteredWithConsent
+            || (policy is { PhotoRequired: true } && request.EntryState == EntryStates.EnteredWithoutConsent);
+        if (photoRequired && request.PhotoId is null)
         {
             throw new Errors.ValidationException(new Dictionary<string, string[]>
             {
-                ["PhotoId"] = new[] { $"Tenant policy requires a photo for category '{request.SubjectType}'." }
+                ["PhotoId"] = new[] { $"A photo is required for this {request.EntryState} entry." }
             });
+        }
+
+        if (request.PhotoId.HasValue)
+        {
+            var photo = await _photos.FindAsync(request.PhotoId.Value, ct);
+            if (photo is null || photo.IsDeleted || photo.TenantId != tenantId)
+                throw new NotFoundException($"Photo {request.PhotoId} was not found.");
         }
 
         var entry = new ConsentAuditLogEntry(
@@ -135,6 +129,13 @@ public sealed class CreateEntryLogHandler
                 ["OverrideReason"] = new[] { "OverrideReason is only valid for entered_override entries." }
             });
         }
+
+        if (request.EntryState == EntryStates.Exited
+            && request.SubjectType is not (SubjectCategories.Dweller or SubjectCategories.Vehicle))
+            throw new Errors.ValidationException(new Dictionary<string, string[]>
+            {
+                ["SubjectType"] = new[] { "exited is only allowed for dwellers or vehicles." }
+            });
 
         if (request.EntryState == EntryStates.GatehouseOnly
             && request.SubjectType != SubjectCategories.ServiceProvider)

@@ -184,8 +184,44 @@ public sealed class EntryLogHandlersTests
             .Where(ex => ex.Errors.ContainsKey("SubjectType"));
     }
 
+    [Theory]
+    [InlineData(SubjectCategories.Dweller)]
+    [InlineData(SubjectCategories.Vehicle)]
+    public async Task CreateEntry_WhenResidentOrVehicleExits_Succeeds(string subjectType)
+    {
+        var request = new CreateEntryLogRequest(
+            EntryState: EntryStates.Exited,
+            SubjectType: subjectType,
+            SubjectName: "Gatehouse subject",
+            SubjectDocument: "123",
+            PhotoId: null,
+            OverrideReason: null);
+
+        var response = await _createHandler.HandleAsync(request, _tenantId, _profileId, CancellationToken.None);
+
+        response.EntryState.Should().Be(EntryStates.Exited);
+        response.SubjectType.Should().Be(subjectType);
+    }
+
     [Fact]
-    public async Task CreateEntry_WhenEnteredWithoutConsentAndPolicyRequiresPhoto_SucceedsWithoutPhoto()
+    public async Task CreateEntry_WhenVisitorExits_ThrowsValidationException()
+    {
+        var request = new CreateEntryLogRequest(
+            EntryState: EntryStates.Exited,
+            SubjectType: SubjectCategories.Visitor,
+            SubjectName: "Visitor",
+            SubjectDocument: "123",
+            PhotoId: null,
+            OverrideReason: null);
+
+        var act = () => _createHandler.HandleAsync(request, _tenantId, _profileId, CancellationToken.None);
+
+        await act.Should().ThrowAsync<ValidationException>()
+            .Where(ex => ex.Errors.ContainsKey("SubjectType"));
+    }
+
+    [Fact]
+    public async Task CreateEntry_WhenEnteredWithoutConsentAndPolicyRequiresPhoto_ThrowsValidationException()
     {
         var policy = new TenantConsentPolicy(Guid.NewGuid(), _tenantId, SubjectCategories.Visitor, photoRequired: true, null, null, DateTime.UtcNow);
         _policyRepo.FindByCategoryAsync(_tenantId, SubjectCategories.Visitor, Arg.Any<CancellationToken>()).Returns(policy);
@@ -198,11 +234,32 @@ public sealed class EntryLogHandlersTests
             PhotoId: null,
             OverrideReason: null);
 
-        var response = await _createHandler.HandleAsync(request, _tenantId, _profileId, CancellationToken.None);
+        var act = () => _createHandler.HandleAsync(request, _tenantId, _profileId, CancellationToken.None);
 
-        response.Should().NotBeNull();
-        response.EntryState.Should().Be(EntryStates.EnteredWithoutConsent);
-        response.PhotoId.Should().BeNull();
+        await act.Should().ThrowAsync<ValidationException>()
+            .Where(ex => ex.Errors.ContainsKey("PhotoId"));
+    }
+
+    [Fact]
+    public async Task CreateEntry_WhenEnteredWithoutConsentUsesPhotoFromAnotherTenant_ThrowsNotFoundException()
+    {
+        var photoId = Guid.NewGuid();
+        var policy = new TenantConsentPolicy(Guid.NewGuid(), _tenantId, SubjectCategories.Visitor, photoRequired: true, null, null, DateTime.UtcNow);
+        var photo = new Photo(photoId, Guid.NewGuid(), "path", null, "image/jpeg", 100, null, DateTime.UtcNow);
+        _policyRepo.FindByCategoryAsync(_tenantId, SubjectCategories.Visitor, Arg.Any<CancellationToken>()).Returns(policy);
+        _photoRepo.FindAsync(photoId, Arg.Any<CancellationToken>()).Returns(photo);
+
+        var request = new CreateEntryLogRequest(
+            EntryState: EntryStates.EnteredWithoutConsent,
+            SubjectType: SubjectCategories.Visitor,
+            SubjectName: "Visitor Refused",
+            SubjectDocument: "999",
+            PhotoId: photoId,
+            OverrideReason: null);
+
+        var act = () => _createHandler.HandleAsync(request, _tenantId, _profileId, CancellationToken.None);
+
+        await act.Should().ThrowAsync<NotFoundException>();
     }
 
     [Fact]

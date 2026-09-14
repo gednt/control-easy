@@ -34,15 +34,37 @@ describe('CeEntryWorkflowComponent', () => {
     httpMock.verify();
   });
 
-  it('renders 4 tiles', () => {
-    const tiles: NodeListOf<HTMLButtonElement> =
-      fixture.nativeElement.querySelectorAll('[data-action]');
-    const actions = Array.from(tiles).map((t) =>
-      t.getAttribute('data-action'),
-    );
-    expect(actions.sort()).toEqual(
-      ['denied', 'gatehouse', 'override', 'register'],
-    );
+  function flushVisitorPolicy(photoRequired: boolean): void {
+    const policyReq = httpMock.expectOne('/api/v1/consent-policy/visitors');
+    expect(policyReq.request.method).toBe('GET');
+    policyReq.flush({
+      id: 'p-1',
+      tenantId: 't-1',
+      subjectCategory: 'visitors',
+      photoRequired,
+      createdAtUtc: new Date().toISOString(),
+    });
+  }
+
+  function resident(overrides: Partial<{ id: string; name: string; cpf: string; active: boolean }> = {}) {
+    return {
+      id: 'b42c6db0-3c39-4f49-aec4-8ce8c98f3ad8',
+      tenantId: 't-1',
+      name: 'Ana Silva',
+      cpf: '12345678909',
+      email: 'ana@example.com',
+      phone: '11999999999',
+      apartmentId: 'a-1',
+      active: true,
+      createdAtUtc: new Date().toISOString(),
+      ...overrides,
+    };
+  }
+
+  it('renders entry and exit tiles', () => {
+    const tiles: NodeListOf<HTMLButtonElement> = fixture.nativeElement.querySelectorAll('[data-action]');
+    const actions = Array.from(tiles).map((t) => t.getAttribute('data-action'));
+    expect(actions.sort()).toEqual(['denied', 'exit', 'gatehouse', 'override', 'register']);
   });
 
   it('register tile opens photo capture when consent policy requires photo', fakeAsync(() => {
@@ -84,14 +106,26 @@ describe('CeEntryWorkflowComponent', () => {
     expect(component.step()).toBe('subject-info');
   }));
 
-  it('denied tile bypasses photo capture and advances directly to subject info', fakeAsync(() => {
+  it('denied tile advances directly to subject info when the policy does not require a photo', fakeAsync(() => {
     void component.onTileTap('denied');
+    tick();
+    flushVisitorPolicy(false);
     tick();
 
     expect(component.pendingState()).toBe('entered_without_consent');
     expect(component.showCapture()).toBe(false);
     expect(component.step()).toBe('subject-info');
     expect(component.selectedCategory()).toBe('visitor');
+  }));
+
+  it('denied tile opens photo capture when the policy requires a photo', fakeAsync(() => {
+    void component.onTileTap('denied');
+    tick();
+    flushVisitorPolicy(true);
+    tick();
+
+    expect(component.pendingState()).toBe('entered_without_consent');
+    expect(component.showCapture()).toBe(true);
   }));
 
   it('gatehouse tile forces service_provider subject type', fakeAsync(() => {
@@ -101,6 +135,77 @@ describe('CeEntryWorkflowComponent', () => {
     expect(component.pendingState()).toBe('gatehouse_only');
     expect(component.step()).toBe('subject-info');
     expect(component.selectedCategory()).toBe('service_provider');
+  }));
+
+  it('exit tile records resident or vehicle exits without requiring a photo', fakeAsync(() => {
+    void component.onTileTap('exit');
+    tick();
+
+    expect(component.pendingState()).toBe('exited');
+    expect(component.showCapture()).toBe(false);
+    expect(component.step()).toBe('subject-info');
+    expect(component.selectedCategory()).toBe('dweller');
+
+    component.onCategorySelect('vehicle');
+    expect(component.selectedCategory()).toBe('vehicle');
+    component.onCategorySelect('visitor');
+    expect(component.selectedCategory()).toBe('vehicle');
+  }));
+
+  it('finds an active resident by formatted CPF and fills the known record', fakeAsync(() => {
+    void component.onTileTap('exit');
+    tick();
+
+    component.onResidentLookupInput('123.456.789-09');
+    void component.findResident();
+    tick();
+
+    const lookupRequest = httpMock.expectOne(
+      (request) =>
+        request.url === '/api/v1/residents' &&
+        request.params.get('search') === '12345678909' &&
+        request.params.get('skip') === '0' &&
+        request.params.get('take') === '10',
+    );
+    lookupRequest.flush([resident()]);
+    tick();
+
+    expect(component.selectedResident()?.id).toBe('b42c6db0-3c39-4f49-aec4-8ce8c98f3ad8');
+    expect(component.subjectName()).toBe('Ana Silva');
+    expect(component.subjectDocument()).toBe('12345678909');
+  }));
+
+  it('finds an active resident directly by resident ID for QR lookup', fakeAsync(() => {
+    void component.onTileTap('exit');
+    tick();
+
+    component.onResidentLookupInput('b42c6db0-3c39-4f49-aec4-8ce8c98f3ad8');
+    void component.findResident();
+    tick();
+
+    const lookupRequest = httpMock.expectOne('/api/v1/residents/b42c6db0-3c39-4f49-aec4-8ce8c98f3ad8');
+    expect(lookupRequest.request.method).toBe('GET');
+    lookupRequest.flush(resident());
+    tick();
+
+    expect(component.selectedResident()?.name).toBe('Ana Silva');
+    expect(component.subjectDocument()).toBe('12345678909');
+  }));
+
+  it('shows a clear lookup message when no active resident matches', fakeAsync(() => {
+    void component.onTileTap('exit');
+    tick();
+
+    component.onResidentLookupInput('00000000000');
+    void component.findResident();
+    tick();
+
+    const lookupRequest = httpMock.expectOne((request) => request.url === '/api/v1/residents');
+    lookupRequest.flush([]);
+    tick();
+
+    expect(component.selectedResident()).toBeNull();
+    expect(component.residentSearchError()).toContain('No active resident');
   }));
 
   it('override tile opens reason modal without opening camera', fakeAsync(() => {
@@ -121,6 +226,8 @@ describe('CeEntryWorkflowComponent', () => {
 
   it('allows category selection in subject-info for general entries', fakeAsync(() => {
     void component.onTileTap('denied');
+    tick();
+    flushVisitorPolicy(false);
     tick();
 
     expect(component.step()).toBe('subject-info');
@@ -144,6 +251,8 @@ describe('CeEntryWorkflowComponent', () => {
     fixture.componentRef.setInput('closeOnEntry', true);
 
     void component.onTileTap('denied');
+    tick();
+    flushVisitorPolicy(false);
     tick();
 
     component.subjectName.set('Refused Person');
@@ -173,15 +282,14 @@ describe('CeEntryWorkflowComponent', () => {
   it('continue surfaces toast and stays open on error', fakeAsync(() => {
     void component.onTileTap('denied');
     tick();
+    flushVisitorPolicy(false);
+    tick();
 
     void component.continue();
     tick();
 
     const createReq = httpMock.expectOne('/api/v1/entry-log');
-    createReq.flush(
-      { detail: 'Invalid request' },
-      { status: 400, statusText: 'Bad Request' },
-    );
+    createReq.flush({ detail: 'Invalid request' }, { status: 400, statusText: 'Bad Request' });
     tick();
 
     expect(component.loading()).toBe(false);

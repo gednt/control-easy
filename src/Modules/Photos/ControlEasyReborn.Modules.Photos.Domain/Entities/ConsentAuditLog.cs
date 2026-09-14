@@ -7,6 +7,7 @@ public static class EntryStates
     public const string EnteredWithoutConsent = "entered_without_consent";
     public const string EnteredOverride = "entered_override";
     public const string GatehouseOnly = "gatehouse_only";
+    public const string Exited = "exited";
 }
 
 /// <summary>Hardcoded override reasons (no custom reason codes this phase).</summary>
@@ -32,7 +33,8 @@ public static class EntryStatesConstants
         EntryStates.EnteredWithConsent,
         EntryStates.EnteredWithoutConsent,
         EntryStates.EnteredOverride,
-        EntryStates.GatehouseOnly
+        EntryStates.GatehouseOnly,
+        EntryStates.Exited
     ];
 
     public static bool Contains(string value) => All.Contains(value);
