@@ -34,6 +34,18 @@ A defining architectural characteristic across ControlEasy's history is the inte
 
 DBTools was created by **Felipe Coelho** in **2014** during the initial development of ControlEasy. It was conceived to provide fast, predictable, LINQ-to-SQL query composition tailored specifically to access-control workflows without the hidden magic, complex change-tracking, and runtime overhead of general-purpose ORMs. Over more than a decade of active use and refinement, DBTools evolved naturally alongside ControlEasy from internal data-access utilities into the standalone, open-source NuGet package utilized across the solution today. In ControlEasy Reborn, DBTools underpins tenant-isolated query generation through `ITenantAwareLinqFactory` while sustaining high-throughput gatehouse operations.
 
+### AI-Assisted Migration & Agentic Engineering
+
+The modernization of ControlEasy from a legacy desktop system into a high-performance modular monolith was accelerated, structured, and executed through an ecosystem of specialized **AI agent frameworks**. These systems continue to govern ongoing development and feature delivery:
+
+- **[GSD-core](.planning/) (Get Stuff Done):** Orchestrated the macro-level migration roadmap across 14 systematic development phases, tracking live project state, decision logs, codebase maps, and milestone verifications.
+- **[spec-kit](.specify/) (Specification-Driven Development):** Enforces a specification-first engineering methodology anchored by the project constitution (`.specify/memory/constitution.md`). Every non-trivial feature or refactoring undergoes rigorous requirement clarification, architecture planning (`spec.md`, `plan.md`), and ordered task execution (`tasks.md`).
+- **[OpenSpec](openspec/) (Change & Delta Specifications):** Manages structured change proposals, designs, and delta-specification tracking, allowing targeted feature development and regression prevention.
+- **[BMAD Method](_bmad/) & WDS (Multi-Agent Role Collaboration):** Deploys collaborative agent personas (System Architect Winston, Senior Developer Amelia, Test Architect Murat, Business Analyst Mary, and UX Designers) for adversarial code reviews, edge-case hunting, and automated quality audits.
+- **[agents-template](AGENTS.md) & [Impeccable](.impeccable/):** Defines the binding runtime contract and governance invariants for all AI coding assistants (strict Docker-only development, Git worktree isolation, pre-commit adversarial review gates) alongside design system and frontend excellence standards.
+
+For an overview of how these agent workflows interoperate, refer to the [Agent Flow Cheat Sheet](docs/agent-flow-cheatsheet.md).
+
 ## Prerequisites
 
 - **Docker Engine 24+** with **Docker Compose v2** (`docker compose`)
@@ -183,3 +195,9 @@ ControlEasy Reborn builds upon and acknowledges the open-source ecosystem, incor
 - **[Traefik](https://traefik.io/)** — Edge router and reverse proxy (MIT)
 - **[Adminer](https://www.adminer.org/)** — Database management tool (Apache 2.0 / GPL 2)
 - **[Seq](https://datalust.co/seq)** — Centralized structured log server (Free development license)
+
+### Agentic Engineering & Workflow Tooling
+- **[BMAD Method](https://github.com/bmad-code/bmad)** — Multi-agent persona collaboration, sprint tracking, and adversarial code-review framework (MIT)
+- **[spec-kit](https://github.com/github/spec-kit)** — Specification-driven software development methodology and lifecycle tooling (MIT)
+- **[OpenSpec](https://github.com/openspec/openspec)** — Structured delta-specification, change-proposal, and archive system (MIT)
+- **[agents-template](https://github.com/agents-template/agents-template)** — Standardized runtime contract schema and governance invariants for AI coding agents (MIT)
