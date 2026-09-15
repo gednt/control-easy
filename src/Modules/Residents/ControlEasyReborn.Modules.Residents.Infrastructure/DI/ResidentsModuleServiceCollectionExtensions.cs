@@ -20,6 +20,7 @@ public static class ResidentsModuleServiceCollectionExtensions
         services.AddSingleton<ITenantAwareLinqFactory>(sp => sp.GetRequiredService<TenantAwareLinqFactory>());
 
         services.AddScoped<IResidentRepository, ResidentRepository>();
+        services.AddScoped<IResidentDirectory, ResidentDirectoryRepository>();
         services.AddScoped<CreateResidentHandler>();
         services.AddScoped<GetResidentHandler>();
         services.AddScoped<ListResidentsHandler>();

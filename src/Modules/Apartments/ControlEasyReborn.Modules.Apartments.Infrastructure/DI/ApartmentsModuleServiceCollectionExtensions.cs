@@ -20,6 +20,7 @@ public static class ApartmentsModuleServiceCollectionExtensions
         services.AddSingleton<ITenantAwareLinqFactory>(sp => sp.GetRequiredService<TenantAwareLinqFactory>());
 
         services.AddScoped<IApartmentRepository, ApartmentRepository>();
+        services.AddScoped<IApartmentDirectory, ApartmentDirectoryRepository>();
         services.AddScoped<CreateApartmentHandler>();
         services.AddScoped<GetApartmentHandler>();
         services.AddScoped<ListApartmentsHandler>();

@@ -17,6 +17,7 @@ public sealed class Vehicle
     public string? Model { get; private set; }
     public string? Color { get; private set; }
     public Guid? ApartmentId { get; private set; }
+    public Guid? OwnerResidentId { get; private set; }
     public string? OwnerName { get; private set; }
     public VehicleType VehicleType { get; private set; }
     public bool Active { get; private set; }
@@ -25,7 +26,7 @@ public sealed class Vehicle
 
     private Vehicle() { }
 
-    public Vehicle(Guid id, Guid tenantId, string plate, string? brand, string? model, string? color, Guid? apartmentId, string? ownerName, VehicleType vehicleType, bool active, DateTime createdAtUtc, DateTime? updatedAtUtc = null)
+    public Vehicle(Guid id, Guid tenantId, string plate, string? brand, string? model, string? color, Guid? apartmentId, string? ownerName, VehicleType vehicleType, bool active, DateTime createdAtUtc, DateTime? updatedAtUtc = null, Guid? ownerResidentId = null)
     {
         Id = id;
         TenantId = tenantId;
@@ -39,6 +40,7 @@ public sealed class Vehicle
         Active = active;
         CreatedAtUtc = createdAtUtc;
         UpdatedAtUtc = updatedAtUtc;
+        OwnerResidentId = ownerResidentId;
     }
 
     public void Deactivate()
@@ -47,7 +49,7 @@ public sealed class Vehicle
         UpdatedAtUtc = DateTime.UtcNow;
     }
 
-    public void UpdateDetails(string plate, string? brand, string? model, string? color, Guid? apartmentId, string? ownerName, VehicleType vehicleType)
+    public void UpdateDetails(string plate, string? brand, string? model, string? color, Guid? apartmentId, string? ownerName, VehicleType vehicleType, Guid? ownerResidentId = null)
     {
         Plate = plate;
         Brand = brand;
@@ -56,6 +58,7 @@ public sealed class Vehicle
         ApartmentId = apartmentId;
         OwnerName = ownerName;
         VehicleType = vehicleType;
+        OwnerResidentId = ownerResidentId ?? OwnerResidentId;
         UpdatedAtUtc = DateTime.UtcNow;
     }
 }

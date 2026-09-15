@@ -33,9 +33,25 @@ public sealed class CreateVisitHandler
                 .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray()));
         }
 
-        if (request.ApartmentId.HasValue && !await _apartments.ExistsAsync(request.ApartmentId.Value, ct))
+        if (!request.ApartmentId.HasValue || request.ApartmentId.Value == Guid.Empty)
+        {
+            throw new Errors.ValidationException(new Dictionary<string, string[]>
+            {
+                ["ApartmentId"] = new[] { "An active destination apartment is required." }
+            });
+        }
+
+        var apartment = await _apartments.FindAsync(request.ApartmentId.Value, ct);
+        if (apartment is null)
         {
             throw new NotFoundException("Apartment " + request.ApartmentId + " was not found.");
+        }
+        if (!apartment.Active)
+        {
+            throw new Errors.ValidationException(new Dictionary<string, string[]>
+            {
+                ["ApartmentId"] = new[] { "Destination apartment is not active." }
+            });
         }
 
         var visit = new Visit(
@@ -44,7 +60,9 @@ public sealed class CreateVisitHandler
             visitorName: request.VisitorName,
             visitorDocument: request.VisitorDocument,
             visitorPhone: request.VisitorPhone,
-            apartmentId: request.ApartmentId,
+            apartmentId: apartment.Id,
+            destinationBlock: apartment.Block,
+            destinationUnit: apartment.Unit,
             purpose: request.Purpose,
             status: VisitStatus.Pending,
             attendantProfileId: null,
@@ -58,5 +76,5 @@ public sealed class CreateVisitHandler
     }
 
     internal static VisitResponse ToResponse(Visit v) =>
-        new(v.Id, v.TenantId, v.VisitorName, v.VisitorDocument, v.VisitorPhone, v.ApartmentId, v.Purpose, v.Status.ToString(), v.AttendantProfileId, v.GatehouseId, v.CheckedInAtUtc, v.CheckedOutAtUtc, v.CreatedAtUtc, v.UpdatedAtUtc);
+        new(v.Id, v.TenantId, v.VisitorName, v.VisitorDocument, v.VisitorPhone, v.ApartmentId, v.DestinationBlock, v.DestinationUnit, v.Purpose, v.Status.ToString(), v.AttendantProfileId, v.GatehouseId, v.CheckedInAtUtc, v.CheckedOutAtUtc, v.CreatedAtUtc, v.UpdatedAtUtc);
 }

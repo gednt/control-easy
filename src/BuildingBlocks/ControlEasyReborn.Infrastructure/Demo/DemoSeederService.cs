@@ -364,9 +364,9 @@ public sealed class DemoSeederService : IHostedService
 
         var visits = new[]
         {
-            (Id: DemoIds.StableGuid("visit:1"), Visitor: "Chaves", Doc: "11111111111", Apt: madrugaApt, Purpose: "Pre-register visit for Seu Madruga", Status: 0, Created: now.AddHours(-2), CheckedIn: (DateTime?)null, CheckedOut: (DateTime?)null),
-            (Id: DemoIds.StableGuid("visit:2"), Visitor: "Franklin Clinton", Doc: "22222222222", Apt: michaelApt, Purpose: "Package delivery to Michael De Santa", Status: 2, Created: now.AddHours(-3), CheckedIn: now.AddHours(-2.5), CheckedOut: now.AddMinutes(-45)),
-            (Id: DemoIds.StableGuid("visit:3"), Visitor: "Deimos", Doc: "33333333333", Apt: spartaApt, Purpose: "New resident registration", Status: 1, Created: now.AddHours(-5), CheckedIn: now.AddHours(-4), CheckedOut: (DateTime?)null),
+            (Id: DemoIds.StableGuid("visit:1"), Visitor: "Chaves", Doc: "11111111111", Apt: madrugaApt, Block: "A", Unit: "14", Purpose: "Pre-register visit for Seu Madruga", Status: 0, Created: now.AddHours(-2), CheckedIn: (DateTime?)null, CheckedOut: (DateTime?)null),
+            (Id: DemoIds.StableGuid("visit:2"), Visitor: "Franklin Clinton", Doc: "22222222222", Apt: michaelApt, Block: "B", Unit: "101", Purpose: "Package delivery to Michael De Santa", Status: 2, Created: now.AddHours(-3), CheckedIn: now.AddHours(-2.5), CheckedOut: now.AddMinutes(-45)),
+            (Id: DemoIds.StableGuid("visit:3"), Visitor: "Deimos", Doc: "33333333333", Apt: spartaApt, Block: "C", Unit: "Sparta-1", Purpose: "New resident registration", Status: 1, Created: now.AddHours(-5), CheckedIn: now.AddHours(-4), CheckedOut: (DateTime?)null),
         };
 
         foreach (var v in visits)
@@ -376,11 +376,11 @@ public sealed class DemoSeederService : IHostedService
                 continue;
 
             await db.InsertAsync(
-                new[] { "Id", "TenantId", "VisitorName", "VisitorDocument", "VisitorPhone", "ApartmentId", "Purpose", "Status", "AttendantProfileId", "GatehouseId", "CheckedInAtUtc", "CheckedOutAtUtc", "CreatedAtUtc", "tenant_id" },
+                new[] { "Id", "TenantId", "VisitorName", "VisitorDocument", "VisitorPhone", "ApartmentId", "DestinationBlock", "DestinationUnit", "Purpose", "Status", "AttendantProfileId", "GatehouseId", "CheckedInAtUtc", "CheckedOutAtUtc", "CreatedAtUtc", "tenant_id" },
                 "Visits",
                 new object?[]
                 {
-                    v.Id, DemoIds.AuroraTenantId, v.Visitor, v.Doc, "+5511888880001", v.Apt, v.Purpose, v.Status,
+                    v.Id, DemoIds.AuroraTenantId, v.Visitor, v.Doc, "+5511888880001", v.Apt, v.Block, v.Unit, v.Purpose, v.Status,
                     DemoIds.PorteiroProfileId, DemoIds.AuroraGatehouseId,
                     v.CheckedIn.HasValue ? v.CheckedIn.Value : DBNull.Value,
                     v.CheckedOut.HasValue ? v.CheckedOut.Value : DBNull.Value,

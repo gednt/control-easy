@@ -20,6 +20,7 @@ public static class VehiclesModuleServiceCollectionExtensions
         services.AddSingleton<ITenantAwareLinqFactory>(sp => sp.GetRequiredService<TenantAwareLinqFactory>());
 
         services.AddScoped<IVehicleRepository, VehicleRepository>();
+        services.AddScoped<IVehicleDirectory, VehicleDirectoryRepository>();
         services.AddScoped<CreateVehicleHandler>();
         services.AddScoped<GetVehicleHandler>();
         services.AddScoped<ListVehiclesHandler>();

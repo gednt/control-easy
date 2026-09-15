@@ -15,7 +15,9 @@ public sealed class Visit
     public string VisitorName { get; private set; } = string.Empty;
     public string VisitorDocument { get; private set; } = string.Empty;
     public string? VisitorPhone { get; private set; }
-    public Guid? ApartmentId { get; private set; }
+    public Guid ApartmentId { get; private set; }
+    public string DestinationBlock { get; private set; } = string.Empty;
+    public string DestinationUnit { get; private set; } = string.Empty;
     public string? Purpose { get; private set; }
     public VisitStatus Status { get; private set; }
     public Guid? AttendantProfileId { get; private set; }
@@ -27,14 +29,20 @@ public sealed class Visit
 
     private Visit() { }
 
-    public Visit(Guid id, Guid tenantId, string visitorName, string visitorDocument, string? visitorPhone, Guid? apartmentId, string? purpose, VisitStatus status, Guid? attendantProfileId, Guid? gatehouseId, DateTime? checkedInAtUtc, DateTime? checkedOutAtUtc, DateTime createdAtUtc, DateTime? updatedAtUtc = null)
+    public Visit(Guid id, Guid tenantId, string visitorName, string visitorDocument, string? visitorPhone, Guid apartmentId, string destinationBlock, string destinationUnit, string? purpose, VisitStatus status, Guid? attendantProfileId, Guid? gatehouseId, DateTime? checkedInAtUtc, DateTime? checkedOutAtUtc, DateTime createdAtUtc, DateTime? updatedAtUtc = null)
     {
+        if (apartmentId == Guid.Empty) throw new InvalidOperationException("Apartment id is required.");
+        if (string.IsNullOrWhiteSpace(destinationBlock)) throw new InvalidOperationException("Destination block snapshot is required.");
+        if (string.IsNullOrWhiteSpace(destinationUnit)) throw new InvalidOperationException("Destination unit snapshot is required.");
+
         Id = id;
         TenantId = tenantId;
         VisitorName = visitorName;
         VisitorDocument = visitorDocument;
         VisitorPhone = visitorPhone;
         ApartmentId = apartmentId;
+        DestinationBlock = destinationBlock;
+        DestinationUnit = destinationUnit;
         Purpose = purpose;
         Status = status;
         AttendantProfileId = attendantProfileId;

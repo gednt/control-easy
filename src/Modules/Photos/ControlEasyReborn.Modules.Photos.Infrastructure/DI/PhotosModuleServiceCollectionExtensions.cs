@@ -22,6 +22,7 @@ public static class PhotosModuleServiceCollectionExtensions
         services.AddScoped<IPhotoRepository, PhotoRepository>();
         services.AddScoped<IConsentAuditLogRepository, ConsentAuditLogRepository>();
         services.AddScoped<ITenantConsentPolicyRepository, TenantConsentPolicyRepository>();
+        services.AddScoped<IConsentPolicyEvaluator, ConsentPolicyEvaluator>();
         services.AddScoped<UploadPhotoHandler>();
         services.AddScoped<ListPhotosHandler>();
         services.AddScoped<GetPhotoHandler>();

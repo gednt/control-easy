@@ -5,6 +5,8 @@ CREATE TABLE IF NOT EXISTS Visits (
     VisitorDocument VARCHAR(20) NOT NULL,
     VisitorPhone VARCHAR(20) NULL,
     ApartmentId CHAR(36) NULL,
+    DestinationBlock VARCHAR(64) NULL,
+    DestinationUnit VARCHAR(64) NULL,
     Purpose VARCHAR(500) NULL,
     Status INT NOT NULL DEFAULT 0,
     AttendantProfileId CHAR(36) NULL,

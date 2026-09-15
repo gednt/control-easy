@@ -19,5 +19,11 @@
 -- ALTER TABLE ConsentAuditLog ADD COLUMN tenant_id CHAR(36) NOT NULL;
 -- ALTER TABLE TenantConsentPolicy ADD COLUMN tenant_id CHAR(36) NOT NULL;
 -- ALTER TABLE CondominiumSettings ADD COLUMN tenant_id CHAR(36) NOT NULL;
+-- ALTER TABLE AccessCredentials ADD COLUMN tenant_id CHAR(36) NOT NULL;
+-- ALTER TABLE CredentialLifecycleActions ADD COLUMN tenant_id CHAR(36) NOT NULL;
+-- ALTER TABLE AccessEvents ADD COLUMN tenant_id CHAR(36) NOT NULL;
+-- ALTER TABLE RefusedScanAttempts ADD COLUMN tenant_id CHAR(36) NOT NULL;
+-- ALTER TABLE AccessLookupAudits ADD COLUMN tenant_id CHAR(36) NOT NULL;
+-- ALTER TABLE ResidentIdentityDocuments ADD COLUMN tenant_id CHAR(36) NOT NULL;
 
 SELECT 1;
