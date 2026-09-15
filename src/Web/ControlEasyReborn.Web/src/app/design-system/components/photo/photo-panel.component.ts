@@ -10,12 +10,22 @@ import {
 import { firstValueFrom } from 'rxjs';
 import {
   CeButtonComponent,
+} from '../button/button.component';
+import {
   CeIconComponent,
+} from '../icon/icon.component';
+import {
   CeModalComponent,
+} from '../modal/modal.component';
+import {
   CePhotoCaptureComponent,
+} from './photo-capture.component';
+import {
   CePhotoGalleryComponent,
+} from './photo-gallery.component';
+import {
   ToastService,
-} from '../..';
+} from '../toast/toast.component';
 import { PhotosApiService, type PhotoEntityType, type PhotoResponse } from '../../../features/photos/photos-api.service';
 import { PhotoBindingCacheService } from '../../../features/photos/photo-binding-cache.service';
 import { getApiErrorMessage } from '../../../core/utils/api-error.util';
