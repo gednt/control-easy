@@ -162,6 +162,8 @@ jobs:
           Jwt__Issuer: ControlEasyReborn
           Jwt__Audience: ControlEasyReborn
         run: |
+          set -euo pipefail
+          SWAGGER_PATH="$GITHUB_WORKSPACE/swagger.json"
           dotnet run --project src/Host/ControlEasyReborn.Api --configuration Release --no-build -- \
             --urls "http://127.0.0.1:18099" &
           API_PID=$!
@@ -171,16 +173,17 @@ jobs:
             if [[ "$STATUS" == "200" ]]; then break; fi
             sleep 2
           done
-          curl -sSf "http://127.0.0.1:18099/swagger/v1/swagger.json" -o swagger.json
+          curl --fail --silent --show-error "http://127.0.0.1:18099/swagger/v1/swagger.json" -o "$SWAGGER_PATH"
           kill $API_PID 2>/dev/null || true
           wait $API_PID 2>/dev/null || true
-          echo "swagger.json saved ($(wc -c < swagger.json) bytes)"
+          echo "swagger.json saved at $SWAGGER_PATH ($(wc -c < "$SWAGGER_PATH") bytes)"
+          echo "SWAGGER_PATH=$SWAGGER_PATH" >> "$GITHUB_ENV"
       - name: Setup ng-openapi-gen
         run: npm ci --legacy-peer-deps
         working-directory: ${{ env.WEB_DIR }}
       - name: Run OpenAPI drift check
         run: |
-          npx ng-openapi-gen --input ../../swagger.json --config ng-openapi-gen.json
+          npx ng-openapi-gen --input "$SWAGGER_PATH" --config ng-openapi-gen.json
           git diff --exit-code -- src/app/api
         working-directory: ${{ env.WEB_DIR }}
 
