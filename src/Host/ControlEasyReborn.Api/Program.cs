@@ -144,7 +144,11 @@ try
 
     builder.Services.AddControlEasyDemo(builder.Configuration);
     builder.Services.AddControlEasyBootstrap(builder.Configuration);
-    builder.Services.AddHostedService<PlatformAdminBootstrapService>();
+    if (DemoHostingExtensions.ShouldRegisterPlatformAdminBootstrap(builder.Configuration)
+        && BootstrapHostingExtensions.ShouldRunPlatformAdminBootstrap(builder.Configuration))
+    {
+        builder.Services.AddHostedService<PlatformAdminBootstrapService>();
+    }
 
     builder.Services.AddCors(options =>
     {

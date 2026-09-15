@@ -151,6 +151,7 @@ jobs:
       - name: Generate swagger.json via in-process API
         env:
           ASPNETCORE_ENVIRONMENT: Development
+          Bootstrap__Enabled: "false"
           Db__Provider: MySQL
           Db__Host: 127.0.0.1
           Db__Port: "3306"
