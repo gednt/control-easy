@@ -1,21 +1,34 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   effect,
   inject,
   input,
   output,
   signal,
+  untracked,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import {
   CeButtonComponent,
+} from '../button/button.component';
+import {
   CeIconComponent,
+} from '../icon/icon.component';
+import {
   CeModalComponent,
+} from '../modal/modal.component';
+import {
   CePhotoCaptureComponent,
+} from './photo-capture.component';
+import {
   CePhotoGalleryComponent,
+} from './photo-gallery.component';
+import {
   ToastService,
-} from '../..';
+} from '../toast/toast.component';
 import { PhotosApiService, type PhotoEntityType, type PhotoResponse } from '../../../features/photos/photos-api.service';
 import { PhotoBindingCacheService } from '../../../features/photos/photo-binding-cache.service';
 import { getApiErrorMessage } from '../../../core/utils/api-error.util';
@@ -75,6 +88,7 @@ export class CePhotoPanelComponent {
   private readonly photosApi = inject(PhotosApiService);
   private readonly bindings = inject(PhotoBindingCacheService);
   private readonly toast = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef);
 
   entityType = input.required<PhotoEntityType>();
   entity = input<PhotoPanelEntity | null>(null);
@@ -89,26 +103,31 @@ export class CePhotoPanelComponent {
 
   constructor() {
     effect(
-      (onCleanup) => {
+      () => {
         const entity = this.entity();
         const type = this.entityType();
         if (!entity) {
           this.photos.set([]);
           return;
         }
-        this.photos.set(this.bindings.list(type, entity.id));
-        const sub = this.photosApi.list(0, 50, { entityType: type, entityId: entity.id }).subscribe({
-          next: (photos) => {
-            if (this.entity()?.id !== entity.id || this.entityType() !== type) return;
-            this.bindings.setAll(type, entity.id, photos);
-            this.photos.set(photos);
-            this.photosChanged.emit(photos);
-          },
-          error: () => {
-            // Preserve cached photos on network failure
-          },
-        });
-        onCleanup(() => sub.unsubscribe());
+        // Read the cached snapshot inside untracked so this effect re-runs only
+        // when entity/entityType change, not when bindings change.
+        this.photos.set(untracked(() => this.bindings.list(type, entity.id)));
+        // Trigger the API load; subscription is auto-cleaned on component destroy.
+        this.photosApi
+          .list(0, 50, { entityType: type, entityId: entity.id })
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: (photos) => {
+              if (this.entity()?.id !== entity.id || this.entityType() !== type) return;
+              untracked(() => this.bindings.setAll(type, entity.id, photos));
+              untracked(() => this.photos.set(photos));
+              untracked(() => this.photosChanged.emit(photos));
+            },
+            error: () => {
+              // Preserve cached photos on network failure
+            },
+          });
       },
       { allowSignalWrites: true },
     );

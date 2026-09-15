@@ -16,5 +16,9 @@ module.exports = function configureKarma(config) {
       },
     },
     browsers: ['ChromeHeadlessNoSandbox'],
+    browserDisconnectTimeout: 60000,
+    browserNoActivityTimeout: 120000,
+    captureTimeout: 120000,
+    pingTimeout: 60000,
   });
 };
