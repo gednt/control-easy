@@ -21,6 +21,9 @@ public static class BootstrapHostingExtensions
         return services;
     }
 
+    public static bool ShouldRunPlatformAdminBootstrap(IConfiguration configuration) =>
+        configuration.GetValue($"{BootstrapOptions.SectionName}:Enabled", true);
+
     public static IEndpointRouteBuilder MapBootstrapEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/v1/security")

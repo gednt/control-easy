@@ -3,9 +3,12 @@
 
 export interface CreateAuditLogRequest {
   action?: string | null;
+  category?: string | null;
   details?: string | null;
   entityId?: string;
   entityType?: string | null;
+  metadataJson?: string | null;
   performedByName?: string | null;
   performedByUserId?: string;
+  severity?: string | null;
 }

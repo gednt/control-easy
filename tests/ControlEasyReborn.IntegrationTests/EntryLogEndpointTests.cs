@@ -198,8 +198,11 @@ public sealed class EntryLogEndpointTests
         policy!.PhotoRequired.Should().BeTrue();
 
         // 2. Entry attempt without photo should fail validation (400)
+        // Per .specs/consent-gatehouse: the PhotoRequired policy gate only applies
+        // to entries with consent (entered_with_consent). entered_without_consent
+        // (refusal) is recorded without a photo regardless of policy.
         var entryWithoutPhoto = new CreateEntryLogRequest(
-            EntryState: "entered_without_consent",
+            EntryState: "entered_with_consent",
             SubjectType: "visitor",
             SubjectName: "Policy Test Visitor",
             SubjectDocument: "99988877766",
@@ -208,6 +211,19 @@ public sealed class EntryLogEndpointTests
 
         var badResp = await client.PostAsJsonAsync("/api/v1/entry-log", entryWithoutPhoto);
         badResp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        // 2b. Sanity: refused-consent entry is recorded even when policy requires photo
+        // (a refusal means no photo is taken by design).
+        var refusedEntry = new CreateEntryLogRequest(
+            EntryState: "entered_without_consent",
+            SubjectType: "visitor",
+            SubjectName: "Policy Test Visitor Refused",
+            SubjectDocument: "99988877767",
+            PhotoId: null,
+            OverrideReason: null);
+
+        var refusedResp = await client.PostAsJsonAsync("/api/v1/entry-log", refusedEntry);
+        refusedResp.StatusCode.Should().Be(HttpStatusCode.Created);
 
         // 3. Entry attempt with photo succeeds (201)
         var photoId = await UploadTestPhotoAsync(client);

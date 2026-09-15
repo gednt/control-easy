@@ -8,28 +8,22 @@ import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
 
-export interface ApiV1AdministrationAuditLogsGet$Params {
-  category?: string;
-  severity?: string;
-  entityType?: string;
-  action?: string;
+export interface ApiV1EntryLogGet$Params {
+  entryState?: string;
+  subjectType?: string;
   fromUtc?: string;
   toUtc?: string;
-  searchTerm?: string;
   skip?: number;
   take?: number;
 }
 
-export function apiV1AdministrationAuditLogsGet(http: HttpClient, rootUrl: string, params?: ApiV1AdministrationAuditLogsGet$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-  const rb = new RequestBuilder(rootUrl, apiV1AdministrationAuditLogsGet.PATH, 'get');
+export function apiV1EntryLogGet(http: HttpClient, rootUrl: string, params?: ApiV1EntryLogGet$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+  const rb = new RequestBuilder(rootUrl, apiV1EntryLogGet.PATH, 'get');
   if (params) {
-    rb.query('category', params.category, {});
-    rb.query('severity', params.severity, {});
-    rb.query('entityType', params.entityType, {});
-    rb.query('action', params.action, {});
+    rb.query('entryState', params.entryState, {});
+    rb.query('subjectType', params.subjectType, {});
     rb.query('fromUtc', params.fromUtc, {});
     rb.query('toUtc', params.toUtc, {});
-    rb.query('searchTerm', params.searchTerm, {});
     rb.query('skip', params.skip, {});
     rb.query('take', params.take, {});
   }
@@ -44,4 +38,4 @@ export function apiV1AdministrationAuditLogsGet(http: HttpClient, rootUrl: strin
   );
 }
 
-apiV1AdministrationAuditLogsGet.PATH = '/api/v1/administration/audit-logs';
+apiV1EntryLogGet.PATH = '/api/v1/entry-log';
