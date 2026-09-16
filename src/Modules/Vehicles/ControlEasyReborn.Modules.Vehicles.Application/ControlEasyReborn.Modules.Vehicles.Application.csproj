@@ -6,6 +6,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ControlEasyReborn.Modules.Vehicles.Domain\ControlEasyReborn.Modules.Vehicles.Domain.csproj" />
     <ProjectReference Include="..\..\Apartments\ControlEasyReborn.Modules.Apartments.Application\ControlEasyReborn.Modules.Apartments.Application.csproj" />
+    <ProjectReference Include="..\..\Residents\ControlEasyReborn.Modules.Residents.Application\ControlEasyReborn.Modules.Residents.Application.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FluentValidation" />

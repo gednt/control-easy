@@ -2,9 +2,9 @@ using ControlEasyReborn.Modules.Vehicles.Domain.Entities;
 
 namespace ControlEasyReborn.Modules.Vehicles.Application.Contracts;
 
-public sealed record CreateVehicleRequest(string Plate, string? Brand, string? Model, string? Color, Guid? ApartmentId, string? OwnerName, VehicleType? VehicleType);
+public sealed record CreateVehicleRequest(string Plate, string? Brand, string? Model, string? Color, Guid? ApartmentId, string? OwnerName, VehicleType? VehicleType, Guid? OwnerResidentId = null);
 
-public sealed record UpdateVehicleRequest(string Plate, string? Brand, string? Model, string? Color, Guid? ApartmentId, string? OwnerName, VehicleType? VehicleType);
+public sealed record UpdateVehicleRequest(string Plate, string? Brand, string? Model, string? Color, Guid? ApartmentId, string? OwnerName, VehicleType? VehicleType, Guid? OwnerResidentId = null);
 
 public sealed record VehicleResponse(
     Guid Id,
@@ -14,6 +14,7 @@ public sealed record VehicleResponse(
     string? Model,
     string? Color,
     Guid? ApartmentId,
+    Guid? OwnerResidentId,
     string? OwnerName,
     VehicleType VehicleType,
     bool Active,

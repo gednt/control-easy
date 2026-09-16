@@ -1,4 +1,5 @@
 using ControlEasyReborn.Modules.Apartments.Application.Abstractions;
+using ControlEasyReborn.Modules.Residents.Application.Abstractions;
 using ControlEasyReborn.Modules.Vehicles.Application.Abstractions;
 using ControlEasyReborn.Modules.Vehicles.Application.Contracts;
 using ControlEasyReborn.Modules.Vehicles.Application.Errors;
@@ -11,15 +12,18 @@ public sealed class CreateVehicleHandler
 {
     private readonly IVehicleRepository _vehicles;
     private readonly IApartmentRepository _apartments;
+    private readonly IResidentDirectory _residents;
     private readonly IValidator<CreateVehicleRequest> _validator;
 
     public CreateVehicleHandler(
         IVehicleRepository vehicles,
         IApartmentRepository apartments,
+        IResidentDirectory residents,
         IValidator<CreateVehicleRequest> validator)
     {
         _vehicles = vehicles;
         _apartments = apartments;
+        _residents = residents;
         _validator = validator;
     }
 
@@ -38,6 +42,18 @@ public sealed class CreateVehicleHandler
             throw new NotFoundException("Apartment " + request.ApartmentId + " was not found.");
         }
 
+        if (request.OwnerResidentId.HasValue && request.OwnerResidentId.Value != Guid.Empty)
+        {
+            var owner = await _residents.FindByIdAsync(tenantId, request.OwnerResidentId.Value, ct);
+            if (owner is null)
+            {
+                throw new Errors.ValidationException(new Dictionary<string, string[]>
+                {
+                    ["OwnerResidentId"] = new[] { "Owner resident must belong to the current tenant." }
+                });
+            }
+        }
+
         var vehicle = new Vehicle(
             id: Guid.NewGuid(),
             tenantId: tenantId,
@@ -49,12 +65,13 @@ public sealed class CreateVehicleHandler
             ownerName: request.OwnerName,
             vehicleType: request.VehicleType ?? Domain.Entities.VehicleType.Car,
             active: true,
-            createdAtUtc: DateTime.UtcNow);
+            createdAtUtc: DateTime.UtcNow,
+            ownerResidentId: request.OwnerResidentId);
 
         await _vehicles.AddAsync(vehicle, ct);
         return ToResponse(vehicle);
     }
 
     internal static VehicleResponse ToResponse(Vehicle v) =>
-        new(v.Id, v.TenantId, v.Plate, v.Brand, v.Model, v.Color, v.ApartmentId, v.OwnerName, v.VehicleType, v.Active, v.CreatedAtUtc, v.UpdatedAtUtc);
+        new(v.Id, v.TenantId, v.Plate, v.Brand, v.Model, v.Color, v.ApartmentId, v.OwnerResidentId, v.OwnerName, v.VehicleType, v.Active, v.CreatedAtUtc, v.UpdatedAtUtc);
 }
