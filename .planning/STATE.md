@@ -41,6 +41,7 @@ Last activity: 2026-09-13 — restored persisted photo entity bindings, authenti
 
 ### Decisions
 
+- Package drop tracking is specified as a separate feature: each received package is individually described, held packages are listed as entrance-lodge inventory, and collection records the actual collector plus the recording staff member. The feature is not yet assigned to a milestone.
 - v2.0 photo capture: browser-only, client-side compression (0.8→0.6→0.3 ladder), EXIF strip via canvas redraw, 3× retry with 1s/2s/4s backoff
 - v2.0 consent model: per-tenant per-category policy, five entry states (entered_with_consent / entered_override / gatehouse_only / denied / entered_without_consent), append-only audit log, hardcoded override reason codes
 - v2.0 design principle: 3-second gatehouse workflow as honesty enforcement; CCTV is external backstop

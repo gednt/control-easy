@@ -73,6 +73,7 @@ Phase numbering continues from v1.1 (Phase 10). Old v1.0 placeholder phases (12,
 - [~] Mockup functional fixes (v1.1, Phase 9) — `UI-04` — residents page interactions done; login form, toasts, other pages pending — `.specs/2-mockup-functional-fixes/`
 - [ ] Photo browser capture & display (v2.0, Phase 12) — `PHOTO-02` — `.specs/photo-capture/`
 - [~] Consent gatehouse workflow UI (v2.0, Phase 13) — `CONSENT-03` — backend done; audit review UI pending — `.specs/consent-gatehouse/`
+- [ ] Package drop tracking — record package descriptions, held-at-lodge inventory, and collection accountability — `.specs/package-drop-tracking/`
 - [ ] Door integration (v2.1, gated on hardware) — `.specs/door-integration/`
 - [ ] Multi-arch Docker/CI (fast-cycle) — `.specs/1 - modernization-roadmap-arm64/`
 
