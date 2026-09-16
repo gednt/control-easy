@@ -251,6 +251,8 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
             ControlEasyReborn.Modules.AccessControl.Application.Errors.NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
             ControlEasyReborn.Modules.AccessControl.Application.Errors.ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
             ControlEasyReborn.Modules.AccessControl.Application.Errors.ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
+            ControlEasyReborn.Modules.AccessControl.Domain.Errors.CredentialAlreadyActiveException => (StatusCodes.Status409Conflict, "Credential already active"),
+            ControlEasyReborn.Modules.AccessControl.Domain.Errors.CredentialLifecycleConflictException => (StatusCodes.Status409Conflict, "Credential lifecycle conflict"),
             _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred")
         };
 

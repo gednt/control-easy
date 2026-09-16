@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\ControlEasyReborn.Modules.AccessControl.Application\ControlEasyReborn.Modules.AccessControl.Application.csproj" />
+    <ProjectReference Include="..\ControlEasyReborn.Modules.AccessControl.Domain\ControlEasyReborn.Modules.AccessControl.Domain.csproj" />
     <ProjectReference Include="..\ControlEasyReborn.Modules.AccessControl.Infrastructure\ControlEasyReborn.Modules.AccessControl.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
