@@ -35,3 +35,40 @@ public sealed record AccessCredentialResponse(
     DateTime CreatedAtUtc,
     DateTime? UpdatedAtUtc,
     string? OneTimeQrPayload = null);
+
+public sealed record LookupSubjectRequest(string Criterion, string Value, string? Unit);
+
+public sealed record LookupResponseItem(
+    string SubjectType,
+    Guid SubjectId,
+    Guid? ApartmentId,
+    string? ApartmentBlock,
+    string? ApartmentUnit,
+    string? DisplayName,
+    string? DocumentMasked,
+    string? Plate);
+
+public sealed record LookupResponse(
+    Guid LookupAuditId,
+    string Criterion,
+    string ResultCountBand,
+    IReadOnlyList<LookupResponseItem> Items);
+
+public sealed record RecordManualAccessRequest(
+    Guid LookupAuditId,
+    string SubjectType,
+    Guid SubjectId,
+    string Direction,
+    Guid? GatehouseId);
+
+public sealed record ManualAccessResponse(
+    Guid AccessEventId,
+    Guid LookupAuditId,
+    string SubjectType,
+    Guid SubjectId,
+    string AccessMethod,
+    string Direction,
+    string PolicyOutcome,
+    Guid DestinationApartmentId,
+    string DestinationBlock,
+    string DestinationUnit);

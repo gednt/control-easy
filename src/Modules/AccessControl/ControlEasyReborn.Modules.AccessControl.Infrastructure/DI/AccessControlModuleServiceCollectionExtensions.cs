@@ -34,6 +34,11 @@ public static class AccessControlModuleServiceCollectionExtensions
 
         services.AddScoped<AccessEventDestinationResolver>();
         services.AddScoped<RecordAccessScanHandler>();
+        services.AddScoped<LookupSubjectHandler>();
+        services.AddScoped<RecordManualAccessHandler>();
+        services.AddScoped<IssueCredentialHandler>();
+        services.AddScoped<ReplaceCredentialHandler>();
+        services.AddScoped<RevokeCredentialHandler>();
 
         services.AddScoped<IValidator<Application.Commands.RecordAccessScanCommand>, RecordAccessScanCommandValidator>();
         services.AddScoped<IValidator<Application.Commands.LookupSubjectCommand>, LookupSubjectCommandValidator>();

@@ -25,9 +25,13 @@ public sealed class LookupSubjectCommandValidator : AbstractValidator<LookupSubj
     public LookupSubjectCommandValidator()
     {
         RuleFor(c => c.TenantId).NotEmpty();
+        RuleFor(c => c.Criterion).IsInEnum();
         RuleFor(c => c.Value)
             .NotEmpty()
             .MaximumLength(256);
+        RuleFor(c => c.Unit)
+            .MaximumLength(64)
+            .When(c => !string.IsNullOrEmpty(c.Unit));
     }
 }
 
