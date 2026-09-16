@@ -1,6 +1,7 @@
 using ControlEasyReborn.Api;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using MySqlConnector;
 
 namespace ControlEasyReborn.IntegrationTests;
 
@@ -79,6 +80,39 @@ public abstract class TenantAwareWebApplicationFactory : WebApplicationFactory<P
         _platformAdminClient.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
         return _platformAdminClient;
+    }
+
+    public async Task<Guid> SeedApartmentForTenantAAsync(string? blockSuffix = null, string? unitSuffix = null)
+    {
+        var id = Guid.NewGuid();
+        var block = "B-" + (blockSuffix ?? Guid.NewGuid().ToString("N")[..6]);
+        var unit = unitSuffix ?? Guid.NewGuid().ToString("N")[..6];
+
+        var connectionString = Environment.GetEnvironmentVariable("CE_ITEST_MYSQL") is { Length: > 0 }
+            ? ResolveConnectionStringFromEnv()
+            : null;
+
+        connectionString ??= "Server=localhost;Port=3306;Database=controleasydb;Uid=root;Pwd=testpw;AllowUserVariables=True;";
+
+        await using var conn = new MySqlConnection(connectionString);
+        await conn.OpenAsync();
+        await using var cmd = new MySqlCommand(
+            "INSERT INTO Apartments (Id, TenantId, Block, Unit, Active, CreatedAtUtc, tenant_id) " +
+            "VALUES (@id, @tid, @block, @unit, 1, UTC_TIMESTAMP(6), @tid)", conn);
+        cmd.Parameters.AddWithValue("@id", id.ToString());
+        cmd.Parameters.AddWithValue("@tid", TenantAId.ToString());
+        cmd.Parameters.AddWithValue("@block", block);
+        cmd.Parameters.AddWithValue("@unit", unit);
+        await cmd.ExecuteNonQueryAsync();
+        return id;
+    }
+
+    private static string ResolveConnectionStringFromEnv()
+    {
+        var external = Environment.GetEnvironmentVariable("CE_ITEST_MYSQL")!;
+        var host = external.Contains(':') ? external.Split(':')[0] : external;
+        var port = external.Contains(':') ? external.Split(':')[1] : "3306";
+        return $"Server={host};Port={port};Database=controleasydb;Uid=root;Pwd=testpw;AllowUserVariables=True;";
     }
 
     protected override void Dispose(bool disposing)

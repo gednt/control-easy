@@ -20,7 +20,8 @@ public sealed class VisitEndpointTests
     public async Task CreateVisit_AsTenantA_ReturnsCreated()
     {
         var client = _factory.AsTenantA();
-        var request = new CreateVisitRequest("Ana Costa", "12345678901", null, null, "Delivery");
+        var apartmentId = await _factory.SeedApartmentForTenantAAsync();
+        var request = new CreateVisitRequest("Ana Costa", "12345678901", null, apartmentId, "Delivery");
 
         var response = await client.PostAsJsonAsync("/api/v1/visits", request);
         response.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -29,13 +30,15 @@ public sealed class VisitEndpointTests
         body.Should().NotBeNull();
         body!.VisitorName.Should().Be("Ana Costa");
         body.Status.Should().Be("Pending");
+        body.ApartmentId.Should().Be(apartmentId);
     }
 
     [Fact]
     public async Task CreateVisit_EmptyVisitorName_Returns400()
     {
         var client = _factory.AsTenantA();
-        var request = new CreateVisitRequest("", "12345678901", null, null, null);
+        var apartmentId = await _factory.SeedApartmentForTenantAAsync();
+        var request = new CreateVisitRequest("", "12345678901", null, apartmentId, null);
 
         var response = await client.PostAsJsonAsync("/api/v1/visits", request);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -45,8 +48,9 @@ public sealed class VisitEndpointTests
     public async Task CheckInVisit_AsPending_ReturnsOkWithCheckedInStatus()
     {
         var client = _factory.AsTenantA();
+        var apartmentId = await _factory.SeedApartmentForTenantAAsync();
         var createResponse = await client.PostAsJsonAsync("/api/v1/visits",
-            new CreateVisitRequest("Check In Test", "12345678901", null, null, "Visit"));
+            new CreateVisitRequest("Check In Test", "12345678901", null, apartmentId, "Visit"));
         var created = await createResponse.Content.ReadFromJsonAsync<VisitResponse>();
 
         var checkInResponse = await client.PostAsync($"/api/v1/visits/{created!.Id}/checkin", null);
@@ -62,8 +66,9 @@ public sealed class VisitEndpointTests
     public async Task CheckOutVisit_AfterCheckIn_ReturnsOkWithCheckedOutStatus()
     {
         var client = _factory.AsTenantA();
+        var apartmentId = await _factory.SeedApartmentForTenantAAsync();
         var createResponse = await client.PostAsJsonAsync("/api/v1/visits",
-            new CreateVisitRequest("Check Out Test", "98765432100", null, null, null));
+            new CreateVisitRequest("Check Out Test", "98765432100", null, apartmentId, null));
         var created = await createResponse.Content.ReadFromJsonAsync<VisitResponse>();
 
         await client.PostAsync($"/api/v1/visits/{created!.Id}/checkin", null);
@@ -81,8 +86,9 @@ public sealed class VisitEndpointTests
     public async Task CheckInVisit_AlreadyCheckedIn_Returns409()
     {
         var client = _factory.AsTenantA();
+        var apartmentId = await _factory.SeedApartmentForTenantAAsync();
         var createResponse = await client.PostAsJsonAsync("/api/v1/visits",
-            new CreateVisitRequest("Double Check In", "11122233344", null, null, null));
+            new CreateVisitRequest("Double Check In", "11122233344", null, apartmentId, null));
         var created = await createResponse.Content.ReadFromJsonAsync<VisitResponse>();
 
         await client.PostAsync($"/api/v1/visits/{created!.Id}/checkin", null);
@@ -95,8 +101,9 @@ public sealed class VisitEndpointTests
     public async Task CheckOutVisit_WithoutCheckIn_Returns409()
     {
         var client = _factory.AsTenantA();
+        var apartmentId = await _factory.SeedApartmentForTenantAAsync();
         var createResponse = await client.PostAsJsonAsync("/api/v1/visits",
-            new CreateVisitRequest("Early Check Out", "55566677788", null, null, null));
+            new CreateVisitRequest("Early Check Out", "55566677788", null, apartmentId, null));
         var created = await createResponse.Content.ReadFromJsonAsync<VisitResponse>();
 
         var checkOutResponse = await client.PostAsync($"/api/v1/visits/{created!.Id}/checkout", null);
@@ -108,9 +115,10 @@ public sealed class VisitEndpointTests
     {
         var clientA = _factory.AsTenantA();
         var clientB = _factory.AsTenantB();
+        var apartmentId = await _factory.SeedApartmentForTenantAAsync();
 
         var createResponse = await clientA.PostAsJsonAsync("/api/v1/visits",
-            new CreateVisitRequest("Cross Tenant Visit", "98765432100", null, null, null));
+            new CreateVisitRequest("Cross Tenant Visit", "98765432100", null, apartmentId, null));
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var created = await createResponse.Content.ReadFromJsonAsync<VisitResponse>();
