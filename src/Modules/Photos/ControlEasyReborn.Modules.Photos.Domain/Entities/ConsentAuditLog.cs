@@ -74,12 +74,13 @@ public sealed class ConsentAuditLogEntry
     public string SubjectType { get; private set; } = string.Empty;
     public string? SubjectName { get; private set; }
     public string? SubjectDocument { get; private set; }
+    public Guid? ApartmentId { get; private set; }
     public Guid? PerformedByProfileId { get; private set; }
     public DateTime RecordedAt { get; private set; }
 
     private ConsentAuditLogEntry() { }
 
-    public ConsentAuditLogEntry(Guid id, Guid tenantId, string entryState, string? overrideReason, Guid? photoId, string subjectType, string? subjectName, string? subjectDocument, Guid? performedByProfileId, DateTime recordedAt)
+    public ConsentAuditLogEntry(Guid id, Guid tenantId, string entryState, string? overrideReason, Guid? photoId, string subjectType, string? subjectName, string? subjectDocument, Guid? apartmentId, Guid? performedByProfileId, DateTime recordedAt)
     {
         if (entryState == EntryStates.EnteredWithConsent && photoId is null)
             throw new InvalidOperationException("entered_with_consent entries require a photo.");
@@ -92,6 +93,7 @@ public sealed class ConsentAuditLogEntry
         SubjectType = subjectType;
         SubjectName = subjectName;
         SubjectDocument = subjectDocument;
+        ApartmentId = apartmentId;
         PerformedByProfileId = performedByProfileId;
         RecordedAt = recordedAt;
     }

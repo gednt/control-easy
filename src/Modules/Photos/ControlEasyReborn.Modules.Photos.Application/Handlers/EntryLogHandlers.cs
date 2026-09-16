@@ -2,6 +2,8 @@ using ControlEasyReborn.Modules.Photos.Application.Abstractions;
 using ControlEasyReborn.Modules.Photos.Application.Contracts;
 using ControlEasyReborn.Modules.Photos.Application.Errors;
 using ControlEasyReborn.Modules.Photos.Domain.Entities;
+using ControlEasyReborn.Modules.Residents.Application.Abstractions;
+using ControlEasyReborn.Modules.Vehicles.Application.Abstractions;
 using ControlEasyReborn.SharedKernel.Auditing;
 using FluentValidation;
 
@@ -12,6 +14,8 @@ public sealed class CreateEntryLogHandler
     private readonly IConsentAuditLogRepository _auditLog;
     private readonly IPhotoRepository _photos;
     private readonly ITenantConsentPolicyRepository _policies;
+    private readonly IResidentRepository _residents;
+    private readonly IVehicleRepository _vehicles;
     private readonly IValidator<CreateEntryLogRequest> _validator;
     private readonly IAuditLogWriter? _auditWriter;
 
@@ -19,12 +23,16 @@ public sealed class CreateEntryLogHandler
         IConsentAuditLogRepository auditLog,
         IPhotoRepository photos,
         ITenantConsentPolicyRepository policies,
+        IResidentRepository residents,
+        IVehicleRepository vehicles,
         IValidator<CreateEntryLogRequest> validator,
         IAuditLogWriter? auditWriter = null)
     {
         _auditLog = auditLog;
         _photos = photos;
         _policies = policies;
+        _residents = residents;
+        _vehicles = vehicles;
         _validator = validator;
         _auditWriter = auditWriter;
     }
@@ -59,6 +67,8 @@ public sealed class CreateEntryLogHandler
                 throw new NotFoundException($"Photo {request.PhotoId} was not found.");
         }
 
+        var apartmentId = await ResolveApartmentIdAsync(request, tenantId, ct);
+
         var entry = new ConsentAuditLogEntry(
             id: Guid.NewGuid(),
             tenantId: tenantId,
@@ -68,6 +78,7 @@ public sealed class CreateEntryLogHandler
             subjectType: request.SubjectType,
             subjectName: request.SubjectName,
             subjectDocument: request.SubjectDocument,
+            apartmentId: apartmentId,
             performedByProfileId: profileId,
             recordedAt: DateTime.UtcNow);
 
@@ -98,12 +109,71 @@ public sealed class CreateEntryLogHandler
                     request.SubjectName,
                     request.EntryState,
                     request.OverrideReason,
-                    request.PhotoId
+                    request.PhotoId,
+                    ApartmentId = apartmentId
                 },
                 ct: ct);
         }
 
         return ToResponse(entry);
+    }
+
+    private async Task<Guid?> ResolveApartmentIdAsync(CreateEntryLogRequest request, Guid tenantId, CancellationToken ct)
+    {
+        if (request.ApartmentId.HasValue)
+            return request.ApartmentId;
+
+        if (request.SubjectType == SubjectCategories.Dweller)
+        {
+            if (request.ResidentId.HasValue)
+            {
+                var resident = await _residents.FindAsync(request.ResidentId.Value, ct);
+                if (resident is not null && resident.TenantId == tenantId && resident.ApartmentId.HasValue)
+                    return resident.ApartmentId;
+            }
+
+            var normalized = NormalizeCpf(request.SubjectDocument);
+            if (!string.IsNullOrEmpty(normalized))
+            {
+                var matches = await _residents.ListAsync(normalized, 0, 5, ct);
+                var firstActive = matches.FirstOrDefault(r => r.Active && r.TenantId == tenantId);
+                if (firstActive?.ApartmentId.HasValue == true)
+                    return firstActive.ApartmentId;
+            }
+        }
+        else if (request.SubjectType == SubjectCategories.Vehicle)
+        {
+            if (request.VehicleId.HasValue)
+            {
+                var vehicle = await _vehicles.FindAsync(request.VehicleId.Value, ct);
+                if (vehicle is not null && vehicle.TenantId == tenantId && vehicle.ApartmentId.HasValue)
+                    return vehicle.ApartmentId;
+            }
+
+            var plate = NormalizePlate(request.SubjectDocument);
+            if (!string.IsNullOrEmpty(plate))
+            {
+                var matches = await _vehicles.ListAsync(plate, 0, 5, ct);
+                var firstActive = matches.FirstOrDefault(v => v.Active);
+                if (firstActive?.ApartmentId.HasValue == true)
+                    return firstActive.ApartmentId;
+            }
+        }
+
+        return null;
+    }
+
+    private static string? NormalizeCpf(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        var digits = new string(value.Where(char.IsDigit).ToArray());
+        return digits.Length == 11 ? digits : null;
+    }
+
+    private static string? NormalizePlate(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        return value.Trim().ToUpperInvariant();
     }
 
     private static void ValidateStateTransitions(CreateEntryLogRequest request)
@@ -146,7 +216,7 @@ public sealed class CreateEntryLogHandler
     }
 
     internal static EntryLogResponse ToResponse(ConsentAuditLogEntry e) =>
-        new(e.Id, e.TenantId, e.EntryState, e.OverrideReason, e.PhotoId, e.SubjectType, e.SubjectName, e.SubjectDocument, e.PerformedByProfileId, e.RecordedAt);
+        new(e.Id, e.TenantId, e.EntryState, e.OverrideReason, e.PhotoId, e.SubjectType, e.SubjectName, e.SubjectDocument, e.ApartmentId, e.PerformedByProfileId, e.RecordedAt);
 }
 
 public sealed class ListEntryLogsHandler

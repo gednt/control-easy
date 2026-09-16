@@ -152,7 +152,7 @@ public sealed class ReportReadRepository : IReportReadRepository
         try
         {
             var consentAuditRows = await db.SelectAsync(
-                fields: "Id, EntryState, OverrideReason, PhotoId, SubjectType, SubjectName, SubjectDocument, RecordedAt",
+                fields: "Id, EntryState, OverrideReason, PhotoId, SubjectType, SubjectName, SubjectDocument, ApartmentId, RecordedAt",
                 table: "ConsentAuditLog",
                 whereClause: "1=1",
                 parameters: Array.Empty<object>(),
@@ -178,7 +178,7 @@ public sealed class ReportReadRepository : IReportReadRepository
 
                     if (!existingVisitIds.Contains(id))
                     {
-                        mappedAuditEntries.Add(MapConsentAuditEntry(ar));
+                        mappedAuditEntries.Add(MapConsentAuditEntry(ar, apartmentLookup));
                     }
                 }
             }
@@ -268,7 +268,7 @@ public sealed class ReportReadRepository : IReportReadRepository
             CreatedAtUtc: Convert.ToDateTime(r["CreatedAtUtc"]));
     }
 
-    private static RecentVisitDto MapConsentAuditEntry(DataRow r)
+    private static RecentVisitDto MapConsentAuditEntry(DataRow r, Dictionary<string, (string? Block, string? Unit)> apartmentLookup)
     {
         var id = Guid.Parse(r["Id"].ToString() ?? string.Empty);
         var entryState = r["EntryState"]?.ToString() ?? string.Empty;
@@ -276,6 +276,7 @@ public sealed class ReportReadRepository : IReportReadRepository
         var subjectName = r["SubjectName"]?.ToString();
         var overrideReason = r["OverrideReason"]?.ToString();
         var recordedAt = Convert.ToDateTime(r["RecordedAt"]);
+        var apartmentIdStr = r.Table.Columns.Contains("ApartmentId") ? r["ApartmentId"]?.ToString() : null;
 
         var defaultName = subjectType switch
         {
@@ -309,7 +310,16 @@ public sealed class ReportReadRepository : IReportReadRepository
             _ => "Pending"
         };
 
-        string? apartmentLabel = entryState == "gatehouse_only" ? "Gatehouse" : null;
+        string? apartmentLabel = null;
+        if (entryState == "gatehouse_only")
+        {
+            apartmentLabel = "Gatehouse";
+        }
+        else if (!string.IsNullOrEmpty(apartmentIdStr) && apartmentLookup.TryGetValue(apartmentIdStr, out var apt)
+            && !string.IsNullOrEmpty(apt.Block) && !string.IsNullOrEmpty(apt.Unit))
+        {
+            apartmentLabel = $"{apt.Block}-{apt.Unit}";
+        }
 
         return new RecentVisitDto(
             Id: id,

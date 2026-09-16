@@ -2,7 +2,10 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.RegularExpressions;
+using ControlEasyReborn.Modules.Apartments.Application.Contracts;
 using ControlEasyReborn.Modules.Photos.Application.Contracts;
+using ControlEasyReborn.Modules.Reports.Application.Contracts;
+using ControlEasyReborn.Modules.Residents.Application.Contracts;
 using FluentAssertions;
 using MySqlConnector;
 using Xunit;
@@ -245,7 +248,7 @@ public sealed class EntryLogEndpointTests
         csvResp.Content.Headers.ContentType?.MediaType.Should().Be("text/csv");
 
         var csvText = await csvResp.Content.ReadAsStringAsync();
-        csvText.Should().Contain("id,entry_state,override_reason,photo_id,subject_type,subject_name,subject_document,performed_by_profile_id,recorded_at");
+        csvText.Should().Contain("id,entry_state,override_reason,photo_id,subject_type,subject_name,subject_document,apartment_id,performed_by_profile_id,recorded_at");
         csvText.Should().Contain("Csv Test Person");
 
         // Verify millisecond precision format in the exported text (e.g., 2026-09-12 19:04:24.123)
@@ -285,5 +288,62 @@ public sealed class EntryLogEndpointTests
         var csvTextB = await csvRespB.Content.ReadAsStringAsync();
         csvTextB.Should().NotContain(created!.Id.ToString());
         csvTextB.Should().NotContain(uniqueName);
+    }
+
+    [Fact]
+    public async Task Dashboard_DwellerEntry_AttributedToResidentApartment_OnArrivalRecord()
+    {
+        var client = _factory.AsTenantA();
+
+        // Create apartment + resident, then create a dweller entry referencing the resident by apartmentId.
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var aptResp = await client.PostAsJsonAsync("/api/v1/apartments",
+            new CreateApartmentRequest($"D{suffix[..3]}", suffix[3..]));
+        aptResp.StatusCode.Should().Be(HttpStatusCode.Created);
+        var apartment = await aptResp.Content.ReadFromJsonAsync<ApartmentResponse>();
+
+        var residentResp = await client.PostAsJsonAsync("/api/v1/residents", new CreateResidentRequest(
+            Name: $"Apt Resident {suffix}",
+            Cpf: GenerateCpf(suffix),
+            Email: null,
+            Phone: null,
+            ApartmentId: apartment!.Id));
+        residentResp.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var photoId = await UploadTestPhotoAsync(client);
+        var entryReq = new CreateEntryLogRequest(
+            EntryState: "entered_with_consent",
+            SubjectType: "dweller",
+            SubjectName: $"Apt Resident {suffix}",
+            SubjectDocument: null,
+            PhotoId: photoId,
+            OverrideReason: null,
+            ApartmentId: apartment.Id);
+
+        var entryResp = await client.PostAsJsonAsync("/api/v1/entry-log", entryReq);
+        entryResp.StatusCode.Should().Be(HttpStatusCode.Created);
+        var created = await entryResp.Content.ReadFromJsonAsync<EntryLogResponse>();
+        created!.ApartmentId.Should().Be(apartment.Id);
+
+        var dashboard = await client.GetFromJsonAsync<DashboardStatsResponse>("/api/v1/dashboard/stats");
+        var arrivalRow = dashboard!.RecentVisits.SingleOrDefault(v => v.Id == created.Id);
+        arrivalRow.Should().NotBeNull();
+        arrivalRow!.ApartmentLabel.Should().Be($"{apartment.Block}-{apartment.Unit}");
+    }
+
+    private static string GenerateCpf(string suffix)
+    {
+        var seed = Math.Abs(suffix.GetHashCode()).ToString("D9")[..9];
+        var digits = seed.Select(c => c - '0').ToArray();
+        var first = CalculateCpfDigit(digits, 10);
+        var second = CalculateCpfDigit(digits.Append(first).ToArray(), 11);
+        return seed + first + second;
+    }
+
+    private static int CalculateCpfDigit(IReadOnlyList<int> digits, int weight)
+    {
+        var sum = digits.Select((digit, index) => digit * (weight - index)).Sum();
+        var remainder = sum % 11;
+        return remainder < 2 ? 0 : 11 - remainder;
     }
 }

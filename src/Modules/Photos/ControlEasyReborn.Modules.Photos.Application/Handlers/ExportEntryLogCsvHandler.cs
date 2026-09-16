@@ -20,7 +20,7 @@ public sealed class ExportEntryLogCsvHandler
         var entries = await _auditLog.ListAsync(entryState, subjectType, fromUtc, toUtc, 0, int.MaxValue, ct);
 
         var sb = new StringBuilder();
-        sb.AppendLine("id,entry_state,override_reason,photo_id,subject_type,subject_name,subject_document,performed_by_profile_id,recorded_at");
+        sb.AppendLine("id,entry_state,override_reason,photo_id,subject_type,subject_name,subject_document,apartment_id,performed_by_profile_id,recorded_at");
 
         foreach (var e in entries)
         {
@@ -31,6 +31,7 @@ public sealed class ExportEntryLogCsvHandler
             sb.Append(Escape(e.SubjectType)).Append(',');
             sb.Append(Escape(e.SubjectName)).Append(',');
             sb.Append(Escape(e.SubjectDocument)).Append(',');
+            sb.Append(Escape(e.ApartmentId?.ToString())).Append(',');
             sb.Append(Escape(e.PerformedByProfileId?.ToString())).Append(',');
             sb.Append(Escape(e.RecordedAt.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture)));
             sb.AppendLine();

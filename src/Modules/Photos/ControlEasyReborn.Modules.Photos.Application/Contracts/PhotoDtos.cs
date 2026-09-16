@@ -26,7 +26,10 @@ public sealed record CreateEntryLogRequest(
     string? SubjectName,
     string? SubjectDocument,
     Guid? PhotoId,
-    string? OverrideReason);
+    string? OverrideReason,
+    Guid? ApartmentId = null,
+    Guid? ResidentId = null,
+    Guid? VehicleId = null);
 
 public sealed record EntryLogResponse(
     Guid Id,
@@ -37,6 +40,7 @@ public sealed record EntryLogResponse(
     string SubjectType,
     string? SubjectName,
     string? SubjectDocument,
+    Guid? ApartmentId,
     Guid? PerformedByProfileId,
     DateTime RecordedAt);
 

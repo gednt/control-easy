@@ -27,6 +27,9 @@ export interface CreateEntryLogRequest {
   subjectDocument?: string | undefined;
   photoId?: string | undefined;
   overrideReason?: OverrideReason | undefined;
+  apartmentId?: string | undefined;
+  residentId?: string | undefined;
+  vehicleId?: string | undefined;
 }
 
 /**
@@ -42,6 +45,7 @@ export interface EntryLogResponse {
   subjectType: SubjectType;
   subjectName?: string | undefined;
   subjectDocument?: string | undefined;
+  apartmentId?: string | undefined;
   performedByProfileId?: string | undefined;
   recordedAt: string;
 }

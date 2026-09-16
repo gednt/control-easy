@@ -11,7 +11,7 @@ public sealed class ConsentAuditLogRepository : IConsentAuditLogRepository
 {
     private const string TableName = "ConsentAuditLog";
 
-    private const string Fields = "Id, TenantId, EntryState, OverrideReason, PhotoId, SubjectType, SubjectName, SubjectDocument, PerformedByProfileId, RecordedAt";
+    private const string Fields = "Id, TenantId, EntryState, OverrideReason, PhotoId, SubjectType, SubjectName, SubjectDocument, ApartmentId, PerformedByProfileId, RecordedAt";
 
     private readonly ITenantContext _ctx;
     private readonly ITenantAwareLinqFactory _factory;
@@ -26,9 +26,9 @@ public sealed class ConsentAuditLogRepository : IConsentAuditLogRepository
     {
         var db = _factory.Create(_ctx);
         await db.InsertAsync(
-            new[] { "Id", "TenantId", "EntryState", "OverrideReason", "PhotoId", "SubjectType", "SubjectName", "SubjectDocument", "PerformedByProfileId", "RecordedAt", "tenant_id" },
+            new[] { "Id", "TenantId", "EntryState", "OverrideReason", "PhotoId", "SubjectType", "SubjectName", "SubjectDocument", "ApartmentId", "PerformedByProfileId", "RecordedAt", "tenant_id" },
             TableName,
-            new object?[] { entry.Id, entry.TenantId, entry.EntryState, (object?)entry.OverrideReason ?? DBNull.Value, (object?)entry.PhotoId ?? DBNull.Value, entry.SubjectType, (object?)entry.SubjectName ?? DBNull.Value, (object?)entry.SubjectDocument ?? DBNull.Value, (object?)entry.PerformedByProfileId ?? DBNull.Value, entry.RecordedAt, entry.TenantId },
+            new object?[] { entry.Id, entry.TenantId, entry.EntryState, (object?)entry.OverrideReason ?? DBNull.Value, (object?)entry.PhotoId ?? DBNull.Value, entry.SubjectType, (object?)entry.SubjectName ?? DBNull.Value, (object?)entry.SubjectDocument ?? DBNull.Value, (object?)entry.ApartmentId ?? DBNull.Value, (object?)entry.PerformedByProfileId ?? DBNull.Value, entry.RecordedAt, entry.TenantId },
             primaryKeyName: "Id",
             autoIncrement: false,
             ct: ct);
@@ -108,6 +108,7 @@ public sealed class ConsentAuditLogRepository : IConsentAuditLogRepository
         var photoIdStr = r["PhotoId"]?.ToString();
         var subjectNameStr = r["SubjectName"]?.ToString();
         var subjectDocumentStr = r["SubjectDocument"]?.ToString();
+        var apartmentIdStr = r["ApartmentId"]?.ToString();
         var profileIdStr = r["PerformedByProfileId"]?.ToString();
 
         return new ConsentAuditLogEntry(
@@ -119,6 +120,7 @@ public sealed class ConsentAuditLogRepository : IConsentAuditLogRepository
             subjectType: r["SubjectType"]?.ToString() ?? string.Empty,
             subjectName: string.IsNullOrEmpty(subjectNameStr) ? null : subjectNameStr,
             subjectDocument: string.IsNullOrEmpty(subjectDocumentStr) ? null : subjectDocumentStr,
+            apartmentId: string.IsNullOrEmpty(apartmentIdStr) ? null : Guid.Parse(apartmentIdStr),
             performedByProfileId: string.IsNullOrEmpty(profileIdStr) ? null : Guid.Parse(profileIdStr),
             recordedAt: Convert.ToDateTime(r["RecordedAt"]));
     }

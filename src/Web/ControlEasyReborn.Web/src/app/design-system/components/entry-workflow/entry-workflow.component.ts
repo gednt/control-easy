@@ -740,6 +740,8 @@ export class CeEntryWorkflowComponent {
         subjectDocument: this.subjectDocument() || undefined,
         photoId: this.photoId() || undefined,
         overrideReason: this.pendingOverrideReason() || undefined,
+        apartmentId: this.selectedResident()?.apartmentId ?? undefined,
+        residentId: this.selectedResident()?.id ?? undefined,
       };
       const entry = await firstValueFrom(this.entryLogService.create(request));
       this.toast.success(state === 'exited' ? 'Exit logged' : 'Entry logged');

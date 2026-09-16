@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS ConsentAuditLog (
     SubjectType VARCHAR(40) NOT NULL,
     SubjectName VARCHAR(200) NULL,
     SubjectDocument VARCHAR(20) NULL,
+    ApartmentId CHAR(36) NULL,
     PerformedByProfileId CHAR(36) NULL,
     RecordedAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     tenant_id CHAR(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000001',
@@ -22,6 +23,7 @@ CREATE TABLE IF NOT EXISTS ConsentAuditLog (
     INDEX IX_ConsentAuditLog_EntryState (EntryState),
     INDEX IX_ConsentAuditLog_SubjectType (SubjectType),
     INDEX IX_ConsentAuditLog_PhotoId (PhotoId),
+    INDEX IX_ConsentAuditLog_ApartmentId (ApartmentId),
     INDEX IX_ConsentAuditLog_RecordedAt (RecordedAt)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

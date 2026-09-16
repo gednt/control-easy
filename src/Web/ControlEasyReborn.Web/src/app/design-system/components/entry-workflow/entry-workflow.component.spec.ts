@@ -265,6 +265,8 @@ describe('CeEntryWorkflowComponent', () => {
     expect(createReq.request.body.entryState).toBe('entered_without_consent');
     expect(createReq.request.body.subjectName).toBe('Refused Person');
     expect(createReq.request.body.photoId).toBeUndefined();
+    expect(createReq.request.body.apartmentId).toBeUndefined();
+    expect(createReq.request.body.residentId).toBeUndefined();
 
     createReq.flush({
       id: 'e-1',
@@ -277,6 +279,40 @@ describe('CeEntryWorkflowComponent', () => {
 
     expect(component.step()).toBe('tiles');
     expect(closed).toBe(true);
+  }));
+
+  it('continue sends the resident apartmentId and residentId when a resident is selected', fakeAsync(() => {
+    void component.onTileTap('exit');
+    tick();
+
+    component.onResidentLookupInput('12345678909');
+    void component.findResident();
+    tick();
+
+    const lookupRequest = httpMock.expectOne((request) => request.url === '/api/v1/residents');
+    lookupRequest.flush([resident()]);
+    tick();
+
+    void component.continue();
+    tick();
+
+    const createReq = httpMock.expectOne('/api/v1/entry-log');
+    expect(createReq.request.method).toBe('POST');
+    expect(createReq.request.body.subjectType).toBe('dweller');
+    expect(createReq.request.body.entryState).toBe('exited');
+    expect(createReq.request.body.apartmentId).toBe('a-1');
+    expect(createReq.request.body.residentId).toBe('b42c6db0-3c39-4f49-aec4-8ce8c98f3ad8');
+    expect(createReq.request.body.vehicleId).toBeUndefined();
+
+    createReq.flush({
+      id: 'e-2',
+      tenantId: 't-1',
+      entryState: 'exited',
+      subjectType: 'dweller',
+      apartmentId: 'a-1',
+      recordedAt: new Date().toISOString(),
+    });
+    tick();
   }));
 
   it('continue surfaces toast and stays open on error', fakeAsync(() => {

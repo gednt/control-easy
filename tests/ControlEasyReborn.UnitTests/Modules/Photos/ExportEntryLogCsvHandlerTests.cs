@@ -25,6 +25,7 @@ public sealed class ExportEntryLogCsvHandlerTests
         var entryId = Guid.NewGuid();
         var photoId = Guid.NewGuid();
         var profileId = Guid.NewGuid();
+        var apartmentId = Guid.NewGuid();
 
         var entry = new ConsentAuditLogEntry(
             id: entryId,
@@ -35,6 +36,7 @@ public sealed class ExportEntryLogCsvHandlerTests
             subjectType: SubjectCategories.Visitor,
             subjectName: "Doe, John \"The Builder\"",
             subjectDocument: "12345",
+            apartmentId: apartmentId,
             performedByProfileId: profileId,
             recordedAt: recordedAt);
 
@@ -47,12 +49,13 @@ public sealed class ExportEntryLogCsvHandlerTests
         var lines = csv.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
         lines.Should().HaveCount(2);
 
-        lines[0].Should().Be("id,entry_state,override_reason,photo_id,subject_type,subject_name,subject_document,performed_by_profile_id,recorded_at");
+        lines[0].Should().Be("id,entry_state,override_reason,photo_id,subject_type,subject_name,subject_document,apartment_id,performed_by_profile_id,recorded_at");
 
         var dataLine = lines[1];
         dataLine.Should().Contain(entryId.ToString());
         dataLine.Should().Contain(EntryStates.EnteredWithConsent);
         dataLine.Should().Contain(photoId.ToString());
+        dataLine.Should().Contain(apartmentId.ToString());
         dataLine.Should().Contain("\"Doe, John \"\"The Builder\"\"\"");
         dataLine.Should().Contain("2026-09-12 14:30:45.123");
     }
@@ -67,6 +70,6 @@ public sealed class ExportEntryLogCsvHandlerTests
 
         var lines = csv.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
         lines.Should().HaveCount(1);
-        lines[0].Should().Be("id,entry_state,override_reason,photo_id,subject_type,subject_name,subject_document,performed_by_profile_id,recorded_at");
+        lines[0].Should().Be("id,entry_state,override_reason,photo_id,subject_type,subject_name,subject_document,apartment_id,performed_by_profile_id,recorded_at");
     }
 }

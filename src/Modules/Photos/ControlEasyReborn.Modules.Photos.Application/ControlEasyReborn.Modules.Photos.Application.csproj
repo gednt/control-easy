@@ -6,6 +6,8 @@
   <ItemGroup>
     <ProjectReference Include="..\ControlEasyReborn.Modules.Photos.Domain\ControlEasyReborn.Modules.Photos.Domain.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\ControlEasyReborn.SharedKernel\ControlEasyReborn.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\Residents\ControlEasyReborn.Modules.Residents.Application\ControlEasyReborn.Modules.Residents.Application.csproj" />
+    <ProjectReference Include="..\..\Vehicles\ControlEasyReborn.Modules.Vehicles.Application\ControlEasyReborn.Modules.Vehicles.Application.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FluentValidation" />
