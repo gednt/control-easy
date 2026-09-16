@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AccessCredentialSummary, AccessEventSummary, RefusedScanSummary } from '../../api/access-control.types';
+import { AccessCredentialSummary, AccessEventSummary, RefusedScanSummary, ScanResult } from '../../api/access-control.types';
 
 /**
  * Placeholder service for the AccessControl SPA surface. Real wiring is
@@ -15,8 +15,14 @@ export class GatewayControlService {
     return this.http.get<AccessCredentialSummary[]>('/api/v1/access-credentials');
   }
 
-  recordScan(payload: { qrPayload: string; direction: 'entrance' | 'exit'; scanAttemptId: string }): Observable<unknown> {
-    return this.http.post('/api/v1/access-events/scans', payload);
+  recordScan(payload: {
+    qrPayload: string;
+    direction: 'entrance' | 'exit';
+    scanAttemptId: string;
+    gatehouseId?: string | null;
+    confirmDuplicate?: boolean;
+  }): Observable<ScanResult> {
+    return this.http.post<ScanResult>('/api/v1/access-events/scans', payload);
   }
 
   searchSubject(criterion: { type: string; value: string }): Observable<unknown> {

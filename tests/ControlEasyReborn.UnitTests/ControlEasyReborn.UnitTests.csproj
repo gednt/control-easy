@@ -40,5 +40,12 @@
     <ProjectReference Include="..\..\src\Modules\Photos\ControlEasyReborn.Modules.Photos.Infrastructure\ControlEasyReborn.Modules.Photos.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\Photos\ControlEasyReborn.Modules.Photos.Api\ControlEasyReborn.Modules.Photos.Api.csproj" />
     <ProjectReference Include="..\..\src\Modules\AccessControl\ControlEasyReborn.Modules.AccessControl.Domain\ControlEasyReborn.Modules.AccessControl.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\AccessControl\ControlEasyReborn.Modules.AccessControl.Application\ControlEasyReborn.Modules.AccessControl.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\AccessControl\ControlEasyReborn.Modules.AccessControl.Infrastructure\ControlEasyReborn.Modules.AccessControl.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Vehicles\ControlEasyReborn.Modules.Vehicles.Application\ControlEasyReborn.Modules.Vehicles.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Vehicles\ControlEasyReborn.Modules.Vehicles.Domain\ControlEasyReborn.Modules.Vehicles.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Residents\ControlEasyReborn.Modules.Residents.Domain\ControlEasyReborn.Modules.Residents.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Apartments\ControlEasyReborn.Modules.Apartments.Application\ControlEasyReborn.Modules.Apartments.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Apartments\ControlEasyReborn.Modules.Apartments.Domain\ControlEasyReborn.Modules.Apartments.Domain.csproj" />
   </ItemGroup>
 </Project>

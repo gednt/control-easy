@@ -18,6 +18,9 @@ public static class AccessControlEndpoints
             status = "scaffold"
         }));
 
+        app.MapAccessEventsEndpoints();
+        app.MapAccessCredentialsEndpoints();
+
         return app;
     }
 }

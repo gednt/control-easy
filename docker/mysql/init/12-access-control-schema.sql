@@ -101,3 +101,28 @@ CREATE TABLE IF NOT EXISTS AccessLookupAudits (
     PRIMARY KEY (Id),
     KEY ix_access_lookup_audits_time (tenant_id, OccurredAtUtc)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS ResidentIdentityDocuments (
+    Id CHAR(36) NOT NULL,
+    TenantId CHAR(36) NOT NULL,
+    ResidentId CHAR(36) NOT NULL,
+    DocumentType VARCHAR(32) NOT NULL,
+    NormalizedValue VARCHAR(64) NOT NULL,
+    Active TINYINT NOT NULL DEFAULT 1,
+    CreatedAtUtc DATETIME(6) NOT NULL,
+    UpdatedAtUtc DATETIME(6) NULL,
+    tenant_id CHAR(36) NOT NULL,
+    PRIMARY KEY (Id),
+    UNIQUE KEY uq_resident_id_doc (tenant_id, DocumentType, NormalizedValue),
+    KEY ix_resident_id_doc_resident (tenant_id, ResidentId)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+SET @s = (SELECT COLUMN_NAME FROM information_schema.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'Vehicles' AND COLUMN_NAME = 'OwnerResidentId');
+SET @sql = IF(@s IS NULL, 'ALTER TABLE Vehicles ADD COLUMN OwnerResidentId CHAR(36) NULL AFTER ApartmentId, ADD KEY ix_vehicles_owner_resident (tenant_id, OwnerResidentId)', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @s = (SELECT COLUMN_NAME FROM information_schema.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'Visits' AND COLUMN_NAME = 'DestinationBlock');
+SET @sql = IF(@s IS NULL, 'ALTER TABLE Visits ADD COLUMN DestinationBlock VARCHAR(64) NULL, ADD COLUMN DestinationUnit VARCHAR(64) NULL', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;

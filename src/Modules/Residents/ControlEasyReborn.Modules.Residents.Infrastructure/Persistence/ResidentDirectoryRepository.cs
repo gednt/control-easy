@@ -35,6 +35,18 @@ public sealed class ResidentDirectoryRepository : IResidentDirectory
         return MapResident(rows);
     }
 
+    public async Task<Resident?> FindByIdAsync(Guid tenantId, Guid residentId, CancellationToken ct)
+    {
+        var db = _factory.Create(_ctx);
+        var rows = await db.SelectAsync(
+            fields: ResidentFields,
+            table: ResidentsTable,
+            whereClause: "Id = @param0",
+            parameters: new object[] { residentId },
+            ct: ct);
+        return MapResident(rows);
+    }
+
     public async Task<IReadOnlyList<Resident>> SearchByNameAsync(Guid tenantId, string nameTerm, int skip, int take, CancellationToken ct)
     {
         var db = _factory.Create(_ctx);

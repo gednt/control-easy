@@ -9,7 +9,14 @@ namespace ControlEasyReborn.IntegrationTests;
 [Collection("MySql Collection")]
 public sealed class TestcontainersWebApplicationFactory : TenantAwareWebApplicationFactory
 {
+    public const string TestHmacKey = "CE-INT-TEST-ACCESS-CONTROL-HMAC-KEY-v1-DETERMINISTIC-32BYTES";
+
     private readonly MySqlContainerFixture _mySql;
+
+    static TestcontainersWebApplicationFactory()
+    {
+        Environment.SetEnvironmentVariable("ACCESS_CONTROL_HMAC_KEY", TestHmacKey);
+    }
 
     public TestcontainersWebApplicationFactory(MySqlContainerFixture mySql)
     {

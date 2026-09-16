@@ -48,6 +48,18 @@ public sealed class AccessCredentialRepository : IAccessCredentialRepository
         return MapFirstOrDefault(rows);
     }
 
+    public async Task<IReadOnlyList<AccessCredential>> ListAllAsync(Guid tenantId, CancellationToken ct)
+    {
+        var db = _factory.Create(_ctx);
+        var rows = await db.SelectAsync(
+            fields: Fields,
+            table: TableName,
+            whereClause: "1=1",
+            parameters: Array.Empty<object>(),
+            ct: ct);
+        return MapList(rows);
+    }
+
     public async Task<IReadOnlyList<AccessCredential>> ListAsync(Guid tenantId, int skip, int take, CancellationToken ct, Guid? subjectId = null, SubjectType? subjectType = null, CredentialStatus? status = null)
     {
         var db = _factory.Create(_ctx);

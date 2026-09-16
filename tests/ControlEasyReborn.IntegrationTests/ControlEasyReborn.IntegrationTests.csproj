@@ -38,5 +38,8 @@
     <ProjectReference Include="..\..\src\Modules\Photos\ControlEasyReborn.Modules.Photos.Application\ControlEasyReborn.Modules.Photos.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Photos\ControlEasyReborn.Modules.Photos.Infrastructure\ControlEasyReborn.Modules.Photos.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\Photos\ControlEasyReborn.Modules.Photos.Api\ControlEasyReborn.Modules.Photos.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\AccessControl\ControlEasyReborn.Modules.AccessControl.Application\ControlEasyReborn.Modules.AccessControl.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\AccessControl\ControlEasyReborn.Modules.AccessControl.Domain\ControlEasyReborn.Modules.AccessControl.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\AccessControl\ControlEasyReborn.Modules.AccessControl.Infrastructure\ControlEasyReborn.Modules.AccessControl.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

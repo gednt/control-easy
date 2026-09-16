@@ -54,13 +54,12 @@ public sealed class MySqlContainerFixture : IAsyncLifetime
             // (e.g. a dedicated container on a dev machine). Host may be "host:port".
             var host = external.Contains(":") ? external.Split(':')[0] : external;
             var port = external.Contains(":") ? external.Split(':')[1] : "3306";
-            _connectionString = $"Server={host};Port={port};Database=controleasydb;Uid=root;Pwd=testpw;";
+            _connectionString = $"Server={host};Port={port};Database=controleasydb;Uid=root;Pwd=testpw;AllowUserVariables=True;";
             _skipContainerLifecycle = true;
             HostOverride = host;
             PortOverride = port;
 
             await WaitForMySqlReady();
-            await RunInitScripts();
             return;
         }
 
@@ -73,12 +72,12 @@ public sealed class MySqlContainerFixture : IAsyncLifetime
         if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
         {
             var ip = _container.Hostname;
-            _connectionString = $"Server={ip};Port=3306;Database=controleasydb;Uid=root;Pwd=testpw;";
+            _connectionString = $"Server={ip};Port=3306;Database=controleasydb;Uid=root;Pwd=testpw;AllowUserVariables=True;";
         }
         else
         {
             var port = _container.GetMappedPublicPort(3306);
-            _connectionString = $"Server={_container.Hostname};Port={port};Database=controleasydb;Uid=root;Pwd=testpw;";
+            _connectionString = $"Server={_container.Hostname};Port={port};Database=controleasydb;Uid=root;Pwd=testpw;AllowUserVariables=True;";
         }
 
         await WaitForMySqlReady();
