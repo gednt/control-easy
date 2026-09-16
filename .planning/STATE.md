@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Gatehouse Photo & Consent Ledger
 status: completed
-last_updated: "2026-09-13T16:50:00.000Z"
-last_activity: 2026-09-13
+last_updated: "2026-09-16T12:00:00.000Z"
+last_activity: 2026-09-16
 progress:
   total_phases: 3
   completed_phases: 3
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-09-13)
 Phase: All v2.0 phases complete
 Plan: —
 Status: Milestone archived
-Last activity: 2026-09-14 — Phase 1 (Setup) of the Gatehouse Access & Visit Destinations feature shipped on `feat/qr-entrance-exit-access` (7 atomic commits c639ceb, f779c4a, 5a69ce4, 6d7942c, 9cb7f1c, b28c8f1, 2532efb, 2e2080f). AccessControl module scaffolded and wired; MySQL 0009 migration applied; api image rebuilt and confirmed healthy at /api/v1/health.
+Last activity: 2026-09-16 — Phases 3..8 of the Gatehouse Access & Visit Destinations feature shipped on `feat/qr-entrance-exit-access`. T033-T074 implemented: vehicle destination tests, manual lookup handler + endpoints, visit destination validation tests, credential lifecycle handlers (issue/replace/revoke) + admin endpoints + audit endpoints, biometric exclusion arch tests, access-control documentation. Solution build green; Docker rebuild pending.
 
 ## Performance Metrics
 
