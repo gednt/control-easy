@@ -4,7 +4,7 @@
 
 > **Authoritative project guide.** Binding runtime document for every
 > contributor and every agent. Constitutional authority:
-> `.specify/memory/constitution.md` (v1.3.0, 2026-07-12).
+> `.specify/memory/constitution.md` (v1.5.0, 2026-09-15).
 > Where this file and the constitution disagree, the constitution wins.
 
 ---
@@ -96,12 +96,72 @@ Canonical commands an agent should run. The project uses Docker Compose for the 
 
 ### Local development
 
-- `docker compose -f docker/docker-compose.yml up -d --build` — full stack (canonical first boot).
-- `docker compose -f docker/docker-compose.yml -f docker/docker-compose.demo.yml up -d --build` — demo mode overlay.
-- `cd src/Web/ControlEasyReborn.Web && npm start` — Angular dev server only.
-- `make up` / `make down` / `make test` / `make build` — Makefile convenience targets.
+The canonical dev shell is the **devcontainer** under `.devcontainer/`. The
+host shell (PowerShell 7+ on Windows, `bash`/`zsh` on macOS/Linux) is an
+acceptable fallback for trivial read-only inspection (`git status`, `ls`,
+`cat`) but MUST NOT be used for build / test / lint / restore / install. See
+Constitution Principle V ("Dev shell") for the binding procedure and
+Principle VIII ("Host-OS / Shell-Aware Command Execution") for the
+platform/shell rules that govern every command in this section.
 
-Containers: the compose file is `docker/docker-compose.yml`. The project-name convention is `ce-<branch-hyphens>` (e.g., `ce-feat-dashboard-live-stats`). Worktree compose overrides use `docker/docker-compose.worktree.template.yml`. See `docs/dev-setup.md` for the full devcontainer + worktree guide.
+**Canonical bring-up procedure (per worktree, per session):**
+
+1. **Open the worktree in a devcontainer-aware IDE** (VS Code, Cursor,
+   JetBrains, GitHub Codespaces). The IDE MUST attach to the devcontainer
+   defined by `.devcontainer/devcontainer.json`. An
+   `AUTO_START_COMPOSE=true` env var auto-runs the bring-up; otherwise
+   step 2 is manual.
+2. **Bring up the Compose stack** (canonical first boot of a worktree).
+   Inside the devcontainer shell:
+   ```bash
+   docker compose -p ce-<branch-hyphens> \
+     -f docker/docker-compose.yml \
+     -f docker/docker-compose.worktree.<branch-hyphens>.yml \
+     up -d --build
+   ```
+   The `-p` (project) flag scopes container names, networks, and the MySQL
+   volume to this worktree; the worktree override (built from
+   `docker/docker-compose.worktree.template.yml`) pins the unique
+   hostname, host port, and DB volume declared in the "Worktree naming
+   convention" table below.
+3. **Wait for health.** All services MUST reach `health: healthy` before
+   any verification step. `docker compose -p ce-<branch> ps` reports the
+   per-service state; the `api` service's `/health` endpoint is the
+   canonical readiness probe.
+4. **Run the verification gate** (inside the devcontainer):
+   ```bash
+   docker compose -p ce-<branch> exec -T api \
+     dotnet test /workspace/tests/ControlEasyReborn.UnitTests
+   # repeat for IntegrationTests and ArchitectureTests; then
+   docker compose -p ce-<branch> exec -T web \
+     npm test -- --no-watch --browsers=ChromeHeadless
+   ```
+5. **Tear down** (when the worktree is merged or abandoned):
+   `docker compose -p ce-<branch> down -v` removes only that worktree's
+   containers, networks, and volume. Other worktrees are untouched.
+6. **Override paths.** The demo overlay (`docker-compose.demo.yml`)
+   replaces the worktree override in step 2 when demo data is wanted;
+   the `scripts/verify-devcontainer.sh` script replaces steps 2–5 for an
+   unattended end-to-end gate.
+
+**One-shot bring-up commands** (use the devcontainer for any non-trivial
+session; these are the canonical one-liners when the devcontainer is not
+available):
+
+- `docker compose -f docker/docker-compose.yml up -d --build` — full stack
+  (canonical first boot, no worktree scoping).
+- `docker compose -f docker/docker-compose.yml -f docker/docker-compose.demo.yml up -d --build`
+  — demo mode overlay (pre-populated data; never use in production).
+- `cd src/Web/ControlEasyReborn.Web && npm start` — Angular dev server
+  only (API must already be running).
+- `make up` / `make down` / `make test` / `make build` — Makefile
+  convenience targets (wrap the commands above).
+
+Containers: the compose file is `docker/docker-compose.yml`. The
+project-name convention is `ce-<branch-hyphens>` (e.g.,
+`ce-feat-dashboard-live-stats`). Worktree compose overrides use
+`docker/docker-compose.worktree.template.yml`. See `docs/dev-setup.md` for
+the full devcontainer + worktree guide.
 
 ---
 
@@ -110,6 +170,7 @@ Containers: the compose file is `docker/docker-compose.yml`. The project-name co
 Hard rules an agent must not violate, beyond what the workflows enforce.
 
 - **Docker-only development.** All build, run, test, lint, and dependency-restore work happens **inside Docker containers** (canonical: `docker compose -f docker/docker-compose.yml`, Makefile targets, or the devcontainer). Agents MUST NOT install anything on the host machine: no .NET SDKs, no Node.js, no global tools, and no project dependencies (`dotnet restore`, `npm install`, `dotnet tool install`, `pip`, etc. on the host). `dotnet` / `npm` / `ng` commands are only valid inside the containers (e.g., `docker compose exec`, `docker run`, or the devcontainer). If a container is missing a tool or dependency, fix the Dockerfile / compose setup — never the host.
+- **Platform-aware command execution (Constitution Principle VIII).** Agents MUST detect the host OS and shell before issuing any terminal command and MUST NOT run platform-mismatched syntax. POSIX-only snippets (`#!/usr/bin/env bash`, `set -euo pipefail`, `[[ ... ]]`, `$(...)` chains inside single-quoted heredocs, `tr`/`awk`/`sed -i ''`, GNU-only flags) MUST NOT be invoked from a Windows host shell — the canonical fix is to run them inside the devcontainer, to use the cross-platform PowerShell wrappers (`scripts/worktree-up.ps1` / `scripts/worktree-down.ps1`), or to translate the snippet and call out the translation in the reply. PowerShell-only constructs (`Get-ChildItem`, `Remove-Item -LiteralPath`, `New-Item -ItemType Directory`, `Test-Path -LiteralPath`, backtick escaping) MUST NOT be issued from a POSIX host. When a command fails because of a platform mismatch, the agent MUST stop, identify the mismatch, and either retry through the correct shell or escalate to the user — it MUST NOT chain a second platform-specific command after the first fails. Skill and doc examples prefer platform-neutral composition (`docker compose …`), which is valid on every host because Compose runs inside the container engine, not the host shell.
 - **No EF Core.** DBTools (`Linq<TModel>`, `IAsyncSqlClient`) is the only data-access library. LINQ-first; raw SQL only for stored procs (ADR 0002).
 - **No MediatR.** Handlers are registered as scoped services directly.
 - **No MVC controllers.** Minimal API endpoint classes only.
@@ -119,7 +180,7 @@ Hard rules an agent must not violate, beyond what the workflows enforce.
 - **`ProblemDetails` (RFC 7807)** for all error responses. Domain exceptions: `NotFoundException`, `ValidationException`, `ConflictException`.
 - **Serilog** structured logging to Console (JSON) + Seq.
 - **spec-kit** is the per-feature specification system. Specs live in `.specs/<feature>/`. Configuration and constitutional memory in `.specify/`. spec-kit owns `.specs/` and `.specify/` and updates `STATE.md` + `PROJECT.md` when state changes.
-- **Three workflow systems, non-overlapping responsibility:** GSD owns `.planning/`, spec-kit owns `.specs/` and `.specify/`, OpenSpec is opt-in at user discretion (only the user creates `openspec/changes/<id>/`).
+- **Four workflow systems, non-overlapping responsibility:** GSD owns `.planning/`, spec-kit owns `.specs/` and `.specify/`, OpenSpec is opt-in at user discretion (only the user creates `openspec/changes/<id>/`), and BMAD is the review/analysis/adversarial-quality layer (see Constitution Principle IX; BMAD owns `_bmad/` and `_bmad-output/`).
 
 ### Git worktree rule (mandatory)
 

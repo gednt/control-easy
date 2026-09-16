@@ -1,7 +1,7 @@
 # Agent Flow Cheat Sheet — GSD · spec-kit · OpenSpec
 
 > **Canonical home (dev/operator reference):** this file.
-> **Governance anchor:** `.specify/memory/constitution.md` v1.3.0
+> **Governance anchor:** `.specify/memory/constitution.md` v1.5.0
 > (Principle VI — "Workflow Tooling").
 > **Runtime anchor:** `AGENTS.md` § 2 (Workflow tooling).
 >
@@ -228,9 +228,11 @@ matches the spec's lineage.
 Phase 0 and fills the `plan.md` "Constitution Check" section
 from it. Any principle violation that cannot be justified in
 `plan.md` "Complexity Tracking" **blocks planning**. The
-eight principles of the constitution v1.3.0 are the binding
-contract; the agent does not interpret them — it cites them. (v1.3.0
-adds Principle VII on sub-agent orchestration; the count is now eight.)
+nine principles of the constitution v1.5.0 are the binding
+contract; the agent does not interpret them — it cites them. (v1.5.0
+adds Principle IX on BMAD as the fourth workflow tool; v1.4.0 added
+Principle VIII on host-OS / shell-aware command execution; v1.3.0
+added Principle VII on sub-agent orchestration.)
 
 ### 2.6 spec-kit's relationship to GSD and OpenSpec
 
@@ -644,16 +646,17 @@ the work.
 
 ## 10. Versions & last amended
 
-- **Constitution:** v1.3.0 (ratified 2026-07-12,
-  last amended 2026-07-12)
-- **AGENTS.md:** version pins to v1.3.0
-- **This cheat sheet:** v1.1 — created 2026-07-12; v1.1 on
-  2026-07-12 aligns with constitution v1.3.0 (Principle VII elevates
-  the sub-agent invocation protocol and concurrency budget to
-  constitutional status; the cheat sheet's § 4 and § 5 content is
-  unchanged but is now cited from the constitution). Promote to
-  v1.x on any change to the GSD/spec-kit/OpenSpec ownership rule or
-  the concurrency budget.
+- **Constitution:** v1.5.0 (ratified 2026-07-12,
+  last amended 2026-09-15)
+- **AGENTS.md:** version pins to v1.5.0
+- **This cheat sheet:** v1.3 — v1.3 on 2026-09-15 aligns with
+  constitution v1.5.0 (Principle IX added BMAD as the fourth workflow
+  tool with review/analysis/adversarial-quality scope; Principle VI
+  retitled to "Workflow Tooling (GSD / spec-kit / OpenSpec / BMAD)";
+  the § 4 Seams section grew three new BMAD seams; the § 5 source-of-
+  truth table grew five BMAD rows). Promote to v1.x on any change to
+  the four-tool ownership rule, the concurrency budget, the canonical
+  bring-up procedure, the host-OS rule, or BMAD's scope.
 - **OpenSpec schema in this repo:** `spec-driven`
   (`openspec/config.yaml`)
 - **spec-kit workflow version:** 1.0.0

@@ -1,106 +1,25 @@
 <!--
-Sync Impact Report (v1.3.0)
+Sync Impact Report (v1.5.0)
 ===========================
-Version change: 1.2.0 → 1.3.0  (MINOR — new Principle VII + post-cleanup factual sync)
+Version change: 1.4.0 → 1.5.0  (MINOR — new Principle IX formalizing BMAD as
+  the fourth workflow tool with review/analysis/adversarial-quality scope;
+  Constitution now declares four workflow tools, not three)
 
-Previous report (1.1.0 → 1.2.0): "Development Workflow & Quality Gates" section
-was rewritten from the actual behavior of the three workflow tools; the
-"Ownership principle" was added to § 4 Seams; AGENTS.md version pins were
-bumped to v1.2.0; templates were aligned. (Preserved for audit trail.)
-
-What changed in 1.2.0 → 1.3.0:
-  - Principle IV — corrected the unit-test mocking library from "Moq" to
-    "NSubstitute" (matches AGENTS.md § 3, .planning/codebase/STACK.md,
-    .planning/codebase/TESTING.md, and Directory.Packages.props), and added
-    the concrete integration-test harness (WebApplicationFactory<Program>)
-    and the architecture-test package name (NetArchTest.Rules). This is a
-    factual correction, not a policy change.
-  - Principle VII (NEW) — Sub-Agent Orchestration & Concurrency Budget.
-    Raises AGENTS.md § 2.4 (sub-agent invocation) and § 2.5 (concurrency
-    budget) to constitutional status: any agent MAY invoke any of
-    GSD/spec-kit/OpenSpec as a sub-agent across seams; the default budget
-    is 3 sub-agents per level (4 total in-flight including the main
-    orchestrator); the budget is per agent, not per workflow tool; the
-    override path requires a recorded rationale in proposal.md /
-    design.md / tasks.md, audited at the next /gsd-complete-milestone.
-  - Development Workflow & Quality Gates § 4 Seams — intro amended to
-    cross-reference Principle VII instead of duplicating the sub-agent
-    protocol inline; per-milestone gate extended to audit concurrency-
-    budget override rationales.
-  - Documentation Systems and Source of Truth table — three rows updated
-    to reflect commit b34b4d2 (2026-07-12): (a) ADR row notes the legacy
-    docs/architecture/decisions/0001-…0004-… files were deleted (kept in
-    git history only); (b) Design system row notes docs/design-system/
-    and docs/penpot/ were deleted (canonical homes are now
-    .specs/2 - visual-design-system/ and mockup/); (c) new row added for
-    docs/agent-flow-cheatsheet.md (the agent flow cheat sheet, added in
-    commit 9979c1a, 2026-07-12).
-  - Retirement schedule — Phase 0 (v1.1.0 deprecation) marked ✅ done;
-    a new "Partial deletion (v1.3.0, commit b34b4d2, 2026-07-12)" entry
-    records the early deletion of the fully-superseded ADRs, design-
-    system guides, Penpot assets, and legacy-mapping doc; the next
-    milestone boundary gate is narrowed to the remaining legacy docs
-    (index, project-overview, development-guide, deployment-guide,
-    api-contracts, data-models, integration-architecture, source-tree-
-    analysis, component-inventory, architecture, project-scan-report.json).
-
-Modified principles:
-  - IV. Test-First & Verification Discipline (factual correction: Moq → NSubstitute;
-    added WebApplicationFactory<Program> + NetArchTest.Rules specifics)
-  - VI. Workflow Tooling (intro cross-reference to new Principle VII added)
-  - VII. Sub-Agent Orchestration & Concurrency Budget (NEW)
-
-Added sections:
-  - Principle VII (Sub-Agent Orchestration & Concurrency Budget)
-  - Documentation Systems and Source of Truth: row for
-    docs/agent-flow-cheatsheet.md
-
-Removed sections: none
-
-Templates requiring updates:
-  - .specify/templates/plan-template.md        ✅ no change required — the
-    "Constitution Check" gate is principle-agnostic and already cites the
-    constitution file by path; Principle VII is picked up at /speckit-plan
-    Phase 0 automatically.
-  - .specify/templates/spec-template.md         ✅ no change required.
-  - .specify/templates/tasks-template.md        ✅ no change required —
-    the [P] parallel markers and the wave-dependency JSON block already
-    compose naturally with the concurrency budget (the budget bounds
-    fan-out at runtime; [P] declares the opportunity).
-  - .specify/templates/checklist-template.md    ✅ no change required.
-  - .specify/templates/constitution-template.md ✅ no change required —
-    the template is a placeholder skeleton with [PRINCIPLE_N_NAME] /
-    [PRINCIPLE_N_DESCRIPTION] slots; the project constitution is already
-    fully populated and does not re-derive from the template.
-
-Runtime guidance:
-  - AGENTS.md                                   ✅ updated — version pin
-        bumped to v1.3.0; the testing row already names NSubstitute
-        (no edit needed for the Principle IV correction); § 2.4 and
-        § 2.5 already contain the sub-agent invocation and concurrency
-        budget text that Principle VII elevates (no edit needed for the
-        Principle VII addition, only the version pin); documentation map
-        already lists docs/agent-flow-cheatsheet.md.
-  - docs/agent-flow-cheatsheet.md               ✅ updated — version pin
-        bumped to v1.3.0 in the § 10 versions block; the cheat sheet
-        already references the constitution as the governance anchor.
 
 Deferred items (stable conditions, not point-in-time snapshots):
-  - OpenSpec adoption: openspec/ is opt-in. An `openspec/changes/<id>/`
-    folder is created only when the user explicitly invokes `/opsx:new`
-    (or equivalent) on a change. No automatic promotion.
-  - Legacy docs retirement: the partial deletion in commit b34b4d2
-    removed the ADRs, design-system guides, Penpot assets, and legacy-
-    mapping doc. The remaining legacy docs (index, project-overview,
-    development-guide, deployment-guide, api-contracts, data-models,
-    integration-architecture, source-tree-analysis, component-inventory,
-    architecture, project-scan-report.json) are gated for deletion at
-    the next /gsd-complete-milestone boundary.
-  - STATE.md drift: .planning/STATE.md still records "Current focus:
-    Phase 8" with last activity 2026-06-24, predating the 2026-07-12
-    governance refactor. Updating STATE.md is GSD's writer-of-record job
-    (via /gsd-* commands), not spec-kit's; flagged for the next
-    /gsd-transition or /gsd-complete-milestone run.
+  - OpenSpec adoption: openspec/ is opt-in. No change from prior
+    reports.
+  - Legacy docs retirement: unchanged from prior reports.
+  - STATE.md drift: unchanged from prior reports.
+  - Skill-template cleanup: unchanged from v1.4.0 (bare `bash` snippets
+    still unlabeled across skill bundles).
+  - BMAD `<!-- owner:bmad -->` block in `AGENTS.md`: still empty.
+    BMAD's `bmad-project-context` onboarding skill is the writer-of-
+    record for that block; once it runs and writes project-specific
+    BMAD context (e.g., which sub-modules are active, which agents are
+    in scope), the freshness stamp should match the latest SHA per
+    `AGENTS-SPEC.md` § "Freshness stamps". Out of scope for this
+    constitutional amendment.
 -->
 
 # ControlEasy Reborn Constitution
@@ -187,14 +106,62 @@ hard-coded. The Docker Compose stack (`api`, `web`, `db`, `reverse-proxy`,
 bug. The demo overlay (`docker-compose.demo.yml`) and its JWT signing key are
 **never** used in production.
 
-**Dev shell (sub-bullet):** The local **developer shell** is a
-[devcontainer](https://containers.dev/) (see `.specs/devcontainers/`). The
-devcontainer mounts the host's Docker socket (Docker-out-of-Docker) so that
-`docker compose` invocations inside the dev shell target the same engine and
-volumes as the host. **The verification gate is still the Compose stack**;
-the devcontainer is a uniform shell, not a parallel runtime. A worktree per
-feature branch (see `AGENTS.md` "Dev containers & worktrees") is the standard
-shape for parallel work.
+**Dev shell (sub-bullet):** There is exactly one canonical dev shell — the
+[devcontainer](https://containers.dev/) under `.devcontainer/` (see
+`.specs/devcontainers/`). It mounts the host's Docker socket
+(Docker-out-of-Docker) so that `docker compose` invocations inside the dev
+shell target the same engine and volumes as the host. The devcontainer is a
+**uniform shell**, not a parallel runtime: the verification gate is still the
+Compose stack. The host shell (Windows PowerShell, macOS/Linux POSIX) is an
+**acceptable fallback for trivial read-only inspection only** (e.g., `git
+status`, `ls`, `cat`); it MUST NOT be used to run build / test / lint /
+restore commands, install dependencies, or invoke the verification gate.
+
+**Canonical bring-up procedure (per worktree, per session):**
+
+1. **Open the worktree in a devcontainer-aware IDE** (VS Code, Cursor,
+   JetBrains, GitHub Codespaces). The IDE MUST attach to the devcontainer
+   defined by `.devcontainer/devcontainer.json`; an `AUTO_START_COMPOSE=true`
+   env var auto-runs the bring-up, otherwise step 2 is manual.
+2. **Bring up the Compose stack** (canonical first boot of a worktree):
+   ```bash
+   docker compose -p ce-<branch-hyphens> \
+     -f docker/docker-compose.yml \
+     -f docker/docker-compose.worktree.<branch-hyphens>.yml \
+     up -d --build
+   ```
+   The `-p` (project) flag scopes container names, networks, and the MySQL
+   volume to this worktree; the worktree override (built from
+   `docker/docker-compose.worktree.template.yml`) pins the unique hostname,
+   host port, and DB volume declared in the `AGENTS.md` "Worktree naming
+   convention" table.
+3. **Wait for health.** All services MUST reach their `health: healthy`
+   state before any verification step. `docker compose -p ce-<branch> ps`
+   reports the per-service state; the `api` service's `/health` endpoint is
+   the canonical readiness probe.
+4. **Run the verification gate** (inside the devcontainer):
+   ```bash
+   docker compose -p ce-<branch> exec -T api \
+     dotnet test /workspace/tests/ControlEasyReborn.UnitTests
+   # repeat for IntegrationTests and ArchitectureTests; then
+   docker compose -p ce-<branch> exec -T web \
+     npm test -- --no-watch --browsers=ChromeHeadless
+   ```
+   No verification step is "done" until every affected container is
+   observed healthy AND every test slice exits 0.
+5. **Tear down** (when the worktree is merged or abandoned):
+   `docker compose -p ce-<branch> down -v` removes only that worktree's
+   containers, networks, and volume. Other worktrees are untouched.
+6. **Override paths** are explicit, not implicit. The demo overlay
+   (`docker-compose.demo.yml`) replaces the worktree override in step 2 when
+   demo data is wanted; the `scripts/verify-devcontainer.sh` script replaces
+   steps 2–5 for an unattended end-to-end gate. No other overlay may be
+   applied without a recorded rationale in the originating spec.
+
+**Worktree per feature branch** (see `AGENTS.md` "Dev containers &
+worktrees") is the standard shape for parallel work: each worktree gets its
+own Compose project, its own DB volume, and its own host port, so two
+worktrees can run simultaneously without colliding.
 
 **Rationale:** Condominium operators are not developers; when something breaks
 at the gatehouse, the on-call engineer must be able to read the logs, replay
@@ -203,10 +170,14 @@ cheapest way to ensure that. The dev shell is separate from the runtime
 target: we want a uniform, reproducible dev experience (devcontainer) without
 giving up "Compose is the runtime" (the verification gate is unchanged).
 
-### VI. Workflow Tooling (GSD / spec-kit / OpenSpec)
+### VI. Workflow Tooling (GSD / spec-kit / OpenSpec / BMAD)
 
-The project runs three workflow systems, each with a single, non-overlapping
-responsibility:
+The project runs four workflow systems. Three of them — **GSD**, **spec-kit**,
+and **OpenSpec** — own implementation and planning artifacts. The fourth —
+**BMAD** — is the review/analysis/adversarial-quality layer (see
+Principle IX for its full scope). Each has a single, non-overlapping
+responsibility, and the four compose so that BMAD questions, spec-kit
+implements, GSD plans and gates, and OpenSpec tracks deltas:
 
 - **GSD** (`.planning/`) is the **planner and roadmap owner**. `PROJECT.md`
   holds the high-level brief and the validated/active/out-of-scope lists.
@@ -230,20 +201,32 @@ responsibility:
   a change. Promoting a per-feature spec from `.specs/<feature>/` to
   `openspec/changes/<id>/` is a one-way migration triggered
   explicitly; it is NOT automatic.
+- **BMAD** (`_bmad/`, `_bmad-output/`) is the **review, analysis, and
+  adversarial-quality layer** — see Principle IX for full scope, agent
+  roles, and ownership rules. BMAD does NOT plan, implement, or
+  change-track; it questions, audits, and produces evidence. Its
+  findings are consumed by the other three tools but are not
+  auto-applied.
 
 The **legacy `docs/` generation pipeline** (the output of
 `bmad-document-project --mode deep` runs) is **deprecated as a source
 of truth** and is on a retirement schedule (see § "Documentation
-Systems and Source of Truth" below).
+Systems and Source of Truth" below). The live BMAD configuration and
+the BMAD-bundled WDS agents are unaffected; only the deep doc-gen
+output that drifts from `.planning/codebase/` is deprecated.
 
 **Rationale:** Three overlapping spec systems (GSD + spec-kit + OpenSpec)
-is one too many for a small team. Pinning each to a single
-responsibility is cheaper than consolidating to one tool: GSD's
-roadmap + codebase maps are hard to replicate, spec-kit's per-feature
-template is hard to replicate, and OpenSpec's proposal/scenario model
-is future-looking. The legacy `docs/` generation pipeline duplicates
-`.planning/codebase/` and `.specs/<feature>/design.md` content and
-drifts; retirement is cheaper than keeping it in sync.
+plus an undeclared reviewer (BMAD) is one too many for a small team
+to keep straight. Pinning each to a single responsibility is cheaper
+than consolidating to one tool: GSD's roadmap + codebase maps are
+hard to replicate, spec-kit's per-feature template is hard to
+replicate, OpenSpec's proposal/scenario model is future-looking, and
+BMAD's adversarial-review persona roster is hard to replicate from
+scratch. The four roles compose: BMAD questions, spec-kit implements,
+GSD plans and gates, OpenSpec tracks deltas. The legacy `docs/`
+generation pipeline duplicates `.planning/codebase/` and
+`.specs/<feature>/design.md` content and drifts; retirement is
+cheaper than keeping it in sync.
 
 ### VII. Sub-Agent Orchestration & Concurrency Budget
 
@@ -281,6 +264,200 @@ qualitative override path (rationale recorded in the originating
 artifact) ensures that an exception is visible at the next milestone
 audit without a separate scan — the rationale lives next to the work
 it justifies.
+
+### VIII. Host-OS / Shell-Aware Command Execution
+
+Agents MUST detect the **host operating system and shell** before issuing
+any terminal command, and MUST NOT run commands whose syntax, flags, or
+runtime semantics require a different platform than the one they are
+running on. Concretely:
+
+- **Windows hosts** (PowerShell 7+ / `pwsh`, `cmd`, or Git Bash):
+  POSIX-only shell scripts (e.g., `#!/usr/bin/env bash`, `set -euo
+  pipefail`, `[[ ... ]]`, `$(...)` inside single-quoted heredocs,
+  `tr`, `awk`, `sed -i ''`, GNU-only flags, `&&` chains inside
+  container-of-containers scripts) MUST NOT be invoked directly from the
+  host shell. When the user is on Windows and the skill example is a
+  POSIX shell snippet, the agent MUST either (a) translate it to a
+  Windows-runnable form and call that out in the reply, or (b) instruct
+  the user to run it inside the devcontainer (Principle V) or via the
+  project's cross-platform wrappers (`scripts/worktree-up.ps1` /
+  `scripts/worktree-down.ps1`). Running `bash`, `sh`, or POSIX-only
+  binaries that the host lacks is a constitutional violation, not a
+  recoverable error.
+- **macOS / Linux hosts** (`bash`, `zsh`, `fish`): POSIX syntax is
+  valid. Windows-only constructs (PowerShell `Get-ChildItem`,
+  `Remove-Item -LiteralPath`, `New-Item -ItemType Directory`,
+  backtick escaping, `Test-Path -LiteralPath`) MUST NOT be issued from
+  a POSIX host.
+- **Devcontainer shell** (Debian + bash, regardless of host OS): all
+  POSIX snippets documented in `AGENTS.md`, `docs/`, and the skill
+  bundles are valid inside the devcontainer, because the devcontainer
+  is the canonical POSIX surface for this project (Principle V). The
+  devcontainer does not, by itself, make a POSIX command valid on the
+  host shell; the host still has to delegate via `docker compose exec`.
+
+**Skill and document examples.** Skills and docs MUST prefer
+**platform-neutral composition**: when a snippet is illustrative, the
+preferred form is `docker compose -p "$PROJ" -f ... <verb>`, which is
+valid on every host because Compose runs inside the container engine,
+not the host shell. POSIX-only snippets are allowed when they are
+explicitly labeled as **devcontainer-only** or **CI-only**. Bare `bash`
+code blocks without a host label are assumed to be devcontainer
+snippets; an agent running on Windows MUST NOT paste them into a
+PowerShell invocation without translation.
+
+**Detection and recovery.** When a command fails because of a platform
+mismatch (e.g., `'&&' is not a valid statement separator in this
+shell`, `The term 'bash' is not recognized`, `Permission denied` on a
+POSIX binary, `cmd.exe` not found inside `docker compose exec`), the
+agent MUST stop, identify the platform mismatch, and either retry via
+the correct shell (`pwsh -Command '...'` on Windows, `bash -c '...'`
+inside the devcontainer) or escalate to the user with a one-line
+explanation. The agent MUST NOT chain a second platform-specific
+command after the first fails; that compounds the error.
+
+**Rationale:** Without this rule, agents invent commands that look
+plausible but fail on the user's host — e.g., issuing `rm -rf node_modules`
+from PowerShell, or `Get-ChildItem -Recurse | Select-String` from
+bash. The fix is rarely "try again with a flag"; it is "use the
+correct shell for the correct host". Principle V already establishes
+the devcontainer as the uniform POSIX surface; this principle makes
+the boundary explicit and prevents agents from accidentally bypassing
+it by writing host-shell code that the devcontainer was meant to
+eliminate.
+
+### IX. BMAD Review, Analysis, and Adversarial-Quality Layer
+
+BMAD (the BMAD Method + WDS agents) is the project's **review, analysis,
+and adversarial-quality layer**. It is the **fourth workflow tool**,
+peer to GSD / spec-kit / OpenSpec, with a non-overlapping
+responsibility: **questioning and auditing the other three** rather than
+implementing or planning them. Concretely:
+
+- **Owned artifacts.** BMAD owns `_bmad/` (configuration and skill
+  bundles — `_bmad/bmm/`, `_bmad/tea/`, `_bmad/cis/`, `_bmad/wds/`,
+  `_bmad/core/`, `_bmad/custom/`) and `_bmad-output/` (planning and
+  analysis artifacts: `planning-artifacts/{briefs,prds,research}/`,
+  `implementation-artifacts/` (per-spec dev artifacts and the
+  `deferred-work.md` ledger), `test-artifacts/`,
+  `party-mode/memories/`). BMAD does NOT own source code, feature
+  specs under `.specs/`, the constitution under `.specify/`, the
+  roadmap under `.planning/`, or the change-tracking under
+  `openspec/`. Those remain with their respective tools (Principle VI).
+- **Roles and agents.** BMAD's named agents have a fixed
+  responsibility split, recorded here so any agent (including a
+  sub-agent per Principle VII) knows which persona to dispatch for
+  which review:
+  - **Mary** (analyst, `bmad-agent-analyst`) — research, evidence
+    gathering, stakeholder voice. Produces briefs and analytical
+    reviews.
+  - **John** (PM, `bmad-agent-pm`) — Jobs-to-be-Done, scope, MVP
+    framing. Produces PRDs and prioritization reviews.
+  - **Winston** (architect, `bmad-agent-architect`) — invariants,
+    architecture spines, decision rationale. Produces architectural
+    review artifacts.
+  - **Murat** (Test Architect / TEA, `bmad-tea`) — test architecture,
+    NFR audits, traceability. Produces `test-artifacts/` outputs and
+    quality-gate verdicts.
+  - **Sally** (UX designer, `bmad-agent-ux-designer`) — UX patterns,
+    design specifications. Produces UX work orders.
+  - **Paige** (tech writer, `bmad-agent-tech-writer`) — knowledge
+    curation, editorial review. Produces editorial passes and
+    procedural docs.
+  - **Amelia** (dev, `bmad-agent-dev`) — story execution. In the
+    Reborn project the implementation role has moved to spec-kit's
+    `/speckit-implement` (Principle VI); BMAD's Amelia persona is
+    retained for BMAD-internal flows (e.g., legacy `bmad-dev-story`
+    workflows) but MUST NOT be used to bypass spec-kit's
+    implementation gate.
+  - **CIS sub-personas** (Dr. Quinn problem-solver, Maya design-
+    thinking coach, Carson brainstorming coach, Victor innovation
+    strategist, Caravaggio presentation master, Sophia storyteller,
+    plus WDS's Saga analyst and Freya designer) — used for creative
+    and design-thinking work; outputs land in `_bmad-output/` under
+    the relevant subfolder.
+- **What BMAD does.** BMAD produces four kinds of artifact, each with
+  a fixed home:
+  1. **Briefs and PRDs** (analyst + PM) — long-form planning artifacts
+     that predate a per-feature spec. They live in
+     `_bmad-output/planning-artifacts/{briefs,prds}/<id>/`. When a
+     brief or PRD matures into a feature, the per-feature spec is
+     created via spec-kit's `/speckit-specify`; the BMAD artifact
+     remains the *intent* record and is cross-referenced from the
+     spec's `requirements.md` "Upstream" section.
+  2. **Implementation specs** (`bmad-dev-story`, `bmad-quick-dev`) —
+     per-story dev artifacts under
+     `_bmad-output/implementation-artifacts/`. These are the BMAD
+     analogue of spec-kit's `.specs/<feature>/tasks.md`; the two
+     coexist when both workflows are active on the same change, and
+     the spec-kit `tasks.md` is the **verification-gate source of
+     truth** (per Principle VI § 4 Seams). BMAD implementation specs
+     MUST NOT be the source of truth for the verification gate.
+  3. **Review and analysis** (`bmad-review`, `bmad-review-adversarial-
+     general`, `bmad-review-edge-case-hunter`, `bmad-code-review`,
+     `bmad-check-implementation-readiness`,
+     `bmad-testarch-trace`, `bmad-testarch-nfr`) — adversarial
+     findings, edge-case catalogs, NFR audits, traceability matrices.
+     Outputs land in `_bmad-output/` under the relevant subfolder and
+     are the *evidence* consumed by GSD's `/gsd-validate-phase`,
+     `/gsd-secure-phase`, `/gsd-audit-milestone`, and by spec-kit's
+     `/speckit-converge` and `/speckit-analyze`. The findings are
+     consumed but NOT auto-applied; the implementing workflow owns
+     the decision to act.
+  4. **Deferred-work ledger** — `_bmad-output/implementation-artifacts/
+     deferred-work.md` is the canonical log of issues that are out of
+     scope for the current change but must not be forgotten. Each
+     entry carries a `source_spec` pointer back to the spec or
+     implementation artifact that produced it. Promoting a deferred
+     item back into active work is a GSD decision (`/gsd-transition`
+     or `/gsd-complete-milestone`), not a BMAD-only action.
+- **Adversarial review gate.** The pre-commit gate from
+  `AGENTS.md` ("Pre-commit adversarial review: no agent may
+  `git commit` until (1) build + tests are green and (2) an
+  adversarial review subagent returns zero CRITICAL/HIGH findings")
+  is a BMAD gate. The adversarial reviewer is `bmad-code-review`
+  (or `bmad-review-adversarial-general` for non-code artifacts),
+  invoked as a sub-agent (Principle VII). CRITICAL/HIGH findings
+  block the commit; MEDIUM/LOW findings are advisory and MUST be
+  filed into the deferred-work ledger if not fixed in the same
+  commit.
+- **Party-mode.** `_bmad-output/party-mode/memories/installed/
+  .memlog.md` is the canonical session diary for multi-persona
+  discussions (the `bmad-party-mode` orchestrator). It is
+  **historical evidence**, not state. Project state lives in
+  `.planning/STATE.md` (GSD's writer-of-record) — party-mode
+  findings that affect state MUST be promoted to STATE.md via
+  `/gsd-transition` or `/gsd-complete-milestone`.
+- **Ownership across seams.** A BMAD sub-agent writes only to
+  `_bmad/` and `_bmad-output/`. It MAY read from `.planning/`,
+  `.specs/`, `.specify/`, `openspec/`, and the source tree, but
+  MUST NOT rewrite them. If a BMAD finding implies a change to a
+  spec-kit `tasks.md`, a GSD `STATE.md`, or an OpenSpec delta, the
+  BMAD agent emits the finding and the owning workflow's agent
+  applies the change. This is the same ownership rule as
+  Principle VII; stated here so BMAD-specific invocations do not
+  drift.
+- **WDS as a BMAD submodule.** WDS (`_bmad/wds/`) is the
+  design-thinking surface inside BMAD (Saga analyst, Freya designer,
+  Mimir builder). It is governed by Principle IX like the rest of
+  BMAD; its outputs (project brief, UX specifications, Work Orders)
+  feed into the same `_bmad-output/planning-artifacts/` tree. Mimir's
+  build role is retained for headless WDS runs but, like Amelia,
+  MUST NOT be used to bypass spec-kit's implementation gate.
+
+**Rationale:** Without a constitutional principle, BMAD's role is
+implicit: it shows up in `AGENTS.md` as "BMAD for review/analysis"
+and in the cheat sheet as a seam participant, but its ownership
+boundaries, the meaning of its artifact names, and its relationship
+to the verification gate are open to interpretation. Pinning the
+four-tool split (GSD = planner, spec-kit = implementer, OpenSpec =
+change-tracking, BMAD = reviewer/analyst) prevents two failure
+modes: (1) BMAD becoming a parallel implementation path that
+bypasses spec-kit's gate, and (2) BMAD reviews being silently
+ignored because no rule says which workflow acts on them. The four
+roles compose: BMAD questions → spec-kit implements → GSD plans and
+gates → OpenSpec tracks deltas.
 
 ## Stack & Architecture Constraints
 
@@ -448,12 +625,13 @@ spec-kit `requirements.md` / `design.md` do NOT have to mirror them —
 they are independent, with cross-references added to the spec-kit
 `requirements.md` "OpenSpec" subsection when relevant.
 
-### 4. Seams — how the three tools compose
+### 4. Seams — how the four tools compose
 
-The three tools are designed to hand off to each other at well-defined
-points. The seams below are non-negotiable. Sub-agent invocation across
-these seams is governed by Principle VII; the ownership rules in this
-section apply equally to sub-agents as to main orchestrators. The sub-agent invocation
+The four tools (GSD, spec-kit, OpenSpec, BMAD) are designed to hand off
+to each other at well-defined points. The seams below are
+non-negotiable. Sub-agent invocation across these seams is governed by
+Principle VII; the ownership rules in this section apply equally to
+sub-agents as to main orchestrators. The sub-agent invocation
 protocol and concurrency budget that govern cross-tool fan-out are in
 Principle VII (and reproduced as operator guidance in `AGENTS.md`
 § 2.4 and § 2.5, and in `docs/agent-flow-cheatsheet.md` § 4 and § 5). The seams
@@ -461,19 +639,21 @@ below assume that protocol and do not repeat it.
 
 **Ownership principle.** GSD owns `.planning/` — it is the single writer
 of the roadmap pointer, the phase state, and the milestone archive, and
-the single reader-of-record for project-level state. The other two tools
-are **writers** to `.planning/` whenever their work changes project
+the single reader-of-record for project-level state. The other three
+tools are **writers** to `.planning/` whenever their work changes project
 state, and **readers** of `.planning/` whenever they need project
-context. Concretely: spec-kit and OpenSpec MUST update
+context. Concretely: spec-kit, OpenSpec, and BMAD MUST update
 `.planning/STATE.md` (decisions, blockers, deferred items) and
 `.planning/PROJECT.md` (validated/active/out-of-scope lists) when their
 work changes those facts; they MUST NOT update `ROADMAP.md`, the phase
 pointer, or the milestone archive — those are GSD's job
 (`/gsd-transition`, `/gsd-complete-milestone`). Conversely, GSD consumes
-`.specs/<feature>/` and `openspec/` artifacts but MUST NOT rewrite them
-— e.g., GSD editing a `.specs/<feature>/tasks.md` checkbox is a
-constitutional violation (that is spec-kit's job via
-`/speckit-implement`).
+`.specs/<feature>/`, `openspec/`, and BMAD artifacts but MUST NOT
+rewrite them — e.g., GSD editing a `.specs/<feature>/tasks.md` checkbox
+is a constitutional violation (that is spec-kit's job via
+`/speckit-implement`); GSD editing a `_bmad-output/implementation-
+artifacts/<id>.md` is a constitutional violation (that is BMAD's job
+via the relevant `bmad-*` workflow).
 
 - **GSD → spec-kit.** A GSD phase references one or more spec-kit
   `.specs/<feature>/` folders in its phase detail block
@@ -507,12 +687,42 @@ constitutional violation (that is spec-kit's job via
   phase. At milestone boundaries (`/gsd-complete-milestone`), the
   canonical `openspec/specs/<domain>/` is a candidate for re-validation
   alongside the legacy-`docs/` retirement schedule.
+- **GSD ↔ BMAD.** GSD does not directly invoke BMAD agents, but
+  consumes BMAD's outputs. At phase boundaries, BMAD's review
+  artifacts (`_bmad-output/test-artifacts/`,
+  `_bmad-output/implementation-artifacts/<id>.md`) are inputs to
+  `/gsd-validate-phase`, `/gsd-secure-phase`, and
+  `/gsd-audit-milestone`. At milestone boundaries,
+  `_bmad-output/implementation-artifacts/deferred-work.md` is
+  reviewed for promotion into `.planning/REQUIREMENTS.md` (GSD's
+  writer-of-record). GSD MUST NOT rewrite `_bmad-output/`; it cites
+  the artifacts and lets the implementing workflow apply changes.
+- **spec-kit ↔ BMAD.** spec-kit is the primary consumer of BMAD
+  reviews. The spec-kit `analysis.md` artifact is produced by
+  `/speckit-analyze`, which may call BMAD review skills as
+  sub-agents; CRITICAL/HIGH findings block the next
+  `/speckit-implement` run. Conversely, when a spec-kit implementation
+  reveals a quality issue, the spec-kit executor may dispatch a
+  `bmad-review-adversarial-general` sub-agent on the diff (per
+  Principle IX "Adversarial review gate") and file the findings into
+  the spec-kit `review.md`. BMAD MUST NOT rewrite `.specs/<feature>/`
+  files; it emits findings and the spec-kit agent applies changes.
+- **OpenSpec ↔ BMAD.** When a change is opted into OpenSpec, BMAD
+  review skills (Winston architect, Murat TEA, Mary analyst) may be
+  invoked as sub-agents on the `openspec/changes/<id>/` proposal.
+  Findings land in `_bmad-output/` and are referenced from the
+  OpenSpec `proposal.md` "Risks" section. OpenSpec MUST NOT cite
+  BMAD findings as blocking approval without a recorded rationale in
+  `proposal.md`; BMAD findings are evidence, not gates.
 - **Constitution.** This file is the shared governance contract for all
-  three. spec-kit reads it at `/speckit-plan` Phase 0; GSD re-validates
+  four. spec-kit reads it at `/speckit-plan` Phase 0; GSD re-validates
   it at every phase transition (`/gsd-transition`) and milestone
   (`/gsd-complete-milestone`); OpenSpec delta specs MUST NOT contradict
   it (a delta spec that violates a principle is a blocker, not a
-  proposal).
+  proposal); BMAD reviews it at every milestone audit via
+  `bmad-check-implementation-readiness` and reports drift findings
+  to GSD for amendment (the amendment itself is GSD's job — BMAD
+  does not edit the constitution).
 
 ### 5. Quality gates
 
@@ -567,6 +777,11 @@ correct and the older one is stale.
 | Codebase maps (STACK, STRUCTURE, ARCHITECTURE, CONVENTIONS, CONCERNS, INTEGRATIONS, TESTING) | `.planning/codebase/*.md` | GSD | Source for every other tool. |
 | Per-feature spec (requirements, design, tasks, bugfix, review) | `.specs/<feature>/{requirements,design,tasks,bugfix,review,analysis}.md` | spec-kit | Required artifacts vary per spec type. |
 | Constitution (binding governance) | `.specify/memory/constitution.md` | spec-kit | This file. Amended by `/speckit-constitution`. |
+| BMAD configuration and skills | `_bmad/{bmm,tea,cis,wds,core,custom,method,render,toolbox}/` | BMAD | Live configuration; `_bmad/config.toml` is installer-managed, `_bmad/custom/` holds team and personal overrides. |
+| BMAD briefs, PRDs, and research | `_bmad-output/planning-artifacts/{briefs,prds,research}/<id>/` | BMAD | Pre-spec intent artifacts; cross-referenced from `.specs/<feature>/requirements.md` "Upstream" section. |
+| BMAD implementation specs and deferred-work ledger | `_bmad-output/implementation-artifacts/` | BMAD | Per-story dev artifacts and `deferred-work.md`. BMAD implementation specs coexist with `.specs/<feature>/tasks.md`; the spec-kit file is the verification-gate source of truth (Principle IX). |
+| BMAD test and review artifacts | `_bmad-output/test-artifacts/{test-design,test-reviews,traceability}/` | BMAD | TEA outputs; consumed by GSD `/gsd-validate-phase` and spec-kit `/speckit-converge`. |
+| BMAD party-mode session diary | `_bmad-output/party-mode/memories/installed/.memlog.md` | BMAD | Historical evidence only; project state lives in `.planning/STATE.md`. |
 | Per-feature OpenAPI / contracts | `.specs/<feature>/design.md` (section "Contracts") | spec-kit | Generated artifacts land under `src/Host/.../wwwroot/swagger/`. |
 | Architecture Decision Records (ADRs) | **Two homes, two scopes:** GSD STATE.md holds the *decision and rationale*; spec-kit `review.md` / `analysis.md` files hold the *finding* that prompted the decision. | GSD + spec-kit | The legacy `docs/architecture/decisions/0001-…0004-…` ADRs were deleted in commit `b34b4d2` (2026-07-12) — kept for historical reference only in git history; new ADRs are recorded in GSD STATE.md and cross-referenced from the relevant `.specs/<feature>/` file. |
 | Design system (tokens, components) | `.specs/2 - visual-design-system/` + `mockup/` | spec-kit | Tokens contract enforced by `.planning/REQUIREMENTS.md` trace rows and continuous task C.7. The legacy `docs/design-system/` and `docs/penpot/` assets were deleted in commit `b34b4d2` (2026-07-12); the spec under `.specs/2 - visual-design-system/` and `mockup/` are the canonical homes going forward. |
@@ -653,4 +868,4 @@ unless an amendment is in flight.
   (via `/gsd-transition`). "What This Is" and "Out of Scope" drift are
   treated as constitutional concerns, not just documentation hygiene.
 
-**Version**: 1.3.0 | **Ratified**: 2026-07-12 | **Last Amended**: 2026-07-12
+**Version**: 1.5.0 | **Ratified**: 2026-07-12 | **Last Amended**: 2026-09-15
