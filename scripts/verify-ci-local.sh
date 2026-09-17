@@ -143,7 +143,9 @@ cat > "$CI_INNER" << 'INNER_EOF'
 # Variables injected by docker run -e:
 #   FAST_ONLY          (true/false)
 #   INCLUDE_INTEGRATION (true/false)
-set -euo pipefail
+# NOTE: base image uses dash for /bin/sh, which does NOT support `set -o pipefail`.
+# Use `-eu` only; pipeline exit status is the last command's status.
+set -eu
 
 _log()  { printf '\033[1;34m[ci-local]\033[0m %s\n' "$*"; }
 _ok()   { printf '\033[1;32m[ci-local][PASS]\033[0m %s\n' "$*"; }
