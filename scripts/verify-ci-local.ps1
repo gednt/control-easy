@@ -330,11 +330,21 @@ fi
 
     # ---------------------------------------------------------------------------
     # Stamp success state — uses only PS built-in .NET SHA256 + git (host utils)
+    # PowerShell under ErrorActionPreference=Stop treats any stderr from an
+    # external command as an error, including harmless git CRLF warnings
+    # when core.autocrlf is true. Temporarily relax the preference and
+    # capture only stdout.
     # ---------------------------------------------------------------------------
-    $headSha    = git rev-parse HEAD 2>$null; if (-not $headSha) { $headSha = "none" }
-    $diffText   = git diff HEAD 2>$null | Out-String
+    $prevPref = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        $headSha    = (git rev-parse HEAD 2>&1 | Out-String).Trim(); if (-not $headSha) { $headSha = "none" }
+        $diffText   = (git diff HEAD 2>&1        | Out-String)
+        $statusText = (git status --porcelain=v1 -uall 2>&1 | Out-String)
+    } finally {
+        $ErrorActionPreference = $prevPref
+    }
     $diffHash   = Get-Sha256String $diffText
-    $statusText = git status --porcelain=v1 -uall 2>$null | Out-String
     $statusHash = Get-Sha256String $statusText
     $timestamp  = (Get-Date).ToUniversalTime().ToString('o')
     $stampContent = "$headSha`:$diffHash`:$statusHash`:$timestamp"
