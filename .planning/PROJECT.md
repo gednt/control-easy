@@ -19,6 +19,15 @@ Gatehouse staff can reliably register and control access for residents, visitors
 - v2.0 Phase 13 backend (consent policy + entry log + CSV export) shipped in same commit
 - Unplanned: tenant staff lifecycle management, bootstrap race fix, Traefik TLS, worktree script fixes
 
+**Gatehouse Access & Visit Destinations (qr-entrance-exit-access) shipped 2026-09-16 on `feat/qr-entrance-exit-access`:**
+- New AccessControl module (Domain / Application / Infrastructure / Api) under `src/Modules/AccessControl/`
+- Resident + vehicle QR scans, manual lookup by CPF / document / name / apartment / block, credential issue / replace / revoke, access event & refused-scan audit, immutable destination snapshot
+- Visit destination required at create/update; auto-resolved for residents and associated vehicles; legacy destination-pending rows treated as historical
+- Biometric path reserved (`CredentialMethod.FacialBiometricReserved = 99`) but never produced, persisted, or transmitted; arch tests fail the build on any biometric keyword
+- Architecture-wide AccessControl constitution compliance test (18/18 arch tests pass)
+- Serilog structured logging for AccessControl flows (`TenantId`, `ProfileId`, `ScanAttemptId`, `Decision`, `DurationMs`) with a redaction arch test
+- Angular entry-workflow a11y + i18n audit (live region, roving-tab radiogroup, keyboard navigation, category translation table)
+
 ## Current Milestone
 
 **v1.1 UI & Dashboard** (started 2026-08-23) — partially shipped (Phase 10 done, Phase 9 partial)
@@ -36,6 +45,7 @@ Target features:
 - Consent Policy & Gatehouse Workflow (Phase 13 — `CONSENT-01`, `CONSENT-02`, `CONSENT-03`): per-tenant per-category consent policy, four entry states, 3-second gatehouse workflow, append-only audit log, CSV export for CCTV cross-reference — **backend shipped, UI pending**
 - Door Relay & Unlock Commands (Phase 14 — `DOOR-01`): optional, gated on real hardware, HMAC-signed unlock, hardware fallback
 - Reader Events & Device Health (Phase 15 — `DOOR-02`, `DOOR-03`): card reader event ingestion, enforced ledger, device health monitoring
+- **QR Access & Visit Destinations (qr-entrance-exit-access — `ACCESS-01..06`): resident + vehicle QR scans, manual lookup fallback, credential lifecycle, access event + refused-scan audit, required destination for every event, biometric reservation — **shipped 2026-09-16 on `feat/qr-entrance-exit-access`**
 
 Phase numbering continues from v1.1 (Phase 10). Old v1.0 placeholder phases (12, 14) are superseded by v2.0/v2.1 design. Multi-arch Docker/CI is a fast-cycle task, not a milestone.
 
@@ -66,6 +76,7 @@ Phase numbering continues from v1.1 (Phase 10). Old v1.0 placeholder phases (12,
 - ✓ Consent policy config (CONSENT-01) — Phase 13 backend, commit `d895c01`
 - ✓ Gatehouse entry workflow backend (CONSENT-02) — Phase 13 backend, commit `d895c01`
 - ✓ Tenant staff lifecycle management (unplanned) — commit `55377a0`
+- ✓ Gatehouse Access & Visit Destinations (qr-entrance-exit-access — `ACCESS-01..06`) — resident + vehicle QR scans, manual lookup, credential lifecycle, audit, visit destination enforcement, biometric reservation — `.specs/qr-entrance-exit-access/`, shipped 2026-09-16 on `feat/qr-entrance-exit-access`
 
 ### Active
 
@@ -118,6 +129,8 @@ Known concerns from codebase map: dual tenant column patterns, JWT/localStorage 
 | Phase 11 + Phase 13 backend shipped together | Implementation collapsed the 11/13 boundary; schema + consent backend are co-dependent | ✓ Good — commit `d895c01` |
 | S3 storage: dual provider (MinIO-compatible + Amazon S3) | Support both self-hosted MinIO and native AWS S3 | ✓ Good — `S3StorageProvider` + `AmazonS3StorageProvider` |
 | Tenant staff lifecycle shipped as unplanned work | Admin/porteiro CRUD was needed for real-world condominium management | ✓ Good — commit `55377a0` |
+| QR-first credential method, facial biometric explicitly reserved | QR is the operational path; biometric enrollment/storage/matching requires a separate approved specification covering privacy, storage, enrollment, matching, and liveness | ✓ Good — `.specs/qr-entrance-exit-access/`, `CredentialMethod.FacialBiometricReserved = 99`, arch tests fail the build on any biometric keyword |
+| Always identify a visit destination | Resident/vehicle-bound scans auto-resolve the destination apartment; manual lookup requires an explicit selection; legacy `destination_pending` rows are historical only | ✓ Good — `AccessEventDestinationResolver` + `VisitValidator` enforce the rule |
 
 ## Evolution
 
@@ -137,4 +150,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-12 — audited against codebase; v1.1 Phase 10 + v2.0 Phase 11 + Phase 13 backend marked validated; v1.1 Phase 9 marked partial; tenant staff lifecycle added as validated*
+*Last updated: 2026-09-16 — QR Access & Visit Destinations feature marked validated on `feat/qr-entrance-exit-access`; spec-kit `.specs/qr-entrance-exit-access/` is the source of truth for the feature (per Constitution Principle VI / spec-kit ownership rule)*

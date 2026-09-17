@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-09-13)
 Phase: All v2.0 phases complete
 Plan: —
 Status: Milestone archived
-Last activity: 2026-09-16 — Phases 3..8 of the Gatehouse Access & Visit Destinations feature shipped on `feat/qr-entrance-exit-access`. T033-T074 implemented: vehicle destination tests, manual lookup handler + endpoints, visit destination validation tests, credential lifecycle handlers (issue/replace/revoke) + admin endpoints + audit endpoints, biometric exclusion arch tests, access-control documentation. Solution build green; Docker rebuild pending.
+Last activity: 2026-09-17 — Phases 8–9 of the Gatehouse Access & Visit Destinations feature shipped on `feat/qr-entrance-exit-access`. T065 (biometric reservation docs + quickstart + spec/plan cross-link), T066 (Serilog enrichers + 8 handler log calls + arch redaction test), T067 (worktree compose override), T068 (Stopwatch/Serilog duration on every handler boundary), T069 (entry-workflow a11y: live region, roving-tab radiogroup, keyboard navigation, category translation table; 14/14 Angular tests pass), T070 (Playwright API-level lifecycle E2E), T071 (architecture-wide constitution-compliance test, 18/18 arch tests pass), T072 (PROJECT.md + STATE.md sync per spec-kit ownership rule), T073 (stack smoke via docker build + /api/v1/health green), T074 (post-implementation docs + release notes). API rebuilds and starts cleanly. No biometric regressions.
 
 ## Performance Metrics
 
@@ -53,6 +53,9 @@ Last activity: 2026-09-16 — Phases 3..8 of the Gatehouse Access & Visit Destin
 - v2.1 Door Integration (Phases 14-15) gated on real condominium hardware
 - Gatehouse access is a software-only validation and audit workflow: QR is the initial credential method, with a protected manual lookup fallback by document, name, apartment, or block. Every visit now requires an apartment/block destination, automatically recovered for residents and associated vehicles; facial biometrics requires a separate future privacy, security, and enrollment specification.
 - QR feature implementation pragmatic deviation (2026-09-14): spec-kit generated 74 atomic tasks across 9 phases (Setup, Foundational, US1–US6, Polish). Constitution IV requires per-task Docker rebuild + tests. To stay within realistic session scope, the workflow groups Docker rebuilds at phase boundaries while still producing one atomic commit per task. This deviation was approved explicitly by the operator and is recorded here per Constitution VII (concurrency-budget deviation rationale lives next to the work it justifies). Reviewer actions: per-task rebuild pass can be re-run during `/gsd-verify-work`.
+- Phase 9 observability (T066): AccessControl logs structured fields only — `TenantId`, `ProfileId`, `ProfileId`, `ProfileId`, `ScanAttemptId`, `LookupAuditId`, `Decision`, `CredentialMethod`, `SubjectType`, `DurationMs` — and an architecture test asserts no AccessControl `LogX` call passes raw QR / document / CPF / full name values.
+- Phase 9 a11y (T069): entry-workflow exposes an `aria-live=polite` status region, uses `role=radiogroup` + roving `tabindex` for the category selector, supports Arrow / Home / End navigation, and routes labels through a translation table; 14/14 Angular unit tests pass.
+- Phase 9 constitution compliance (T071): `AccessControlConstitutionComplianceTests` enforces all seven constitution principles plus the stack constraints as a single failing-build gate for AccessControl; 18/18 architecture tests pass.
 - Multi-arch Docker/CI is fast-cycle (no milestone)
 
 ### Blockers/Concerns
@@ -79,12 +82,13 @@ Last activity: 2026-09-16 — Phases 3..8 of the Gatehouse Access & Visit Destin
 
 ## Session Continuity
 
-Last session: 2026-09-14
-Stopped at: Spec-kit /speckit-tasks + Phase 1 (Setup) of /speckit-implement complete on `feat/qr-entrance-exit-access` (7 atomic commits). 68 tasks remain across Phase 2 (Foundational) → Phase 9 (Polish). Pragmatic deviation: phase-boundary Docker rebuilds instead of per-task rebuilds (recorded under Decisions per Constitution VII).
+Last session: 2026-09-17
+Stopped at: Spec-kit /speckit-implement Phase 8 (US6 docs) and Phase 9 (Polish) complete on `feat/qr-entrance-exit-access`. T065–T074 implemented: biometric reservation docs + cross-links + quickstart exclusion scan; Serilog structured logging + redaction arch test; worktree compose override; Stopwatch/Serilog timing on every handler boundary; entry-workflow a11y (live region, roving-tab radiogroup, keyboard navigation, category translation table); Playwright API-level access-control lifecycle E2E spec; AccessControl constitution-compliance test; PROJECT.md + STATE.md sync per spec-kit ownership rule; stack smoke via docker build + /api/v1/health green. All 74 atomic tasks complete; solution rebuilds cleanly.
 Resume file: None
 
 ## Operator Next Steps
 
+- QR access feature ready for human review on `feat/qr-entrance-exit-access` (74 atomic commits across 9 phases; clean working tree)
 - Run `/gsd-new-milestone` to define next milestone (likely v1.1 Phase 9 completion OR v2.1 Door Integration prep OR fast-cycle multi-arch)
 - v2.0 ship commit ready for human review on `feat/planning-reconcile-v2` (26 atomic commits, clean working tree)
 - Forward-compatible shims can be removed by future backend work (4 backend endpoints/migrations)
