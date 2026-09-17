@@ -216,6 +216,61 @@ public sealed class AccessControlTenantRulesTests
             $"facial_biometric / biometric_template / embedding / liveness_score must not appear in any active DDL (US6). Failures: {string.Join("; ", failing)}");
     }
 
+    [Fact]
+    public void AccessControl_must_not_log_raw_QR_payloads_documents_or_full_CPFs()
+    {
+        var root = FindRepositoryRoot();
+        var accessControlRoot = Path.Combine(root, "src", "Modules", "AccessControl");
+        Directory.Exists(accessControlRoot).Should().BeTrue("the AccessControl module is expected under src/Modules/AccessControl");
+
+        var sensitiveNames = new[]
+        {
+            "QrPayload",
+            "RawPayload",
+            "SecretVerifier",
+            "DocumentNumber",
+            "DocumentValue",
+            "FullName",
+            "Cpf",
+            "Plate"
+        };
+
+        var logCallRegex = new Regex(
+            @"\.(?:Log(?:Debug|Information|Warning|Error|Fatal|Trace))(?:\s*<[^>]*>)?\s*\(",
+            RegexOptions.IgnoreCase);
+
+        var failing = new List<string>();
+        foreach (var path in Directory.EnumerateFiles(accessControlRoot, "*.cs", SearchOption.AllDirectories))
+        {
+            var content = File.ReadAllText(path);
+            foreach (Match call in logCallRegex.Matches(content))
+            {
+                var openParen = content.IndexOf(')', call.Index);
+                var closeFromOpen = content.IndexOf(')', Math.Max(call.Index, call.Index + call.Length));
+                int closeIndex = openParen;
+                if (closeIndex < 0)
+                {
+                    continue;
+                }
+                if (closeFromOpen > 0 && closeFromOpen < closeIndex)
+                {
+                    closeIndex = closeFromOpen;
+                }
+                var callSpan = content.Substring(call.Index, Math.Min(closeIndex - call.Index + 1, content.Length - call.Index));
+                foreach (var sensitive in sensitiveNames)
+                {
+                    if (callSpan.IndexOf(sensitive, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        failing.Add($"{Path.GetFileName(path)}: log call exposes sensitive token '{sensitive}' at offset {call.Index}.");
+                    }
+                }
+            }
+        }
+
+        failing.Should().BeEmpty(
+            $"AccessControl log calls must not pass raw QR, document, CPF, or full name values. Failures: {string.Join("; ", failing)}");
+    }
+
     private static string FindRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
