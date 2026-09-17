@@ -40,6 +40,7 @@ for arg in "$@"; do
       FAST_ONLY=true
       SKIP_INTEGRATION=true
       SKIP_DOCKER=true
+      SKIP_OPENAPI=true
       ;;
     --skip-integration)
       SKIP_INTEGRATION=true
@@ -80,12 +81,16 @@ fi
 # ---------------------------------------------------------------------------
 # Stage 1: .NET Format Check
 # ---------------------------------------------------------------------------
-_log "Stage 1/6: Checking C# code format..."
-dotnet restore src/ControlEasyReborn.sln --verbosity quiet --nologo
-if ! dotnet format src/ControlEasyReborn.sln --verify-no-changes --no-restore; then
-  _die "Format check failed! Run 'dotnet format src/ControlEasyReborn.sln' to fix formatting."
+if [ "$FAST_ONLY" = true ] && ! git status --porcelain 2>/dev/null | grep -q -E '\.cs$'; then
+  _ok "Stage 1/6: Skipped C# format check (no .cs files modified)."
+else
+  _log "Stage 1/6: Checking C# code format..."
+  dotnet restore src/ControlEasyReborn.sln --verbosity quiet --nologo
+  if ! dotnet format src/ControlEasyReborn.sln --verify-no-changes --no-restore; then
+    _die "Format check failed! Run 'dotnet format src/ControlEasyReborn.sln' to fix formatting."
+  fi
+  _ok "Code format verified."
 fi
-_ok "Code format verified."
 
 # ---------------------------------------------------------------------------
 # Stage 2: Solution Build (Release)
@@ -226,7 +231,17 @@ fi
 # ---------------------------------------------------------------------------
 HEAD_SHA="$(git rev-parse HEAD 2>/dev/null || echo "none")"
 DIFF_HASH="$(git diff HEAD 2>/dev/null | sha256sum | awk '{print $1}')"
-mkdir -p "$(dirname "$STAMP_FILE")"
-printf '%s:%s:%s\n' "$HEAD_SHA" "$DIFF_HASH" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$STAMP_FILE"
 
-_ok "All local CI verification gates PASSED!"
+if [ "$FAST_ONLY" = true ] || [ "$SKIP_INTEGRATION" = true ] || [ "$SKIP_DOCKER" = true ] || [ "$SKIP_OPENAPI" = true ]; then
+  FAST_STAMP_FILE="$GIT_DIR/ci-local-fast-passed.stamp"
+  mkdir -p "$(dirname "$FAST_STAMP_FILE")"
+  printf '%s:%s:%s\n' "$HEAD_SHA" "$DIFF_HASH" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$FAST_STAMP_FILE"
+  _ok "Fast local CI verification checks PASSED (zero Docker downloads)!"
+else
+  mkdir -p "$(dirname "$STAMP_FILE")"
+  printf '%s:%s:%s\n' "$HEAD_SHA" "$DIFF_HASH" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$STAMP_FILE"
+  # Full pass also satisfies fast stamp
+  FAST_STAMP_FILE="$GIT_DIR/ci-local-fast-passed.stamp"
+  printf '%s:%s:%s\n' "$HEAD_SHA" "$DIFF_HASH" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$FAST_STAMP_FILE"
+  _ok "All local CI verification gates (including Docker web build & Testcontainers) PASSED!"
+fi

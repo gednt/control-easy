@@ -19,6 +19,12 @@ param(
     [switch]$SkipOpenApi
 )
 
+if ($Fast) {
+    $SkipIntegration = $true
+    $SkipDocker = $true
+    $SkipOpenApi = $true
+}
+
 $ErrorActionPreference = "Stop"
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -41,11 +47,16 @@ if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
 }
 
 # Stage 1: Format
-Write-Log "Stage 1/6: Checking C# code format..."
-dotnet restore src/ControlEasyReborn.sln --verbosity quiet --nologo
-dotnet format src/ControlEasyReborn.sln --verify-no-changes --no-restore
-if ($LASTEXITCODE -ne 0) { Write-Fail "Format check failed! Run 'dotnet format src/ControlEasyReborn.sln' to fix formatting." }
-Write-Pass "Code format verified."
+$hasCsChanges = [bool](git status --porcelain 2>$null | Select-String -Pattern '\.cs$')
+if ($Fast -and -not $hasCsChanges) {
+    Write-Pass "Stage 1/6: Skipped C# format check (no .cs files modified)."
+} else {
+    Write-Log "Stage 1/6: Checking C# code format..."
+    dotnet restore src/ControlEasyReborn.sln --verbosity quiet --nologo
+    dotnet format src/ControlEasyReborn.sln --verify-no-changes --no-restore
+    if ($LASTEXITCODE -ne 0) { Write-Fail "Format check failed! Run 'dotnet format src/ControlEasyReborn.sln' to fix formatting." }
+    Write-Pass "Code format verified."
+}
 
 # Stage 2: Build
 Write-Log "Stage 2/6: Building solution in Release mode..."
@@ -171,5 +182,14 @@ $headSha = git rev-parse HEAD 2>$null
 $diffText = git diff HEAD 2>$null | Out-String
 $bytes = [System.Text.Encoding]::UTF8.GetBytes($diffText)
 $diffHash = [System.BitConverter]::ToString([System.Security.Cryptography.SHA256]::HashData($bytes)).Replace("-", "").ToLowerInvariant()
-Set-Content -Path $stampFile -Value "$headSha`:$diffHash`:$(Get-Date -AsUTC -Format o)"
-Write-Pass "All local CI verification gates PASSED!"
+
+if ($Fast -or $SkipIntegration -or $SkipDocker -or $SkipOpenApi) {
+    $fastStampFile = Join-Path $gitDir "ci-local-fast-passed.stamp"
+    Set-Content -Path $fastStampFile -Value "$headSha`:$diffHash`:$(Get-Date -AsUTC -Format o)"
+    Write-Pass "Fast local CI verification checks PASSED (zero Docker downloads)!"
+} else {
+    Set-Content -Path $stampFile -Value "$headSha`:$diffHash`:$(Get-Date -AsUTC -Format o)"
+    $fastStampFile = Join-Path $gitDir "ci-local-fast-passed.stamp"
+    Set-Content -Path $fastStampFile -Value "$headSha`:$diffHash`:$(Get-Date -AsUTC -Format o)"
+    Write-Pass "All local CI verification gates (including Docker web build & Testcontainers) PASSED!"
+}

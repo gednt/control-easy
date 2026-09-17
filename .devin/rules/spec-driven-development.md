@@ -6,4 +6,4 @@ paths:
 Follow AGENTS.md.
 
 ## Mandatory Completion Gate
-No task, bugfix, or modification is considered "done" until all jobs in the CI pipeline pass locally (`scripts/verify-ci-local.sh` or `make verify-ci`). Agents MUST NOT consider any modification done, mark task checkboxes `[X]`, report completion to the user, or push to remote without running and passing this gate.
+No task, bugfix, or modification is considered "done" until all jobs in the CI pipeline pass locally (`scripts/verify-ci-local.sh` or `make verify-ci`). Per-turn stop hooks enforce fast checks (`--fast`: format, build, unit + arch tests in ~3s). CI tasks that download things inside Docker (Testcontainers MySQL and Docker web build) run once per task completion, at the end of all tasks completions, not after every turn. Agents MUST NOT mark tasks complete, push, or report done without running and passing the full local CI gate.

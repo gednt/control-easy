@@ -21,6 +21,7 @@ cd "$REPO_ROOT"
 
 GIT_DIR="$(git rev-parse --git-dir 2>/dev/null || echo "$REPO_ROOT/.git")"
 STAMP_FILE="$GIT_DIR/ci-local-passed.stamp"
+FAST_STAMP_FILE="$GIT_DIR/ci-local-fast-passed.stamp"
 
 # Consume stdin if present (JSON payload from Antigravity/Codex/Claude hook runner)
 INPUT_JSON=""
@@ -74,26 +75,51 @@ HEAD_SHA="$(git rev-parse HEAD 2>/dev/null || echo "none")"
 DIFF_HASH="$(git diff HEAD 2>/dev/null | sha256sum | awk '{print $1}')"
 EXPECTED_PREFIX="${HEAD_SHA}:${DIFF_HASH}"
 
-# If stamp file exists and matches current code fingerprint, verification passed!
-if [ -f "$STAMP_FILE" ]; then
-  STAMP_CONTENT="$(head -n 1 "$STAMP_FILE" 2>/dev/null || true)"
-  case "$STAMP_CONTENT" in
-    "${EXPECTED_PREFIX}"*)
-      printf '{}\n'
-      exit 0
-      ;;
-  esac
-fi
-
-# Otherwise, trigger local CI verification gate
 VERIFY_OUTPUT=""
 VERIFY_EXIT_CODE=0
-VERIFY_OUTPUT="$("$REPO_ROOT/scripts/verify-ci-local.sh" 2>&1)" || VERIFY_EXIT_CODE=$?
 
-if [ "$VERIFY_EXIT_CODE" -eq 0 ]; then
-  # Verification succeeded and stamp was written
-  printf '{}\n'
-  exit 0
+if [ "$IS_DIRTY" = true ]; then
+  # -------------------------------------------------------------------------
+  # Active editing / intermediate turn:
+  # Fast checks only (format, build, unit + arch tests).
+  # Zero Docker downloads, zero containers!
+  # -------------------------------------------------------------------------
+  if [ -f "$FAST_STAMP_FILE" ] && head -n 1 "$FAST_STAMP_FILE" 2>/dev/null | grep -q "^${EXPECTED_PREFIX}"; then
+    printf '{}\n'
+    exit 0
+  fi
+  if [ -f "$STAMP_FILE" ] && head -n 1 "$STAMP_FILE" 2>/dev/null | grep -q "^${EXPECTED_PREFIX}"; then
+    printf '{}\n'
+    exit 0
+  fi
+
+  VERIFY_OUTPUT="$("$REPO_ROOT/scripts/verify-ci-local.sh" --fast 2>&1)" || VERIFY_EXIT_CODE=$?
+  if [ "$VERIFY_EXIT_CODE" -eq 0 ]; then
+    printf '{}\n'
+    exit 0
+  fi
+else
+  # -------------------------------------------------------------------------
+  # Working tree is clean but branch is ahead of main (commits exist).
+  # Task completion / end of all tasks completion:
+  # Must verify that full CI gate passed (including Docker web build & Testcontainers).
+  # -------------------------------------------------------------------------
+  if [ -f "$STAMP_FILE" ]; then
+    STAMP_CONTENT="$(head -n 1 "$STAMP_FILE" 2>/dev/null || true)"
+    case "$STAMP_CONTENT" in
+      "${EXPECTED_PREFIX}"*)
+        printf '{}\n'
+        exit 0
+        ;;
+    esac
+  fi
+
+  # Run full CI verification gate once per task completion / at the end of all tasks completions
+  VERIFY_OUTPUT="$("$REPO_ROOT/scripts/verify-ci-local.sh" 2>&1)" || VERIFY_EXIT_CODE=$?
+  if [ "$VERIFY_EXIT_CODE" -eq 0 ]; then
+    printf '{}\n'
+    exit 0
+  fi
 fi
 
 # Verification failed: block agent from stopping and return reason

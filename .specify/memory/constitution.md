@@ -85,14 +85,9 @@ helpers), and architecture tests (NetArchTest.Rules) are mandatory for: new
 entities, new endpoints, cross-tenant paths, raw-SQL sites, and any change to
 the tenant filter interceptor. Every implementation task has a verification
 gate — most tasks ship a `docker compose build && up -d` smoke plus a
-`dotnet test` slice. The post-task Docker rebuild rule from `AGENTS.md`
-(non-optional) is a constitutional requirement: no task is "done" until the
-affected containers are rebuilt, restarted, and observed healthy. Furthermore,
-no task, bugfix, or modification is considered "done" until the entire local
-CI verification gate (`scripts/verify-ci-local.sh` or `make verify-ci`) passes
-cleanly on the final code state (format, build, unit + arch + integration tests,
-web container build, and OpenAPI drift check). Claiming completion without a
-verified green run of the local CI suite is a constitutional violation.
+`dotnet test` slice. The post-task verification rule from `AGENTS.md` operates on a two-tier cadence:
+(1) **Per-Turn Fast Gate:** Automated stop hooks enforce fast verification (`scripts/verify-ci-local.sh --fast`) on each conversational turn where files are modified (format, build, unit + arch tests in ~3s, zero Docker downloads).
+(2) **Task Completion / End of All Tasks Full Gate:** The entire local CI verification gate (`scripts/verify-ci-local.sh` or `make verify-ci`) must pass cleanly on the final code state before committing, pushing, or reporting the task as done. The CI tasks that need to download things inside Docker (Testcontainers MySQL integration tests and Angular Docker production build) run **only once per task completion, at the end of all tasks completions, not after every turn**. Claiming completion without a verified green run of the full local CI suite is a constitutional violation.
 
 **Rationale:** A modular monolith with 9 feature modules, a multi-tenant data
 model, and a Strangler Fig migration in flight is a regression factory without

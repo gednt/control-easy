@@ -1,21 +1,21 @@
-# Local CI Verification Gate (Mandatory)
+# Mandatory Local CI Verification Gate
 
-An agent MUST NOT consider any implementation task, story, bug fix, or modification "done", and MUST NOT report completion or exit the turn, until all CI jobs have been executed and passed locally:
+All agents working on ControlEasy Reborn MUST obey the following strict policy:
 
-```bash
-# POSIX / Devcontainer
-scripts/verify-ci-local.sh
+1. **Two-Tier Verification Cadence:**
+   - **Per-Turn Fast Gate (`scripts/verify-ci-local.sh --fast`):** Enforced automatically on agent stop after conversational turns where code files are modified. Runs format check (`dotnet format --verify-no-changes`), Release build, and unit/architecture tests in ~3 seconds with ZERO Docker downloads and ZERO containers.
+   - **Task Completion / End of All Tasks Full Gate (`scripts/verify-ci-local.sh`):** Runs the full 6-stage suite: format, build, unit & architecture tests, Testcontainers MySQL integration tests, Angular Docker production build, and OpenAPI client drift check.
 
-# Windows PowerShell 7+
-scripts/verify-ci-local.ps1
-```
+2. **Docker Download Tasks Run Only Once Per Task Completion:**
+   The CI tasks that need to download things inside Docker (Testcontainers MySQL integration tests and Angular Docker production build) run **only once per task completion, at the end of all tasks completions, not after every turn**.
 
-Verification covers:
-1. Stage 1: C# code format check (`dotnet format src/ControlEasyReborn.sln --verify-no-changes`)
-2. Stage 2: Solution build in Release mode (`dotnet build -c Release`)
-3. Stage 3: Unit and Architecture tests (`dotnet test tests/ControlEasyReborn.UnitTests`, `ArchitectureTests`)
-4. Stage 4: Testcontainers MySQL integration tests (`dotnet test tests/ControlEasyReborn.IntegrationTests`)
-5. Stage 5: Web production Docker build (`docker build -f docker/web.Dockerfile`)
-6. Stage 6: OpenAPI client and swagger drift check (`ng-openapi-gen` vs `src/app/api`)
+3. **No Task Completed Without Full Local CI Passing:**
+   No task, bugfix, or modification may be considered "done", and no task checkbox in `.specs/<feature>/tasks.md` may be marked `[X]`, until all jobs in the CI pipeline pass locally:
+   ```bash
+   ./scripts/verify-ci-local.sh
+   # Or: make verify-ci
+   # Or on Windows PowerShell: ./scripts/verify-ci-local.ps1
+   ```
 
-A modification is only done when `ci-local-passed.stamp` is generated and all 6 stages report `[PASS]`.
+4. **Lifecycle Stop Hooks:**
+   Stop hooks automatically enforce fast checks on intermediate conversational turns, and block agents from completing or committing tasks if the full verification gate has not passed at task completion.
