@@ -65,3 +65,47 @@ export interface ScanRefusal {
     | 'manual_event_orphan_lookup_id';
   decision: ScanResult['decision'];
 }
+
+export type ManualLookupType = 'cpf' | 'identity_document' | 'name' | 'apartment' | 'block';
+
+export interface ManualLookupRequest {
+  criterion: {
+    type: ManualLookupType;
+    value: string;
+    unit: string | null;
+  };
+}
+
+export interface ManualLookupResult {
+  subjectType: 'resident' | 'vehicle';
+  subjectId: string;
+  displayName: string;
+  maskedDocument: string | null;
+  destinationBlock: string | null;
+  destinationUnit: string | null;
+}
+
+export interface ManualLookupResponse {
+  lookupId: string;
+  results: ManualLookupResult[];
+  narrowHint: string | null;
+}
+
+export interface ManualAccessRequest {
+  lookupId: string;
+  subjectType: 'resident' | 'vehicle';
+  subjectId: string;
+  direction: 'entrance' | 'exit';
+}
+
+export interface ManualAccessResponse {
+  decision: ScanResult['decision'];
+  accessEventId: string;
+  accessMethod: 'manual_lookup';
+  subjectType: 'resident' | 'vehicle';
+  subjectId: string;
+  direction: 'entrance' | 'exit';
+  destinationApartmentId: string;
+  destinationBlock: string;
+  destinationUnit: string;
+}

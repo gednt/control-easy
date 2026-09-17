@@ -34,6 +34,18 @@ export const routes: Routes = [
         loadComponent: () => import('./features/entry-workflow/entry-workflow.page').then(m => m.EntryWorkflowPage),
       },
       {
+        path: 'gatehouse/qr',
+        canActivate: [porteiroGuard],
+        data: { breadcrumb: 'QR scan' },
+        loadComponent: () => import('./features/access-control/qr-scan.page').then(m => m.QrScanPage),
+      },
+      {
+        path: 'gatehouse/manual',
+        canActivate: [porteiroGuard],
+        data: { breadcrumb: 'Manual lookup' },
+        loadComponent: () => import('./features/access-control/manual-lookup.page').then(m => m.ManualLookupPage),
+      },
+      {
         path: 'audit',
         canActivate: [syndicGuard],
         data: { breadcrumb: 'Audit Log' },

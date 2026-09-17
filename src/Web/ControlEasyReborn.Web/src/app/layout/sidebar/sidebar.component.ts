@@ -49,6 +49,17 @@ const BRAND_GRADIENT = 'var(--color-primary)';
               </a>
             }
           </div>
+          @if (showGatehouseNav()) {
+            <div class="sidebar-nav-section">
+              <div class="sidebar-nav-title">Gatehouse</div>
+              @for (item of gatehouseItems; track item.route) {
+                <a class="sidebar-nav-item" [routerLink]="item.route" routerLinkActive="active" (click)="closeDrawer()">
+                  <span class="sidebar-nav-icon"><ce-icon [name]="item.icon" [size]="20" /></span>
+                  <span class="sidebar-nav-text">{{ item.label }}</span>
+                </a>
+              }
+            </div>
+          }
           <div class="sidebar-nav-section">
             <div class="sidebar-nav-title">Settings</div>
             <a class="sidebar-nav-item" routerLink="/administration" routerLinkActive="active" (click)="closeDrawer()">
@@ -218,6 +229,21 @@ export class SidebarComponent {
     { route: '/vehicles', label: 'Vehicles', icon: 'car' },
     { route: '/service-providers', label: 'Service Providers', icon: 'briefcase' },
   ];
+
+  readonly gatehouseItems: ReadonlyArray<{ route: string; label: string; icon: LucideIconName }> = [
+    { route: '/gatehouse', label: 'New entry', icon: 'check-circle' },
+    { route: '/gatehouse/qr', label: 'QR scan', icon: 'camera' },
+    { route: '/gatehouse/manual', label: 'Manual lookup', icon: 'search' },
+  ];
+
+  showGatehouseNav(): boolean {
+    return (
+      this.auth.hasPermission('Access.Operate')
+      || this.auth.roles().includes('AttendantProfile')
+      || this.auth.roles().includes('TenantAdmin')
+      || this.auth.roles().includes('PlatformAdmin')
+    );
+  }
 
   readonly displayName = computed(() =>
     this.tenantSession.userDisplayName() ?? this.fallbackDisplayName(),

@@ -1,7 +1,16 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AccessCredentialSummary, AccessEventSummary, RefusedScanSummary, ScanResult } from './access-control.types';
+import {
+  AccessCredentialSummary,
+  AccessEventSummary,
+  ManualAccessRequest,
+  ManualAccessResponse,
+  ManualLookupRequest,
+  ManualLookupResponse,
+  RefusedScanSummary,
+  ScanResult,
+} from './access-control.types';
 
 /**
  * Placeholder service for the AccessControl SPA surface. Real wiring is
@@ -25,12 +34,12 @@ export class GatewayControlService {
     return this.http.post<ScanResult>('/api/v1/access-events/scans', payload);
   }
 
-  searchSubject(criterion: { type: string; value: string }): Observable<unknown> {
-    return this.http.post('/api/v1/access-subjects/search', { criterion });
+  searchSubject(criterion: ManualLookupRequest['criterion']): Observable<ManualLookupResponse> {
+    return this.http.post<ManualLookupResponse>('/api/v1/access-subjects/search', { criterion });
   }
 
-  recordManual(payload: { lookupId: string; subjectType: 'resident' | 'vehicle'; subjectId: string; direction: 'entrance' | 'exit' }): Observable<unknown> {
-    return this.http.post('/api/v1/access-events/manual', payload);
+  recordManual(payload: ManualAccessRequest): Observable<ManualAccessResponse> {
+    return this.http.post<ManualAccessResponse>('/api/v1/access-events/manual', payload);
   }
 
   listEvents(): Observable<AccessEventSummary[]> {
