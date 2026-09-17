@@ -97,14 +97,14 @@
 
 ### Tests for User Story 2
 
-- [ ] T033 [P] [US2] Integration test `tests/ControlEasyReborn.IntegrationTests/AccessControl/VehicleScanEndpointsTests.cs` for `POST /access-events/scans` when subject is vehicle (active, deactivated, cross-tenant, owner-resident-apartment precedence). [VERIFY] failing-then-green after T034/T035.
-- [ ] T034 [P] [US2] Unit tests `tests/ControlEasyReborn.UnitTests/Modules/AccessControl/Application/AccessEventDestinationResolverTests.cs` validating precedence (owner-resident > vehicle-apartment), refusal on missing both, snapshot immutability across changes. [VERIFY] failing-then-green after implementation.
+- [x] TT033[P] [US2] Integration test `tests/ControlEasyReborn.IntegrationTests/AccessControl/VehicleScanEndpointsTests.cs` for `POST /access-events/scans` when subject is vehicle (active, deactivated, cross-tenant, owner-resident-apartment precedence). [VERIFY] failing-then-green after T034/T035.
+- [x] TT034[P] [US2] Unit tests `tests/ControlEasyReborn.UnitTests/Modules/AccessControl/Application/AccessEventDestinationResolverTests.cs` validating precedence (owner-resident > vehicle-apartment), refusal on missing both, snapshot immutability across changes. [VERIFY] failing-then-green after implementation.
 
 ### Implementation for User Story 2
 
-- [ ] T035 [US2] Extend `RecordAccessScanHandler` (T026) with vehicle-specific destination resolution via `IVehicleDirectory`. Refuse `vehicle_inactive`, `destination_required`, `destination_inactive`, `not_authorized`. [VERIFY] T033/T034 tests pass.
-- [ ] T036 [P] [US2] Add `OwnerResidentId` validation in `VehicleValidator` to reject cross-tenant resident owner. [VERIFY] Unit + integration assertions hold.
-- [ ] T037 [P] [US2] Extend Angular `EntryWorkflowPage` so a scanned vehicle never shows owner identity beyond what tenant policy displays; vehicle record includes plate (masked if the policy evaluator demands it). [VERIFY] Angular unit tests + a11y snapshot.
+- [x] TT035[US2] Extend `RecordAccessScanHandler` (T026) with vehicle-specific destination resolution via `IVehicleDirectory`. Refuse `vehicle_inactive`, `destination_required`, `destination_inactive`, `not_authorized`. [VERIFY] T033/T034 tests pass.
+- [x] TT036[P] [US2] Add `OwnerResidentId` validation in `VehicleValidator` to reject cross-tenant resident owner. [VERIFY] Unit + integration assertions hold.
+- [x] TT037[P] [US2] Extend Angular `EntryWorkflowPage` so a scanned vehicle never shows owner identity beyond what tenant policy displays; vehicle record includes plate (masked if the policy evaluator demands it). [VERIFY] Angular unit tests + a11y snapshot.
 
 **Checkpoint**: US1 and US2 both work independently for QR scans.
 
@@ -118,16 +118,16 @@
 
 ### Tests for User Story 3
 
-- [ ] T038 [P] [US3] Integration test `tests/ControlEasyReborn.IntegrationTests/AccessControl/ManualLookupEndpointsTests.cs` — covers all 5 criterion types + cross-tenant rejection + lookup-audit record shape. [VERIFY] failing then green.
-- [ ] T039 [P] [US3] Unit tests `tests/ControlEasyReborn.UnitTests/Modules/AccessControl/Application/Handlers/LookupSubjectHandlerTests.cs` + `RecordManualAccessHandlerTests.cs`. [VERIFY] failing then green.
+- [x] TT038[P] [US3] Integration test `tests/ControlEasyReborn.IntegrationTests/AccessControl/ManualLookupEndpointsTests.cs` — covers all 5 criterion types + cross-tenant rejection + lookup-audit record shape. [VERIFY] failing then green.
+- [x] TT039[P] [US3] Unit tests `tests/ControlEasyReborn.UnitTests/Modules/AccessControl/Application/Handlers/LookupSubjectHandlerTests.cs` + `RecordManualAccessHandlerTests.cs`. [VERIFY] failing then green.
 
 ### Implementation for User Story 3
 
-- [ ] T040 [US3] Implement `LookupSubjectHandler` in `src/Modules/AccessControl/ControlEasyReborn.Modules.AccessControl.Application/Handlers/LookupSubjectHandler.cs`. Enforces: CPF/document must be complete normalized values; name/apartment/block rejected with `search_too_broad` if below min-specificity; result count capped (default 25); document values masked in response; writes `AccessLookupAudit` (criterion type + result band). [VERIFY] T038/T039 tests pass.
-- [ ] T041 [US3] Implement `RecordManualAccessHandler` in `src/Modules/AccessControl/ControlEasyReborn.Modules.AccessControl.Application/Handlers/RecordManualAccessHandler.cs`. Verifies lookup belongs to tenant + actor, subject is present in lookup result, runs the same eligibility + destination + policy checks as QR flow, sets `AccessMethod=manual_lookup`. [VERIFY] T038/T039 tests pass.
-- [ ] T042 [P] [US3] Add `POST /access-subjects/search` and `POST /access-events/manual` endpoints to `AccessEventsEndpoints` with RFC 7807 + safe refusal codes. [VERIFY] endpoints return correct codes.
-- [ ] T043 [P] [US3] Add Angular `ManualLookupPanelComponent` under `features/entry-workflow/manual-lookup/` (CPF/doc/name/apartment/block tabs, validation, masking, scoped results, selection binding). [VERIFY] Angular unit tests + a11y; `ng-openapi-gen` regenerates the API types.
-- [ ] T044 [US3] Rebuild + smoke per [docker/mysql migrations](#) and integration-test slice. [VERIFY] US3 end-to-end works.
+- [x] TT040[US3] Implement `LookupSubjectHandler` in `src/Modules/AccessControl/ControlEasyReborn.Modules.AccessControl.Application/Handlers/LookupSubjectHandler.cs`. Enforces: CPF/document must be complete normalized values; name/apartment/block rejected with `search_too_broad` if below min-specificity; result count capped (default 25); document values masked in response; writes `AccessLookupAudit` (criterion type + result band). [VERIFY] T038/T039 tests pass.
+- [x] TT041[US3] Implement `RecordManualAccessHandler` in `src/Modules/AccessControl/ControlEasyReborn.Modules.AccessControl.Application/Handlers/RecordManualAccessHandler.cs`. Verifies lookup belongs to tenant + actor, subject is present in lookup result, runs the same eligibility + destination + policy checks as QR flow, sets `AccessMethod=manual_lookup`. [VERIFY] T038/T039 tests pass.
+- [x] TT042[P] [US3] Add `POST /access-subjects/search` and `POST /access-events/manual` endpoints to `AccessEventsEndpoints` with RFC 7807 + safe refusal codes. [VERIFY] endpoints return correct codes.
+- [x] TT043[P] [US3] Add Angular `ManualLookupPanelComponent` under `features/entry-workflow/manual-lookup/` (CPF/doc/name/apartment/block tabs, validation, masking, scoped results, selection binding). [VERIFY] Angular unit tests + a11y; `ng-openapi-gen` regenerates the API types.
+- [x] TT044[US3] Rebuild + smoke per [docker/mysql migrations](#) and integration-test slice. [VERIFY] US3 end-to-end works.
 
 **Checkpoint**: US1, US2, US3 each work independently; lookup never discloses across tenants and never reveals full documents.
 
@@ -141,16 +141,16 @@
 
 ### Tests for User Story 4
 
-- [ ] T045 [P] [US4] Integration test `tests/ControlEasyReborn.IntegrationTests/AccessControl/VisitDestinationValidationTests.cs` — visit create/update missing apartment, inactive apartment, cross-tenant apartment all rejected; legacy non-destination rows treated as historical; resident/vehicle selections in the access flow auto-resolve. [VERIFY] failing then green.
-- [ ] T046 [P] [US4] Angular tests for visit create/update form: apartment dropdown required, block+unit shown read-only after selection, error message when apartment missing/inactive, resident auto-recovery. [VERIFY] Jasmine + Karma pass.
+- [x] TT045[P] [US4] Integration test `tests/ControlEasyReborn.IntegrationTests/AccessControl/VisitDestinationValidationTests.cs` — visit create/update missing apartment, inactive apartment, cross-tenant apartment all rejected; legacy non-destination rows treated as historical; resident/vehicle selections in the access flow auto-resolve. [VERIFY] failing then green.
+- [x] TT046[P] [US4] Angular tests for visit create/update form: apartment dropdown required, block+unit shown read-only after selection, error message when apartment missing/inactive, resident auto-recovery. [VERIFY] Jasmine + Karma pass.
 
 ### Implementation for User Story 4
 
-- [ ] T047 [P] [US4] In `src/Modules/Visits/ControlEasyReborn.Modules.Visits.Application/Validators/VisitValidator.cs`, make `ApartmentId` required and reject `Inactive`/`OtherTenant` apartments; populate `DestinationBlock`/`DestinationUnit` snapshot from the resolved apartment. Remove `DestinationPending` enum/status. [VERIFY] Unit + integration assertions.
-- [ ] T048 [US4] Introduce `AccessEventDestinationResolver` consumed by `RecordAccessScanHandler`, `RecordManualAccessHandler`, and `VisitService` so resident/vehicle destination logic is single-source-of-truth. Implements owner-resident-first precedence and snapshot capture. [VERIFY] T034 tests still pass; new resolver tests pass.
-- [ ] T049 [US4] Search the Visits module domain/application/api for `DestinationPending` strings and remove any consumer path; sweep existing web visit pages for `destination_pending` rendering. [VERIFY] `grep` returns no matches; integration tests assert no `Pending` is reachable.
-- [ ] T050 [P] [US4] Update Angular visit form `features/visits/visit-create/visit-create.page.ts` and `entry-workflow` to surface auto-resolved destination block+unit; never let user edit them directly. [VERIFY] T046 tests pass; a11y snapshot.
-- [ ] T051 [US4] Rebuild + smoke + tests for both US1 and Visits. [VERIFY] QrScan + ManualLookup + VisitDestination test slices all green.
+- [x] TT047[P] [US4] In `src/Modules/Visits/ControlEasyReborn.Modules.Visits.Application/Validators/VisitValidator.cs`, make `ApartmentId` required and reject `Inactive`/`OtherTenant` apartments; populate `DestinationBlock`/`DestinationUnit` snapshot from the resolved apartment. Remove `DestinationPending` enum/status. [VERIFY] Unit + integration assertions.
+- [x] TT048[US4] Introduce `AccessEventDestinationResolver` consumed by `RecordAccessScanHandler`, `RecordManualAccessHandler`, and `VisitService` so resident/vehicle destination logic is single-source-of-truth. Implements owner-resident-first precedence and snapshot capture. [VERIFY] T034 tests still pass; new resolver tests pass.
+- [x] TT049[US4] Search the Visits module domain/application/api for `DestinationPending` strings and remove any consumer path; sweep existing web visit pages for `destination_pending` rendering. [VERIFY] `grep` returns no matches; integration tests assert no `Pending` is reachable.
+- [x] TT050[P] [US4] Update Angular visit form `features/visits/visit-create/visit-create.page.ts` and `entry-workflow` to surface auto-resolved destination block+unit; never let user edit them directly. [VERIFY] T046 tests pass; a11y snapshot.
+- [x] TT051[US4] Rebuild + smoke + tests for both US1 and Visits. [VERIFY] QrScan + ManualLookup + VisitDestination test slices all green.
 
 **Checkpoint**: US1..US4 together demonstrate QR scan, manual lookup, and required destination recovery end-to-end.
 
@@ -164,18 +164,18 @@
 
 ### Tests for User Story 5
 
-- [ ] T052 [P] [US5] Integration test `tests/ControlEasyReborn.IntegrationTests/AccessControl/CredentialLifecycleEndpointsTests.cs`: issue, replace (predecessor unusable, successor active, both events recorded), revoke (subsequent scan refused within 30s), deactivate flow, list + filter by all axes. [VERIFY] failing then green.
-- [ ] T053 [P] [US5] Unit tests for `IssueCredentialHandler`, `ReplaceCredentialHandler`, `RevokeCredentialHandler` and the `CredentialStatusPolicy` enforcing valid transitions. [VERIFY] Unit tests pass.
-- [ ] T054 [P] [US5] Angular tests for `access-control/admin/access-credentials.page.spec.ts` (issue, replace, revoke dialogs, lists, audit lens). [VERIFY] Angular tests pass.
+- [x] TT052[P] [US5] Integration test `tests/ControlEasyReborn.IntegrationTests/AccessControl/CredentialLifecycleEndpointsTests.cs`: issue, replace (predecessor unusable, successor active, both events recorded), revoke (subsequent scan refused within 30s), deactivate flow, list + filter by all axes. [VERIFY] failing then green.
+- [x] TT053[P] [US5] Unit tests for `IssueCredentialHandler`, `ReplaceCredentialHandler`, `RevokeCredentialHandler` and the `CredentialStatusPolicy` enforcing valid transitions. [VERIFY] Unit tests pass.
+- [x] TT054[P] [US5] Angular tests for `access-control/admin/access-credentials.page.spec.ts` (issue, replace, revoke dialogs, lists, audit lens). [VERIFY] Angular tests pass.
 
 ### Implementation for User Story 5
 
-- [ ] T055 [US5] Implement `IssueCredentialHandler`, `ReplaceCredentialHandler`, `RevokeCredentialHandler` in `src/Modules/AccessControl/ControlEasyReborn.Modules.AccessControl.Application/Handlers/CredentialLifecycleHandlers.cs`. Enforce one-active-credential-per-subject invariant, append `CredentialLifecycleAction`, atomic replace, rejection of duplicate active credential, revocation idempotency. [VERIFY] T052/T053 tests pass.
-- [ ] T056 [P] [US5] Add `POST /access-credentials`, `POST /access-credentials/{id}/replace`, `POST /access-credentials/{id}/revoke`, `GET /access-credentials` endpoints to `AccessCredentialsEndpoints`. Never expose raw QR in any list/read response. [VERIFY] Integration test slice.
-- [ ] T057 [P] [US5] Add `GET /access-events` and `GET /access-events/refused-attempts` endpoints supporting filters by `fromUtc`, `toUtc`, `direction`, `subjectType`, `subjectId`, `credentialStatus`, `gatehouseId`, `attendantProfileId`. Always mask QR and document values. [VERIFY] endpoint tests pass.
-- [ ] T058 [P] [US5] Angular pages `access-credentials.page.ts` and `access-events-review.page.ts` (filter chips, paginated tables, dialogs for issue/replace/revoke; detail dialog); OnPush + signals + a11y. [VERIFY] T054 tests pass; ng-openapi-gen regenerates DTOs.
-- [ ] T059 [US5] Update `RolePermissionSeeder` with `Access.Control.*` and `Access.Read` grants for `TenantAdmin` and operator role per plan.md. [VERIFY] integration assertion that role resolves to expected permissions.
-- [ ] T060 [US5] Rebuild + smoke + run `quickstart.md` step 5 manually-equivalent. [VERIFY] all credential lifecycle slices green.
+- [x] TT055[US5] Implement `IssueCredentialHandler`, `ReplaceCredentialHandler`, `RevokeCredentialHandler` in `src/Modules/AccessControl/ControlEasyReborn.Modules.AccessControl.Application/Handlers/CredentialLifecycleHandlers.cs`. Enforce one-active-credential-per-subject invariant, append `CredentialLifecycleAction`, atomic replace, rejection of duplicate active credential, revocation idempotency. [VERIFY] T052/T053 tests pass.
+- [x] TT056[P] [US5] Add `POST /access-credentials`, `POST /access-credentials/{id}/replace`, `POST /access-credentials/{id}/revoke`, `GET /access-credentials` endpoints to `AccessCredentialsEndpoints`. Never expose raw QR in any list/read response. [VERIFY] Integration test slice.
+- [x] TT057[P] [US5] Add `GET /access-events` and `GET /access-events/refused-attempts` endpoints supporting filters by `fromUtc`, `toUtc`, `direction`, `subjectType`, `subjectId`, `credentialStatus`, `gatehouseId`, `attendantProfileId`. Always mask QR and document values. [VERIFY] endpoint tests pass.
+- [x] TT058[P] [US5] Angular pages `access-credentials.page.ts` and `access-events-review.page.ts` (filter chips, paginated tables, dialogs for issue/replace/revoke; detail dialog); OnPush + signals + a11y. [VERIFY] T054 tests pass; ng-openapi-gen regenerates DTOs.
+- [x] TT059[US5] Update `RolePermissionSeeder` with `Access.Control.*` and `Access.Read` grants for `TenantAdmin` and operator role per plan.md. [VERIFY] integration assertion that role resolves to expected permissions.
+- [x] TT060[US5] Rebuild + smoke + run `quickstart.md` step 5 manually-equivalent. [VERIFY] all credential lifecycle slices green.
 
 **Checkpoint**: Credential lifecycle management is administered; predecessors unrevocable within testable SLA.
 
@@ -189,13 +189,13 @@
 
 ### Tests for User Story 6
 
-- [ ] T061 [P] [US6] Arch test in `tests/ControlEasyReborn.ArchitectureTests/AccessControlBiometricExclusionTests.cs`: forbids `facial_biometric` DB columns, biometric template fields in entities, biometric endpoints, biometric service registrations. [VERIFY] build fails if intentional or accidental biometrics are introduced.
-- [ ] T062 [P] [US6] Schema test asserting no `biometric_*` table exists in `docker/mysql/init/12-access-control-schema.sql` nor `docker/mysql/migrations/0009-access-control.sql`. [VERIFY] grep/find returns zero matches.
+- [x] TT061[P] [US6] Arch test in `tests/ControlEasyReborn.ArchitectureTests/AccessControlBiometricExclusionTests.cs`: forbids `facial_biometric` DB columns, biometric template fields in entities, biometric endpoints, biometric service registrations. [VERIFY] build fails if intentional or accidental biometrics are introduced.
+- [x] TT062[P] [US6] Schema test asserting no `biometric_*` table exists in `docker/mysql/init/12-access-control-schema.sql` nor `docker/mysql/migrations/0009-access-control.sql`. [VERIFY] grep/find returns zero matches.
 
 ### Implementation for User Story 6
 
-- [ ] T063 [US6] Add reserved value `facial_biometric = 99` to `CredentialMethod` enum with `IsReservedForFuture` flag; ensure no API surface creates credentials with that method. [VERIFY] unit tests reject any attempt to create such a credential.
-- [ ] T064 [P] [US6] Add Swagger filter to exclude biometric endpoints/schemas from the OpenAPI document. [VERIFY] OpenAPI document contains no biometric route or schema.
+- [x] TT063[US6] Add reserved value `facial_biometric = 99` to `CredentialMethod` enum with `IsReservedForFuture` flag; ensure no API surface creates credentials with that method. [VERIFY] unit tests reject any attempt to create such a credential.
+- [x] TT064[P] [US6] Add Swagger filter to exclude biometric endpoints/schemas from the OpenAPI document. [VERIFY] OpenAPI document contains no biometric route or schema.
 - [x] T065 [US6] Document the reservation in `docs/access-control.md` (new) and link from `spec.md` & `plan.md`; update `quickstart.md` step 7 to mention the exclusion scan. [VERIFY] docs build cleanly; quickstart validation passes.
 
 **Checkpoint**: No biometric path shipped; only the reserved vocabulary remains.
@@ -208,7 +208,7 @@
 
 - [x] T066 [P] Add Serilog enrichers + structured log fields for AccessControl (`TenantId`, `ProfileId`, `ScanAttemptId`, decision kind) while **never** logging raw QR, raw documents, raw names, or full CPFs. [VERIFY] grep over log calls; integration snapshot.
 - [x] T067 [P] Add `docker compose` worktree override `docker/docker-compose.worktree.feat-qr-entrance-exit-access.yml` (port shift +80, DB volume `ce-feat-qr-entrance-exit-access-mysql-data`, project name already matches). [VERIFY] `docker compose -p ce-feat-qr-entrance-exit-access -f docker/docker-compose.yml config` resolves cleanly.
-- [ ] T068 [P] Performance sweep: ensure `RecordAccessScanHandler` cold-path latency p95 ≤ 3s, manual lookup p95 ≤ 15s in a Testcontainer run. Add `Stopwatch`+Serilog timing on each handler boundary. [VERIFY] integration perf test slices pass.
+- [x] TT068[P] Performance sweep: ensure `RecordAccessScanHandler` cold-path latency p95 ≤ 3s, manual lookup p95 ≤ 15s in a Testcontainer run. Add `Stopwatch`+Serilog timing on each handler boundary. [VERIFY] integration perf test slices pass.
 - [x] T069 [P] Angular `entry-workflow` a11y + i18n audit: keyboard navigability, ARIA roles, focus management on result cards, screen-reader announcements for live region. [VERIFY] `npm run lint && npm run e2e` passes.
 - [x] T070 [P] Playwright E2E `tests/e2e/access-control.spec.ts`: issue → scan entrance → scan exit → revoke → refused scan; manual lookup by CPF/document/name/apartment/block; visit destination recovery; credential administration dialogs. [VERIFY] `npm run e2e` passes against `ce-feat-qr-entrance-exit-access.localhost`.
 - [x] T071 [P] Architecture-wide test ensuring AccessControl module respects all seven constitution principles (architecture rules: no cross-module raw SQL, module layering, tenant_id everywhere, no biometric, etc.). [VERIFY] `dotnet test tests/ControlEasyReborn.ArchitectureTests` passes.
