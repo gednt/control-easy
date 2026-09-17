@@ -44,6 +44,13 @@ const TILES: TileDescriptor[] = [
   { action: 'override', icon: 'alert-triangle', label: 'Override', sub: 'emergency / vouched', cssClass: 'tile override' },
 ];
 
+const CATEGORY_OPTIONS: ReadonlyArray<{ value: SubjectType; label: string }> = [
+  { value: 'visitor', label: 'Visitor' },
+  { value: 'dweller', label: 'Resident' },
+  { value: 'service_provider', label: 'Service Provider' },
+  { value: 'vehicle', label: 'Vehicle' },
+];
+
 function toSubjectCategory(subjectType: SubjectType): 'dwellers' | 'visitors' | 'service-providers' | 'vehicles' {
   switch (subjectType) {
     case 'dweller': return 'dwellers';
@@ -98,44 +105,28 @@ function toSubjectCategory(subjectType: SubjectType): 'dwellers' | 'visitors' | 
       } @else if (step() === 'subject-info') {
         <div class="subject-form">
           <div class="field">
-            <span class="field-label">Category</span>
-            <div class="category-selector" role="radiogroup" aria-label="Subject category">
-              <button
-                type="button"
-                class="category-chip"
-                [class.active]="selectedCategory() === 'visitor'"
-                [disabled]="!isCategoryAllowed('visitor')"
-                (click)="onCategorySelect('visitor')"
-              >
-                Visitor
-              </button>
-              <button
-                type="button"
-                class="category-chip"
-                [class.active]="selectedCategory() === 'dweller'"
-                [disabled]="!isCategoryAllowed('dweller')"
-                (click)="onCategorySelect('dweller')"
-              >
-                Resident
-              </button>
-              <button
-                type="button"
-                class="category-chip"
-                [class.active]="selectedCategory() === 'service_provider'"
-                [disabled]="!isCategoryAllowed('service_provider')"
-                (click)="onCategorySelect('service_provider')"
-              >
-                Service Provider
-              </button>
-              <button
-                type="button"
-                class="category-chip"
-                [class.active]="selectedCategory() === 'vehicle'"
-                [disabled]="!isCategoryAllowed('vehicle')"
-                (click)="onCategorySelect('vehicle')"
-              >
-                Vehicle
-              </button>
+            <span class="field-label" id="category-label">Category</span>
+            <div
+              class="category-selector"
+              role="radiogroup"
+              aria-labelledby="category-label"
+              (keydown)="onCategoryKeydown($event)"
+            >
+              @for (option of categoryOptions; track option.value) {
+                <button
+                  type="button"
+                  role="radio"
+                  class="category-chip"
+                  [class.active]="selectedCategory() === option.value"
+                  [attr.aria-checked]="selectedCategory() === option.value"
+                  [attr.tabindex]="selectedCategory() === option.value ? 0 : -1"
+                  [disabled]="!isCategoryAllowed(option.value)"
+                  (click)="onCategorySelect(option.value)"
+                  (focus)="onCategoryFocus(option.value)"
+                >
+                  {{ option.label }}
+                </button>
+              }
             </div>
           </div>
 
@@ -207,6 +198,16 @@ function toSubjectCategory(subjectType: SubjectType): 'dwellers' | 'visitors' | 
         (reasonSelected)="onOverrideReason($event)"
         (closed)="onOverrideClosed()"
       />
+
+      <div
+        class="sr-only"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        data-testid="entry-workflow-live-region"
+      >
+        {{ liveAnnouncement() }}
+      </div>
     </ce-modal>
   `,
   styles: [
@@ -365,6 +366,17 @@ function toSubjectCategory(subjectType: SubjectType): 'dwellers' | 'visitors' | 
       @media (prefers-reduced-motion: reduce) {
         .tile-button:active:not(:disabled) { transform: none; }
       }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
     `,
   ],
 })
@@ -381,6 +393,7 @@ export class CeEntryWorkflowComponent {
   closed = output<void>();
 
   readonly tiles = TILES;
+  readonly categoryOptions = CATEGORY_OPTIONS;
 
   step = signal<WorkflowStep>('tiles');
   pendingState = signal<EntryState | null>(null);
@@ -394,6 +407,8 @@ export class CeEntryWorkflowComponent {
   selectedCategory = signal<SubjectType>('visitor');
   photoId = signal<string | null>(null);
   pendingOverrideReason = signal<OverrideReason | null>(null);
+  liveAnnouncement = signal<string>('');
+  private liveAnnouncementToken = 0;
 
   photoEntityType = computed<'resident' | 'visitor' | 'vehicle' | 'service-provider'>(() => {
     const cat = this.selectedCategory();
@@ -439,6 +454,56 @@ export class CeEntryWorkflowComponent {
   onCategorySelect(category: SubjectType): void {
     if (!this.isCategoryAllowed(category)) return;
     this.selectedCategory.set(category);
+    const label = CATEGORY_OPTIONS.find(o => o.value === category)?.label ?? category;
+    this.announce(`Category ${label} selected.`);
+  }
+
+  onCategoryFocus(category: SubjectType): void {
+    if (!this.isCategoryAllowed(category)) return;
+    this.selectedCategory.set(category);
+  }
+
+  onCategoryKeydown(event: KeyboardEvent): void {
+    const allowed = CATEGORY_OPTIONS.filter(o => this.isCategoryAllowed(o.value));
+    if (allowed.length === 0) return;
+    let currentIndex = allowed.findIndex(o => o.value === this.selectedCategory());
+    if (currentIndex < 0) {
+      currentIndex = 0;
+    }
+    let nextIndex = currentIndex;
+    switch (event.key) {
+      case 'ArrowRight':
+      case 'ArrowDown':
+        nextIndex = (currentIndex + 1) % allowed.length;
+        break;
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        nextIndex = (currentIndex - 1 + allowed.length) % allowed.length;
+        break;
+      case 'Home':
+        nextIndex = 0;
+        break;
+      case 'End':
+        nextIndex = allowed.length - 1;
+        break;
+      default:
+        return;
+    }
+    event.preventDefault();
+    const target = allowed[nextIndex];
+    if (target) {
+      this.onCategorySelect(target.value);
+    }
+  }
+
+  private announce(message: string): void {
+    const token = ++this.liveAnnouncementToken;
+    this.liveAnnouncement.set('');
+    queueMicrotask(() => {
+      if (token === this.liveAnnouncementToken) {
+        this.liveAnnouncement.set(message);
+      }
+    });
   }
 
   openCapture(): void {
@@ -537,6 +602,7 @@ export class CeEntryWorkflowComponent {
       };
       const entry = await firstValueFrom(this.entryLogService.create(request));
       this.toast.success('Entry logged');
+      this.announce('Entry logged successfully.');
       this.entryLogged.emit(entry);
       if (this.closeOnEntry()) {
         this.close();
@@ -544,7 +610,9 @@ export class CeEntryWorkflowComponent {
         this.reset();
       }
     } catch (err) {
-      this.toast.error(getApiErrorMessage(err, 'Failed to log entry. Retry?'));
+      const message = getApiErrorMessage(err, 'Failed to log entry. Retry?');
+      this.toast.error(message);
+      this.announce(message);
       this.loading.set(false);
     }
   }
@@ -561,5 +629,7 @@ export class CeEntryWorkflowComponent {
     this.pendingOverrideReason.set(null);
     this.loading.set(false);
     this.selectedCategory.set(this.defaultCategory());
+    this.liveAnnouncementToken++;
+    this.liveAnnouncement.set('');
   }
 }

@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { importProvidersFrom } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
@@ -186,5 +186,66 @@ describe('CeEntryWorkflowComponent', () => {
 
     expect(component.loading()).toBe(false);
     expect(component.step()).toBe('subject-info');
+  }));
+
+  it('exposes a polite live region for screen-reader announcements', () => {
+    const region: HTMLElement | null =
+      fixture.nativeElement.querySelector('[data-testid="entry-workflow-live-region"]');
+    expect(region).not.toBeNull();
+    expect(region!.getAttribute('role')).toBe('status');
+    expect(region!.getAttribute('aria-live')).toBe('polite');
+    expect(region!.getAttribute('aria-atomic')).toBe('true');
+  });
+
+  it('category selector uses role=radiogroup with roving tabindex for keyboard users', fakeAsync(() => {
+    // Advance to subject-info step.
+    component['step'].set('subject-info');
+    fixture.detectChanges();
+    tick();
+
+    const group: HTMLElement | null =
+      fixture.nativeElement.querySelector('[role="radiogroup"]');
+    expect(group).not.toBeNull();
+    expect(group!.getAttribute('aria-labelledby')).toBe('category-label');
+
+    const radios: NodeListOf<HTMLButtonElement> =
+      fixture.nativeElement.querySelectorAll('[role="radio"]');
+    expect(radios.length).toBe(4);
+
+    // Only the active radio is in the tab sequence.
+    let focusableCount = 0;
+    radios.forEach((r) => {
+      if (r.getAttribute('tabindex') === '0') focusableCount++;
+    });
+    expect(focusableCount).toBe(1);
+
+    // ArrowRight advances selection and ARIA checked state.
+    const initial = component.selectedCategory();
+    const event = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true });
+    group!.dispatchEvent(event);
+    tick();
+    fixture.detectChanges();
+
+    expect(component.selectedCategory()).not.toBe(initial);
+    const newActive = fixture.nativeElement.querySelector(
+      `[role="radio"][aria-checked="true"]`,
+    ) as HTMLButtonElement | null;
+    expect(newActive).not.toBeNull();
+  }));
+
+  it('announces category selection through the live region', fakeAsync(() => {
+    component['step'].set('subject-info');
+    fixture.detectChanges();
+    tick();
+
+    component.onCategorySelect('dweller');
+    tick();
+    fixture.detectChanges();
+    flushMicrotasks();
+    fixture.detectChanges();
+
+    const region: HTMLElement =
+      fixture.nativeElement.querySelector('[data-testid="entry-workflow-live-region"]');
+    expect(region.textContent || '').toContain('Resident');
   }));
 });
