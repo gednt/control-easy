@@ -6,6 +6,12 @@
         "command": "[ ! -f \".cursor/skills/impeccable/scripts/impeccable\" ] || \".cursor/skills/impeccable/scripts/impeccable\" hook-before-edit",
         "timeout": 5
       }
+    ],
+    "stop": [
+      {
+        "command": "./scripts/hooks/verify-ci-agent-stop.sh",
+        "timeout": 300
+      }
     ]
   }
 }

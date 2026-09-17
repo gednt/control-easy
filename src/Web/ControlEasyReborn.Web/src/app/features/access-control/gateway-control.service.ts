@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AccessCredentialSummary, AccessEventSummary, RefusedScanSummary, ScanResult } from '../../api/access-control.types';
+import { AccessCredentialSummary, AccessEventSummary, RefusedScanSummary, ScanResult } from './access-control.types';
 
 /**
  * Placeholder service for the AccessControl SPA surface. Real wiring is

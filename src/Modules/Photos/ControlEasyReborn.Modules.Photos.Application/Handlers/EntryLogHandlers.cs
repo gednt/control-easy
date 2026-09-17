@@ -41,9 +41,7 @@ public sealed class CreateEntryLogHandler
 
         ValidateStateTransitions(request);
 
-        var policy = await _policies.FindByCategoryAsync(tenantId, request.SubjectType, ct);
-        var photoRequired = request.EntryState == EntryStates.EnteredWithConsent
-            || (policy is { PhotoRequired: true } && request.EntryState == EntryStates.EnteredWithoutConsent);
+        var photoRequired = request.EntryState == EntryStates.EnteredWithConsent;
         if (photoRequired && request.PhotoId is null)
         {
             throw new Errors.ValidationException(new Dictionary<string, string[]>

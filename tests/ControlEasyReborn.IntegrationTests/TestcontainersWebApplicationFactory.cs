@@ -50,4 +50,6 @@ public sealed class TestcontainersWebApplicationFactory : TenantAwareWebApplicat
         {
         });
     }
+
+    protected override string GetConnectionString() => _mySql.ConnectionString;
 }

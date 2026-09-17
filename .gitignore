@@ -324,3 +324,8 @@ docker/.env.worktree.*
 # Per-user resolver shim on Windows when admin is unavailable
 .control-easy/
 .worktrees/
+
+# CI temp files (created by scripts/verify-ci-local.sh/.ps1; cleaned up on exit)
+.tmp-ci-swagger.json
+.tmp-ci-dotnet-stages.sh
+

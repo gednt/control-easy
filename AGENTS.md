@@ -4,7 +4,7 @@
 
 > **Authoritative project guide.** Binding runtime document for every
 > contributor and every agent. Constitutional authority:
-> `.specify/memory/constitution.md` (v1.5.0, 2026-09-15).
+> `.specify/memory/constitution.md` (v1.6.0, 2026-09-17).
 > Where this file and the constitution disagree, the constitution wins.
 
 ---
@@ -169,7 +169,9 @@ the full devcontainer + worktree guide.
 
 Hard rules an agent must not violate, beyond what the workflows enforce.
 
-- **Docker-only development.** All build, run, test, lint, and dependency-restore work happens **inside Docker containers** (canonical: `docker compose -f docker/docker-compose.yml`, Makefile targets, or the devcontainer). Agents MUST NOT install anything on the host machine: no .NET SDKs, no Node.js, no global tools, and no project dependencies (`dotnet restore`, `npm install`, `dotnet tool install`, `pip`, etc. on the host). `dotnet` / `npm` / `ng` commands are only valid inside the containers (e.g., `docker compose exec`, `docker run`, or the devcontainer). If a container is missing a tool or dependency, fix the Dockerfile / compose setup — never the host.
+- **Mandatory Local CI Verification Gate.** The verification suite has two distinct tiers:
+  1. **Per-Turn Fast Gate (`scripts/verify-ci-local.sh --fast`):** Enforced automatically on agent stop after conversational turns where code files are modified. Runs format check (`dotnet format --verify-no-changes`), Release build, and unit/architecture tests in ~3 seconds with ZERO Docker downloads and ZERO containers.
+  2. **Task Completion / End of All Tasks Full Gate (`scripts/verify-ci-local.sh`):** Runs the full 6-stage suite: format, build, unit & architecture tests, Testcontainers MySQL integration tests, Angular Docker production build, and OpenAPI client drift check. The CI tasks that need to download things inside Docker (Testcontainers MySQL and Docker web build) run **only once per task completion, at the end of all tasks completions, not after every turn**. Claiming completion, checking off tasks, or pushing code without running and passing the full local CI suite on the final state is a strict constitutional violation. Automated agent Stop hooks in `.agents/hooks.json`, `.agent/hooks.json`, `.claude/settings.json`, `.codex/hooks.json`, `.cursor/hooks.json`, and `.opencode/plugins/verify-ci.ts` enforce the fast gate per turn and the full gate on committed task completion.
 - **Platform-aware command execution (Constitution Principle VIII).** Agents MUST detect the host OS and shell before issuing any terminal command and MUST NOT run platform-mismatched syntax. POSIX-only snippets (`#!/usr/bin/env bash`, `set -euo pipefail`, `[[ ... ]]`, `$(...)` chains inside single-quoted heredocs, `tr`/`awk`/`sed -i ''`, GNU-only flags) MUST NOT be invoked from a Windows host shell — the canonical fix is to run them inside the devcontainer, to use the cross-platform PowerShell wrappers (`scripts/worktree-up.ps1` / `scripts/worktree-down.ps1`), or to translate the snippet and call out the translation in the reply. PowerShell-only constructs (`Get-ChildItem`, `Remove-Item -LiteralPath`, `New-Item -ItemType Directory`, `Test-Path -LiteralPath`, backtick escaping) MUST NOT be issued from a POSIX host. When a command fails because of a platform mismatch, the agent MUST stop, identify the mismatch, and either retry through the correct shell or escalate to the user — it MUST NOT chain a second platform-specific command after the first fails. Skill and doc examples prefer platform-neutral composition (`docker compose …`), which is valid on every host because Compose runs inside the container engine, not the host shell.
 - **No EF Core.** DBTools (`Linq<TModel>`, `IAsyncSqlClient`) is the only data-access library. LINQ-first; raw SQL only for stored procs (ADR 0002).
 - **No MediatR.** Handlers are registered as scoped services directly.
@@ -283,8 +285,8 @@ If a project stops using an overlay, remove its line. Do not leave stale pointer
 - **Error handling:** `ProblemDetails` (RFC 7807); Serilog to Console (JSON) + Seq. Domain exceptions: `NotFoundException`, `ValidationException`, `ConflictException`.
 - **Auto-tool selection:** Agents read the user's intent and automatically invoke the right tool (spec-kit for implementation, BMAD for review/analysis, GSD for phase planning, OpenSpec for structured delta-specs at user opt-in). See `docs/agent-flow-cheatsheet.md` for lifecycle diagrams.
 - **Concurrency budget:** Max 3 sub-agents in flight per level (1 main + 3 subs). Exceeding requires explicit rationale in the wave's `proposal.md`, `design.md`, or `tasks.md`.
-- **Post-task verification:** After every implementation task, rebuild and verify: `docker compose -p "$PROJ" -f docker/docker-compose.yml build api web && up -d --force-recreate api web`, then run all three test projects. A task is not closed until the rebuilt stack starts healthy and all tests pass.
-- **Pre-commit adversarial review:** No agent may `git commit` until (1) build + tests are green and (2) an adversarial review subagent returns zero CRITICAL/HIGH findings. See existing AGENTS.md archive for full gate procedure.
+- **Post-task verification (Mandatory Local CI Gate):** After every implementation task or code modification, the agent MUST verify its work. Per-turn stop hooks enforce fast checks (`--fast`: format, build, unit + arch tests in ~3s, zero Docker downloads). CI tasks that download things inside Docker (Testcontainers MySQL and Docker web build) run **only once per task completion, at the end of all tasks completions, not after every turn**. The full suite (`scripts/verify-ci-local.sh` or `make verify-ci`) must pass before committing, pushing, or reporting the final task complete.
+- **Pre-commit adversarial review:** No agent may `git commit` until (1) build + tests are green (including the full local CI gate) and (2) an adversarial review subagent returns zero CRITICAL/HIGH findings. See existing AGENTS.md archive for full gate procedure.
 
 ---
 

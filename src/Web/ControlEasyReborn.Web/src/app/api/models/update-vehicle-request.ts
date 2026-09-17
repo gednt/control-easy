@@ -8,6 +8,7 @@ export interface UpdateVehicleRequest {
   color?: string | null;
   model?: string | null;
   ownerName?: string | null;
+  ownerResidentId?: string | null;
   plate?: string | null;
   vehicleType?: VehicleType;
 }

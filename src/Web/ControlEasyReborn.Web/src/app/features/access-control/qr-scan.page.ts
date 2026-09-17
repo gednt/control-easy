@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GatewayControlService } from './gateway-control.service';
 import { AccessScanResultComponent } from './components/access-scan-result.component';
-import { ScanResult, ScanRefusal } from '../../api/access-control.types';
+import { ScanResult, ScanRefusal } from './access-control.types';
 
 interface UiState {
   qrPayload: string;

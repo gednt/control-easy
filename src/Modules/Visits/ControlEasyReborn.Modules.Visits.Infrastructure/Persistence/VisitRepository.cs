@@ -83,28 +83,33 @@ public sealed class VisitRepository : IVisitRepository
     public async Task UpdateAsync(Visit visit, CancellationToken ct)
     {
         var db = _factory.Create(_ctx);
-        await db.UpdateAsync(
+        var updated = await db.UpdateAsync(
             new[] { "VisitorName", "VisitorDocument", "VisitorPhone", "ApartmentId", "DestinationBlock", "DestinationUnit", "Purpose", "Status", "AttendantProfileId", "GatehouseId", "CheckedInAtUtc", "CheckedOutAtUtc", "UpdatedAtUtc" },
             TableName,
             new[]
             {
                 visit.VisitorName,
                 visit.VisitorDocument,
-                visit.VisitorPhone ?? string.Empty,
+                visit.VisitorPhone!,
                 visit.ApartmentId.ToString(),
                 visit.DestinationBlock,
                 visit.DestinationUnit,
-                visit.Purpose ?? string.Empty,
+                visit.Purpose!,
                 ((int)visit.Status).ToString(),
-                visit.AttendantProfileId?.ToString() ?? string.Empty,
-                visit.GatehouseId?.ToString() ?? string.Empty,
-                FormatDateTime(visit.CheckedInAtUtc) ?? string.Empty,
-                FormatDateTime(visit.CheckedOutAtUtc) ?? string.Empty,
-                FormatDateTime(visit.UpdatedAtUtc) ?? string.Empty
+                visit.AttendantProfileId?.ToString()!,
+                visit.GatehouseId?.ToString()!,
+                FormatDateTime(visit.CheckedInAtUtc)!,
+                FormatDateTime(visit.CheckedOutAtUtc)!,
+                FormatDateTime(visit.UpdatedAtUtc)!
             },
             $"Id = '{visit.Id}'",
             Array.Empty<object>(),
             ct: ct);
+
+        if (!updated || !string.IsNullOrEmpty(db.Error))
+        {
+            throw new InvalidOperationException($"Failed to update visit {visit.Id}. {db.Error}");
+        }
     }
 
     private static string? FormatDateTime(DateTime? value) =>
