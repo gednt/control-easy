@@ -113,7 +113,9 @@ try {
 # Variables injected by docker run -e:
 #   FAST_ONLY           (true/false)
 #   INCLUDE_INTEGRATION (true/false)
-set -euo pipefail
+# NOTE: base image uses dash for /bin/sh, which does NOT support `set -o pipefail`.
+# Pipefail is implemented manually via `${PIPESTATUS[0]}` checks instead.
+set -eu
 
 _log()  { printf '\033[1;34m[ci-local]\033[0m %s\n' "$*"; }
 _ok()   { printf '\033[1;32m[ci-local][PASS]\033[0m %s\n' "$*"; }
@@ -189,6 +191,10 @@ fi
             Write-Warn "Non-Linux host: --network host not used; setting TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal for Docker Desktop."
             @("-e", "TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal")
         } else { @() }
+        # Honor an already-running MySQL via CE_ITEST_MYSQL so the fixture's
+        # Testcontainers-spawn path can be bypassed (Docker-in-Docker is fragile
+        # on Windows/macOS Docker Desktop).
+        $ceItestMysql = if ($env:CE_ITEST_MYSQL) { @("-e", "CE_ITEST_MYSQL=$env:CE_ITEST_MYSQL") } else { @() }
 
         & docker run --rm @networkFlags `
             -v "${repoRoot}:/workspace" `
@@ -196,6 +202,7 @@ fi
             -v "${dockerSock}:${dockerSock}" `
             -e "DOCKER_HOST=unix://${dockerSock}" `
             @tcEnv `
+            @ceItestMysql `
             -e "FAST_ONLY=false" `
             -e "INCLUDE_INTEGRATION=true" `
             -w /workspace `
@@ -274,6 +281,8 @@ fi
             -e Db__Database=controleasydb `
             -e Db__Username=dummy `
             -e Db__Password=dummy `
+            -e Storage__Provider=Local `
+            -e Storage__Local__Path=/tmp/photos `
             -e "Jwt__SigningKey=CI-DUMMY-KEY-FOR-SWAGGER-GEN-ONLY-32-CHARS!!" `
             -e Jwt__Issuer=ControlEasyReborn `
             -e Jwt__Audience=ControlEasyReborn `
@@ -327,7 +336,7 @@ fi
     $diffHash   = Get-Sha256String $diffText
     $statusText = git status --porcelain=v1 -uall 2>$null | Out-String
     $statusHash = Get-Sha256String $statusText
-    $timestamp  = (Get-Date -AsUTC -Format o)
+    $timestamp  = (Get-Date).ToUniversalTime().ToString('o')
     $stampContent = "$headSha`:$diffHash`:$statusHash`:$timestamp"
 
     if ($Fast -or $SkipIntegration -or $SkipDocker -or $SkipOpenApi) {
@@ -342,9 +351,15 @@ fi
     }
 
 } finally {
-    # Cleanup temp files and any lingering API container
+    # Cleanup temp files and any lingering API container.
+    # Wrap docker rm in a try/catch so the cleanup never aborts the run when
+    # the container doesn't exist (e.g., when -Fast skips stage 6).
     if ($apiContainer) {
-        & docker rm -f $apiContainer 2>$null | Out-Null
+        try {
+            & docker rm -f $apiContainer 2>$null | Out-Null
+        } catch {
+            # Container already gone or never started — ignore.
+        }
     }
     if (Test-Path $ciInner)     { Remove-Item $ciInner     -Force -ErrorAction SilentlyContinue }
     if (Test-Path $swaggerTemp) { Remove-Item $swaggerTemp -Force -ErrorAction SilentlyContinue }

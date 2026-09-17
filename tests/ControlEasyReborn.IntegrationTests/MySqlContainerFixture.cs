@@ -60,6 +60,9 @@ public sealed class MySqlContainerFixture : IAsyncLifetime
             PortOverride = port;
 
             await WaitForMySqlReady();
+            // External MySQL starts empty: apply the same init scripts the
+            // Testcontainer-spawn path applies so controleasydb has the full schema.
+            await RunInitScripts();
             return;
         }
 
