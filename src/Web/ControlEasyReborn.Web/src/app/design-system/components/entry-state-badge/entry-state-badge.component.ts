@@ -1,9 +1,4 @@
-import {
-  Component,
-  ChangeDetectionStrategy,
-  computed,
-  input,
-} from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, input } from '@angular/core';
 import { CeIconComponent } from '../icon/icon.component';
 import type { LucideIconName } from '../icon/icon.types';
 import type { EntryState } from '../../../features/entry-log/entry-log.service';
@@ -23,6 +18,7 @@ const STATE_META: Record<EntryState, EntryStateMeta> = {
     icon: 'x-circle',
     label: 'Refused',
   },
+  exited: { tone: 'neutral', icon: 'log-out', label: 'Exit' },
 };
 
 /**
@@ -36,18 +32,17 @@ const STATE_META: Record<EntryState, EntryStateMeta> = {
   imports: [CeIconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <span
-      class="ce-entry-state-badge"
-      [attr.data-tone]="meta().tone"
-      [attr.aria-label]="meta().label"
-    >
+    <span class="ce-entry-state-badge" [attr.data-tone]="meta().tone" [attr.aria-label]="meta().label">
       <ce-icon [name]="meta().icon" [size]="14" />
       <span class="label">{{ meta().label }}</span>
     </span>
   `,
   styles: [
     `
-      :host { display: inline-flex; line-height: 0; }
+      :host {
+        display: inline-flex;
+        line-height: 0;
+      }
       .ce-entry-state-badge {
         display: inline-flex;
         align-items: center;
@@ -75,7 +70,9 @@ const STATE_META: Record<EntryState, EntryStateMeta> = {
         background: var(--color-neutral-light, #e5e7eb);
         color: var(--color-text-secondary, #4b5563);
       }
-      .label { line-height: 1; }
+      .label {
+        line-height: 1;
+      }
     `,
   ],
 })

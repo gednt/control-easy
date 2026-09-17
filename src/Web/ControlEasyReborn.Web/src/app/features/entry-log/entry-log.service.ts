@@ -10,7 +10,8 @@ export type EntryState =
   | 'entered_with_consent'
   | 'entered_override'
   | 'gatehouse_only'
-  | 'entered_without_consent';
+  | 'entered_without_consent'
+  | 'exited';
 
 /** Subject categories used by the entry-log endpoint.
  * Note: backend `EntryLogRequestValidator` accepts underscore forms. */
@@ -76,9 +77,7 @@ export class EntryLogService {
   }
 
   list(filters: AuditFilters): Observable<EntryLogResponse[]> {
-    let params = new HttpParams()
-      .set('skip', filters.skip.toString())
-      .set('take', filters.take.toString());
+    let params = new HttpParams().set('skip', filters.skip.toString()).set('take', filters.take.toString());
     if (filters.entryState) {
       params = params.set('entryState', filters.entryState);
     }
