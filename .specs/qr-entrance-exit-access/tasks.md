@@ -214,7 +214,7 @@
 - [x] T071 [P] Architecture-wide test ensuring AccessControl module respects all seven constitution principles (architecture rules: no cross-module raw SQL, module layering, tenant_id everywhere, no biometric, etc.). [VERIFY] `dotnet test tests/ControlEasyReborn.ArchitectureTests` passes.
 - [x] T072 [P] Update `.planning/PROJECT.md` and `.planning/STATE.md` per spec-kit → GSD ownership rule (spec-kit writes `STATE.md` decision rows; GSD owns roadmap pointer). [VERIFY] diff is minimal, additive only.
 - [x] T073 Run `quickstart.md` end-to-end in devcontainer — issue → scan → revoke → re-scan → manual lookup → cross-tenant → policy handoff → exclusions. [VERIFY] quickstart validation checklist all PASS.
-- [ ] T074 Commit and tag: `chore(qr-entrance): post-implementation docs and release notes`. [VERIFY] `git log --oneline feat/qr-entrance-exit-access..HEAD` shows clean atomic commits.
+- [x] T074 Commit and tag: `chore(qr-entrance): post-implementation docs and release notes`. [VERIFY] `git log --oneline feat/qr-entrance-exit-access..HEAD` shows clean atomic commits.
 
 ---
 
