@@ -8,7 +8,7 @@
 
 Deliver a tenant-scoped gatehouse access workflow for residents, vehicles, visitors, and service providers. Tenant administrators issue, replace, and revoke opaque QR credentials; gatehouse attendants scan them for entrance or exit, or use a protected manual lookup by CPF, registered document, name, apartment, or block when no code is available. Every new or updated visit has a required active apartment destination with visible block and unit; resident and associated-vehicle selections resolve it automatically. Each decision produces an immutable access record or a safe refused-attempt record. The feature adds a dedicated Access Control module, extends resident documents and vehicle ownership links where required for manual lookup, tightens the existing Visits destination invariant, and integrates with—without repurposing—the existing consent ledger.
 
-QR validation and access recording are software workflows only. They never operate a physical gate. Facial biometrics remains a deliberately unimplemented future credential method.
+QR validation and access recording are software workflows only. They never operate a physical gate. Facial biometrics remains a deliberately unimplemented future credential method — see `docs/access-control.md#biometric-exclusion` for the architectural + schema-level enforcement (reserved enum, arch tests, Swagger filter).
 
 ## Technical Context
 

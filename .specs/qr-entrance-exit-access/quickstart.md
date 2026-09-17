@@ -68,6 +68,19 @@ Expected result: `api`, `web`, `db`, and `reverse-proxy` are healthy/running. Op
 1. Inspect the credential administration and gatehouse UI and generated API descriptions.
 2. Confirm there is no facial enrollment, template, comparison, liveness, score, or photo-to-biometric path.
 3. Confirm scanning records software access only and never exposes a physical gate unlock control.
+4. Run the architectural and schema exclusion assertions explicitly:
+
+    ```powershell
+    dotnet test tests/ControlEasyReborn.ArchitectureTests/ControlEasyReborn.ArchitectureTests.csproj --nologo --filter "FullyQualifiedName~BiometricExclusion"
+    ```
+
+    All four AccessControlBiometricExclusionTests cases must pass, and the schema grep below must return zero matches:
+
+    ```powershell
+    Select-String -Path docker/mysql/init/12-access-control-schema.sql,docker/mysql/migrations/0009-access-control.sql -Pattern 'biometric_' -SimpleMatch
+    ```
+
+    Reference: see `docs/access-control.md#biometric-exclusion` for the full reservation rationale and the future-spec requirement.
 
 ## Automated verification
 
