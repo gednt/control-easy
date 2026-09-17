@@ -1,10 +1,13 @@
 using ControlEasyReborn.Modules.AccessControl.Application.Abstractions;
 using ControlEasyReborn.Modules.AccessControl.Application.Commands;
+using ControlEasyReborn.Modules.AccessControl.Application.Logging;
 using ControlEasyReborn.Modules.AccessControl.Domain.Entities;
 using ControlEasyReborn.Modules.AccessControl.Domain.ValueObjects;
 using ControlEasyReborn.Modules.Photos.Application.Abstractions;
 using ControlEasyReborn.Modules.Residents.Application.Abstractions;
 using ControlEasyReborn.Modules.Vehicles.Application.Abstractions;
+using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace ControlEasyReborn.Modules.AccessControl.Application.Handlers;
 
@@ -27,23 +30,35 @@ public sealed class RecordManualAccessHandler
     private readonly IAccessControlClock _clock;
     private readonly IConsentPolicyEvaluator _policy;
     private readonly AccessEventDestinationResolver _resolver;
+    private readonly ILogger<RecordManualAccessHandler> _logger;
 
     public RecordManualAccessHandler(
         IAccessLookupAuditRepository audits,
         IAccessEventRepository events,
         IAccessControlClock clock,
         IConsentPolicyEvaluator policy,
-        AccessEventDestinationResolver resolver)
+        AccessEventDestinationResolver resolver,
+        ILogger<RecordManualAccessHandler>? logger = null)
     {
         _audits = audits;
         _events = events;
         _clock = clock;
         _policy = policy;
         _resolver = resolver;
+        _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<RecordManualAccessHandler>.Instance;
     }
 
     public async Task<ManualAccessResult> HandleAsync(RecordManualAccessCommand command, CancellationToken ct)
     {
+        var stopwatch = Stopwatch.StartNew();
+        using var scope = AccessControlLogContext.BeginScope(
+            tenantId: command.TenantId,
+            profileId: command.PerformedByProfileId,
+            gatehouseId: command.GatehouseId,
+            lookupAuditId: command.LookupAuditId,
+            decision: "manual_access",
+            subjectType: SubjectTypeCodes.ToWire(command.SubjectType));
+
         var nowUtc = _clock.UtcNow;
 
         var audit = await _audits.FindAsync(command.TenantId, command.LookupAuditId, ct);
@@ -102,6 +117,16 @@ public sealed class RecordManualAccessHandler
             destinationUnit: destination.Unit);
 
         await _events.AddAsync(accessEvent, ct);
+
+        stopwatch.Stop();
+        using (AccessControlLogContext.PushDuration(stopwatch.ElapsedMilliseconds))
+        {
+            _logger.LogInformation(
+                "AccessControl manual access recorded eventId={AccessEventId} subjectId={SubjectId} elapsedMs={ElapsedMs}",
+                accessEvent.Id,
+                accessEvent.SubjectId,
+                stopwatch.ElapsedMilliseconds);
+        }
 
         return new ManualAccessResult(
             AccessEventId: accessEvent.Id,

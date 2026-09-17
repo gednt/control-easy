@@ -1,11 +1,14 @@
 using ControlEasyReborn.Modules.AccessControl.Application.Abstractions;
 using ControlEasyReborn.Modules.AccessControl.Application.Commands;
+using ControlEasyReborn.Modules.AccessControl.Application.Logging;
 using ControlEasyReborn.Modules.AccessControl.Domain.Entities;
 using ControlEasyReborn.Modules.AccessControl.Domain.ValueObjects;
 using ControlEasyReborn.Modules.Apartments.Application.Abstractions;
 using ControlEasyReborn.Modules.Photos.Application.Abstractions;
 using ControlEasyReborn.Modules.Residents.Application.Abstractions;
 using ControlEasyReborn.Modules.Vehicles.Application.Abstractions;
+using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace ControlEasyReborn.Modules.AccessControl.Application.Handlers;
 
@@ -36,6 +39,7 @@ public sealed class RecordAccessScanHandler
     private readonly IAccessControlCryptoService _crypto;
     private readonly IAccessControlClock _clock;
     private readonly AccessEventDestinationResolver _resolver;
+    private readonly ILogger<RecordAccessScanHandler> _logger;
 
     public RecordAccessScanHandler(
         IAccessCredentialRepository credentials,
@@ -47,7 +51,8 @@ public sealed class RecordAccessScanHandler
         IConsentPolicyEvaluator policy,
         IAccessControlCryptoService crypto,
         IAccessControlClock clock,
-        AccessEventDestinationResolver? resolver = null)
+        AccessEventDestinationResolver? resolver = null,
+        ILogger<RecordAccessScanHandler>? logger = null)
     {
         _credentials = credentials;
         _events = events;
@@ -59,16 +64,25 @@ public sealed class RecordAccessScanHandler
         _crypto = crypto;
         _clock = clock;
         _resolver = resolver ?? new AccessEventDestinationResolver(residents, vehicles, apartments);
+        _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<RecordAccessScanHandler>.Instance;
     }
 
     public async Task<ScanDecisionResult> HandleAsync(RecordAccessScanCommand command, CancellationToken ct)
     {
+        var stopwatch = Stopwatch.StartNew();
+        using var scope = AccessControlLogContext.BeginScope(
+            tenantId: command.TenantId,
+            profileId: command.PerformedByProfileId,
+            gatehouseId: command.GatehouseId,
+            scanAttemptId: command.ScanAttemptId,
+            credentialMethod: CredentialMethodCodes.ToWire(CredentialMethod.Qr));
+
         var nowUtc = _clock.UtcNow;
 
         var existing = await _events.FindByScanAttemptAsync(command.TenantId, command.ScanAttemptId, ct);
         if (existing is not null)
         {
-            return new ScanDecisionResult(
+            var idempotentResult = new ScanDecisionResult(
                 Decision: ScanDecisionKind.Recorded,
                 AccessEventId: existing.Id,
                 RefusalId: null,
@@ -82,35 +96,43 @@ public sealed class RecordAccessScanHandler
                 DestinationBlock: existing.DestinationBlock,
                 DestinationUnit: existing.DestinationUnit,
                 FailureCode: null);
+            LogDecision(ScanDecisionKind.Recorded, "idempotent", null, stopwatch);
+            return idempotentResult;
         }
 
         var credential = await _crypto.ResolveByTokenAsync(command.TenantId, command.QrPayload, ct);
         if (credential is null)
         {
-            return await RecordRefusalAsync(command, ct,
+            var refusal = await RecordRefusalAsync(command, ct,
                 relatedCredentialId: null,
                 relatedSubjectId: null,
                 failureCode: RefusalCodes.InvalidCredential,
                 decisionKind: ScanDecisionKind.Refused);
+            LogDecision(ScanDecisionKind.Refused, RefusalCodes.InvalidCredential, refusal, stopwatch);
+            return refusal;
         }
 
         if (credential.Status != CredentialStatus.Active || !credential.IsUsableAt(nowUtc))
         {
-            return await RecordRefusalAsync(command, ct,
+            var refusal = await RecordRefusalAsync(command, ct,
                 relatedCredentialId: credential.Id,
                 relatedSubjectId: credential.SubjectId,
                 failureCode: RefusalCodes.CredentialInactive,
                 decisionKind: ScanDecisionKind.Refused);
+            LogDecision(ScanDecisionKind.Refused, RefusalCodes.CredentialInactive, refusal, stopwatch);
+            return refusal;
         }
 
         var destination = await _resolver.ResolveAsync(command.TenantId, credential.SubjectType, credential.SubjectId, ct);
         if (!destination.Resolved)
         {
-            return await RecordRefusalAsync(command, ct,
+            var refusal = await RecordRefusalAsync(command, ct,
                 relatedCredentialId: credential.Id,
                 relatedSubjectId: credential.SubjectId,
                 failureCode: destination.FailureCode ?? RefusalCodes.NotAuthorized,
                 decisionKind: ScanDecisionKind.Refused);
+            LogDecision(ScanDecisionKind.Refused, refusal.FailureCode, refusal, stopwatch);
+            return refusal;
         }
 
         var policyOutcome = await _policy.EvaluateAsync(SubjectTypeCodes.ToWire(credential.SubjectType), credential.SubjectId, "scan", ct);
@@ -124,22 +146,26 @@ public sealed class RecordAccessScanHandler
 
         if (policyFinal == PolicyOutcome.RequiresAction)
         {
-            return await RecordRefusalAsync(command, ct,
+            var refusal = await RecordRefusalAsync(command, ct,
                 relatedCredentialId: credential.Id,
                 relatedSubjectId: credential.SubjectId,
                 failureCode: RefusalCodes.PolicyActionRequired,
                 decisionKind: ScanDecisionKind.PolicyActionRequired,
                 policy: policyFinal);
+            LogDecision(ScanDecisionKind.PolicyActionRequired, RefusalCodes.PolicyActionRequired, refusal, stopwatch);
+            return refusal;
         }
 
         if (policyFinal == PolicyOutcome.Refused)
         {
-            return await RecordRefusalAsync(command, ct,
+            var refusal = await RecordRefusalAsync(command, ct,
                 relatedCredentialId: credential.Id,
                 relatedSubjectId: credential.SubjectId,
                 failureCode: RefusalCodes.NotAuthorized,
                 decisionKind: ScanDecisionKind.Refused,
                 policy: policyFinal);
+            LogDecision(ScanDecisionKind.Refused, RefusalCodes.NotAuthorized, refusal, stopwatch);
+            return refusal;
         }
 
         var accessEvent = AccessEvent.Record(
@@ -164,7 +190,7 @@ public sealed class RecordAccessScanHandler
 
         await _events.AddAsync(accessEvent, ct);
 
-        return new ScanDecisionResult(
+        var accepted = new ScanDecisionResult(
             Decision: ScanDecisionKind.Recorded,
             AccessEventId: accessEvent.Id,
             RefusalId: null,
@@ -178,6 +204,37 @@ public sealed class RecordAccessScanHandler
             DestinationBlock: accessEvent.DestinationBlock,
             DestinationUnit: accessEvent.DestinationUnit,
             FailureCode: null);
+        LogDecision(ScanDecisionKind.Recorded, "recorded", accepted, stopwatch);
+        return accepted;
+    }
+
+    private void LogDecision(ScanDecisionKind decision, string? failureCode, ScanDecisionResult? result, Stopwatch stopwatch)
+    {
+        stopwatch.Stop();
+        var subjectType = result is null ? null : SubjectTypeCodes.ToWire(result.SubjectType);
+        using (AccessControlLogContext.PushDuration(stopwatch.ElapsedMilliseconds))
+        using (AccessControlLogContext.BeginScope(
+            decision: ScanDecisionKindCodes.ToWire(decision),
+            subjectType: subjectType))
+        {
+            if (decision == ScanDecisionKind.Recorded)
+            {
+                _logger.LogInformation(
+                    "AccessControl scan accepted subjectId={SubjectId} credentialId={CredentialId} elapsedMs={ElapsedMs}",
+                    result?.SubjectId,
+                    result?.CredentialId,
+                    stopwatch.ElapsedMilliseconds);
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "AccessControl scan refused failureCode={FailureCode} subjectId={SubjectId} credentialId={CredentialId} elapsedMs={ElapsedMs}",
+                    failureCode,
+                    result?.SubjectId,
+                    result?.CredentialId,
+                    stopwatch.ElapsedMilliseconds);
+            }
+        }
     }
 
     private async Task<ScanDecisionResult> RecordRefusalAsync(

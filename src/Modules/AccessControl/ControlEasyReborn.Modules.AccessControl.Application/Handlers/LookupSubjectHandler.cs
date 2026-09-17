@@ -1,11 +1,14 @@
 using ControlEasyReborn.Modules.AccessControl.Application.Abstractions;
 using ControlEasyReborn.Modules.AccessControl.Application.Commands;
+using ControlEasyReborn.Modules.AccessControl.Application.Logging;
 using ControlEasyReborn.Modules.AccessControl.Domain.Entities;
 using ControlEasyReborn.Modules.AccessControl.Domain.ValueObjects;
 using ControlEasyReborn.Modules.Apartments.Application.Abstractions;
 using ControlEasyReborn.Modules.Residents.Application.Abstractions;
 using ControlEasyReborn.Modules.Residents.Domain.Entities;
 using ControlEasyReborn.Modules.Vehicles.Application.Abstractions;
+using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace ControlEasyReborn.Modules.AccessControl.Application.Handlers;
 
@@ -37,23 +40,32 @@ public sealed class LookupSubjectHandler
     private readonly IResidentDirectory _residents;
     private readonly IVehicleDirectory _vehicles;
     private readonly IApartmentDirectory _apartments;
+    private readonly ILogger<LookupSubjectHandler> _logger;
 
     public LookupSubjectHandler(
         IAccessLookupAuditRepository audits,
         IAccessControlClock clock,
         IResidentDirectory residents,
         IVehicleDirectory vehicles,
-        IApartmentDirectory apartments)
+        IApartmentDirectory apartments,
+        ILogger<LookupSubjectHandler>? logger = null)
     {
         _audits = audits;
         _clock = clock;
         _residents = residents;
         _vehicles = vehicles;
         _apartments = apartments;
+        _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<LookupSubjectHandler>.Instance;
     }
 
     public async Task<LookupSubjectResult> HandleAsync(LookupSubjectCommand command, Guid performedByProfileId, CancellationToken ct)
     {
+        var stopwatch = Stopwatch.StartNew();
+        using var scope = AccessControlLogContext.BeginScope(
+            tenantId: command.TenantId,
+            profileId: performedByProfileId,
+            decision: "lookup_subject");
+
         var value = (command.Value ?? string.Empty).Trim();
         if (string.IsNullOrWhiteSpace(value))
         {
@@ -88,6 +100,17 @@ public sealed class LookupSubjectHandler
             correlationId: Guid.NewGuid());
 
         await _audits.AddAsync(audit, ct);
+
+        stopwatch.Stop();
+        using (AccessControlLogContext.PushDuration(stopwatch.ElapsedMilliseconds))
+        {
+            _logger.LogInformation(
+                "AccessControl lookup subject criterion={Criterion} resultBand={ResultBand} auditId={LookupAuditId} elapsedMs={ElapsedMs}",
+                LookupCriterionTypeCodes.ToWire(command.Criterion),
+                ResultCountBandRules.ToWire(band),
+                audit.Id,
+                stopwatch.ElapsedMilliseconds);
+        }
 
         return new LookupSubjectResult(
             LookupAuditId: audit.Id,
