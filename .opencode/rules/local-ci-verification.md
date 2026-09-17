@@ -18,4 +18,4 @@ All agents working on ControlEasy Reborn MUST obey the following strict policy:
    ```
 
 4. **Lifecycle Stop Hooks:**
-   Stop hooks automatically enforce fast checks on intermediate conversational turns, and block agents from completing or committing tasks if the full verification gate has not passed at task completion.
+   Stop hooks automatically enforce fast checks on intermediate conversational turns, and block agents from completing or committing tasks if the full verification gate has not passed at task completion (or if all tasks in `tasks.md` are marked complete). Untracked files are strictly included in status fingerprinting to prevent uncommitted work from bypassing checks. Pre-commit full verification results automatically roll over upon `git commit`, eliminating duplicate executions of slow Docker tasks.

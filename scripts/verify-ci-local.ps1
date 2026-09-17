@@ -31,14 +31,38 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repoRoot = Split-Path -Parent $scriptDir
 Set-Location $repoRoot
 
-$gitDir = git rev-parse --git-dir 2>$null
+$gitDir = git rev-parse --absolute-git-dir 2>$null
 if (-not $gitDir) { $gitDir = Join-Path $repoRoot ".git" }
 $stampFile = Join-Path $gitDir "ci-local-passed.stamp"
+$fastStampFile = Join-Path $gitDir "ci-local-fast-passed.stamp"
 
 function Write-Log([string]$msg) { Write-Host "[ci-local] $msg" -ForegroundColor Cyan }
 function Write-Pass([string]$msg) { Write-Host "[ci-local][PASS] $msg" -ForegroundColor Green }
 function Write-Warn([string]$msg) { Write-Host "[ci-local][WARN] $msg" -ForegroundColor Yellow }
 function Write-Fail([string]$msg) { Write-Host "[ci-local][FAIL] $msg" -ForegroundColor Red; exit 1 }
+
+function Get-Sha256String([string]$text) {
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($text)
+    $hasher = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        $hashBytes = $hasher.ComputeHash($bytes)
+        return ([System.BitConverter]::ToString($hashBytes)).Replace("-", "").ToLowerInvariant()
+    } finally {
+        $hasher.Dispose()
+    }
+}
+
+function Get-FreePort {
+    try {
+        $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, 0)
+        $listener.Start()
+        $port = ($listener.LocalEndpoint).Port
+        $listener.Stop()
+        return $port
+    } catch {
+        return 18099
+    }
+}
 
 Write-Log "Starting local CI verification gate..."
 
@@ -102,7 +126,7 @@ if ($SkipOpenApi) {
     Write-Warn "Stage 6/6: Skipping OpenAPI drift check."
 } else {
     Write-Log "Stage 6/6: Verifying OpenAPI client and swagger drift..."
-    $apiPort = if ($env:CE_SWAGGER_PORT) { $env:CE_SWAGGER_PORT } else { "18099" }
+    $apiPort = if ($env:CE_SWAGGER_PORT) { $env:CE_SWAGGER_PORT } else { Get-FreePort }
     $swaggerTemp = [System.IO.Path]::GetTempFileName()
     $apiDll = Join-Path $repoRoot "src/Host/ControlEasyReborn.Api/bin/Release/net8.0/ControlEasyReborn.Api.dll"
     if (-not (Test-Path $apiDll)) {
@@ -179,17 +203,21 @@ if ($SkipOpenApi) {
 
 # Stamp
 $headSha = git rev-parse HEAD 2>$null
+if (-not $headSha) { $headSha = "none" }
 $diffText = git diff HEAD 2>$null | Out-String
-$bytes = [System.Text.Encoding]::UTF8.GetBytes($diffText)
-$diffHash = [System.BitConverter]::ToString([System.Security.Cryptography.SHA256]::HashData($bytes)).Replace("-", "").ToLowerInvariant()
+$diffHash = Get-Sha256String $diffText
+$statusText = git status --porcelain=v1 -uall 2>$null | Out-String
+$statusHash = Get-Sha256String $statusText
+$timestamp = (Get-Date -AsUTC -Format o)
+$stampContent = "$headSha`:$diffHash`:$statusHash`:$timestamp"
 
 if ($Fast -or $SkipIntegration -or $SkipDocker -or $SkipOpenApi) {
     $fastStampFile = Join-Path $gitDir "ci-local-fast-passed.stamp"
-    Set-Content -Path $fastStampFile -Value "$headSha`:$diffHash`:$(Get-Date -AsUTC -Format o)"
+    Set-Content -Path $fastStampFile -Value $stampContent
     Write-Pass "Fast local CI verification checks PASSED (zero Docker downloads)!"
 } else {
-    Set-Content -Path $stampFile -Value "$headSha`:$diffHash`:$(Get-Date -AsUTC -Format o)"
+    Set-Content -Path $stampFile -Value $stampContent
     $fastStampFile = Join-Path $gitDir "ci-local-fast-passed.stamp"
-    Set-Content -Path $fastStampFile -Value "$headSha`:$diffHash`:$(Get-Date -AsUTC -Format o)"
+    Set-Content -Path $fastStampFile -Value $stampContent
     Write-Pass "All local CI verification gates (including Docker web build & Testcontainers) PASSED!"
 }

@@ -874,4 +874,4 @@ unless an amendment is in flight.
   (via `/gsd-transition`). "What This Is" and "Out of Scope" drift are
   treated as constitutional concerns, not just documentation hygiene.
 
-**Version**: 1.5.0 | **Ratified**: 2026-07-12 | **Last Amended**: 2026-09-15
+**Version**: 1.6.0 | **Ratified**: 2026-07-12 | **Last Amended**: 2026-09-17

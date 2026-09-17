@@ -19,7 +19,7 @@ SCRIPT_DIR="$(CDPATH= cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(CDPATH= cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
-GIT_DIR="$(git rev-parse --git-dir 2>/dev/null || echo "$REPO_ROOT/.git")"
+GIT_DIR="$(git rev-parse --absolute-git-dir 2>/dev/null || echo "$REPO_ROOT/.git")"
 STAMP_FILE="$GIT_DIR/ci-local-passed.stamp"
 FAST_STAMP_FILE="$GIT_DIR/ci-local-fast-passed.stamp"
 
@@ -64,6 +64,40 @@ else
   fi
 fi
 
+compute_sha256() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum | awk '{print $1}'
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 | awk '{print $1}'
+  elif command -v python3 >/dev/null 2>&1; then
+    python3 -c "import hashlib, sys; print(hashlib.sha256(sys.stdin.buffer.read()).hexdigest())"
+  else
+    git hash-object --stdin
+  fi
+}
+
+is_task_completion_indicated() {
+  if [ "${CE_TASK_COMPLETE:-}" = "true" ] || [ "${FULL_CI:-}" = "true" ]; then
+    return 0
+  fi
+  local task_files
+  task_files="$( { git diff --name-only HEAD 2>/dev/null; git status --porcelain=v1 -uall 2>/dev/null | awk '{print $2}'; } | grep -E '(tasks\.md|\.specs/.*tasks.*\.md|openspec/.*tasks.*\.md)' | sort -u || true )"
+  [ -z "$task_files" ] && return 1
+
+  local found_task=false
+  for tf in $task_files; do
+    if [ -f "$tf" ]; then
+      if grep -q -E '^- \[[xX]\]' "$tf"; then
+        found_task=true
+        if grep -q '^- \[ \]' "$tf"; then
+          return 1
+        fi
+      fi
+    fi
+  done
+  [ "$found_task" = true ]
+}
+
 # If repository has zero modifications and zero branch commits ahead, allow stop immediately.
 if [ "$IS_DIRTY" = false ] && [ "$IS_AHEAD" = false ]; then
   printf '{}\n'
@@ -72,31 +106,49 @@ fi
 
 # Compute fingerprint of current code state
 HEAD_SHA="$(git rev-parse HEAD 2>/dev/null || echo "none")"
-DIFF_HASH="$(git diff HEAD 2>/dev/null | sha256sum | awk '{print $1}')"
-EXPECTED_PREFIX="${HEAD_SHA}:${DIFF_HASH}"
+DIFF_HASH="$(git diff HEAD 2>/dev/null | compute_sha256)"
+STATUS_HASH="$(git status --porcelain=v1 -uall 2>/dev/null | compute_sha256)"
+EXPECTED_PREFIX="${HEAD_SHA}:${DIFF_HASH}:${STATUS_HASH}"
 
 VERIFY_OUTPUT=""
 VERIFY_EXIT_CODE=0
 
 if [ "$IS_DIRTY" = true ]; then
-  # -------------------------------------------------------------------------
-  # Active editing / intermediate turn:
-  # Fast checks only (format, build, unit + arch tests).
-  # Zero Docker downloads, zero containers!
-  # -------------------------------------------------------------------------
-  if [ -f "$FAST_STAMP_FILE" ] && head -n 1 "$FAST_STAMP_FILE" 2>/dev/null | grep -q "^${EXPECTED_PREFIX}"; then
-    printf '{}\n'
-    exit 0
-  fi
-  if [ -f "$STAMP_FILE" ] && head -n 1 "$STAMP_FILE" 2>/dev/null | grep -q "^${EXPECTED_PREFIX}"; then
-    printf '{}\n'
-    exit 0
-  fi
+  if is_task_completion_indicated; then
+    # -------------------------------------------------------------------------
+    # All tasks are marked completed or task completion requested:
+    # Full CI verification gate (including Docker & Testcontainers) is required!
+    # -------------------------------------------------------------------------
+    if [ -f "$STAMP_FILE" ] && head -n 1 "$STAMP_FILE" 2>/dev/null | grep -q "^${EXPECTED_PREFIX}"; then
+      printf '{}\n'
+      exit 0
+    fi
 
-  VERIFY_OUTPUT="$("$REPO_ROOT/scripts/verify-ci-local.sh" --fast 2>&1)" || VERIFY_EXIT_CODE=$?
-  if [ "$VERIFY_EXIT_CODE" -eq 0 ]; then
-    printf '{}\n'
-    exit 0
+    VERIFY_OUTPUT="$("$REPO_ROOT/scripts/verify-ci-local.sh" 2>&1)" || VERIFY_EXIT_CODE=$?
+    if [ "$VERIFY_EXIT_CODE" -eq 0 ]; then
+      printf '{}\n'
+      exit 0
+    fi
+  else
+    # -------------------------------------------------------------------------
+    # Active editing / intermediate turn:
+    # Fast checks only (format, build, unit + arch tests).
+    # Zero Docker downloads, zero containers!
+    # -------------------------------------------------------------------------
+    if [ -f "$FAST_STAMP_FILE" ] && head -n 1 "$FAST_STAMP_FILE" 2>/dev/null | grep -q "^${EXPECTED_PREFIX}"; then
+      printf '{}\n'
+      exit 0
+    fi
+    if [ -f "$STAMP_FILE" ] && head -n 1 "$STAMP_FILE" 2>/dev/null | grep -q "^${EXPECTED_PREFIX}"; then
+      printf '{}\n'
+      exit 0
+    fi
+
+    VERIFY_OUTPUT="$("$REPO_ROOT/scripts/verify-ci-local.sh" --fast 2>&1)" || VERIFY_EXIT_CODE=$?
+    if [ "$VERIFY_EXIT_CODE" -eq 0 ]; then
+      printf '{}\n'
+      exit 0
+    fi
   fi
 else
   # -------------------------------------------------------------------------
@@ -112,6 +164,23 @@ else
         exit 0
         ;;
     esac
+
+    # Check for commit rollover: was the committed diff verified in a full CI pass before commit?
+    IFS=':' read -r STAMP_HEAD STAMP_DIFF STAMP_STATUS _ <<< "$STAMP_CONTENT"
+    if [ -n "$STAMP_HEAD" ] && [ "$STAMP_HEAD" != "none" ] && [ -n "$STAMP_DIFF" ]; then
+      if git merge-base --is-ancestor "$STAMP_HEAD" HEAD 2>/dev/null; then
+        COMMITTED_DIFF_HASH="$(git diff "$STAMP_HEAD..HEAD" 2>/dev/null | compute_sha256)"
+        if [ "$COMMITTED_DIFF_HASH" = "$STAMP_DIFF" ]; then
+          # The entire diff in HEAD was already verified in the full CI pass.
+          # Roll over the stamp to HEAD so slow Docker checks do not re-run.
+          NEW_TIMESTAMP="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          printf '%s:%s:%s:%s\n' "$HEAD_SHA" "$DIFF_HASH" "$STATUS_HASH" "$NEW_TIMESTAMP" > "$STAMP_FILE"
+          printf '%s:%s:%s:%s\n' "$HEAD_SHA" "$DIFF_HASH" "$STATUS_HASH" "$NEW_TIMESTAMP" > "$FAST_STAMP_FILE"
+          printf '{}\n'
+          exit 0
+        fi
+      fi
+    fi
   fi
 
   # Run full CI verification gate once per task completion / at the end of all tasks completions

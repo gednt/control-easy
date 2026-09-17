@@ -4,7 +4,7 @@
 
 > **Authoritative project guide.** Binding runtime document for every
 > contributor and every agent. Constitutional authority:
-> `.specify/memory/constitution.md` (v1.5.0, 2026-09-15).
+> `.specify/memory/constitution.md` (v1.6.0, 2026-09-17).
 > Where this file and the constitution disagree, the constitution wins.
 
 ---

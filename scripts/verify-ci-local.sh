@@ -21,13 +21,26 @@ SCRIPT_DIR="$(CDPATH= cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(CDPATH= cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
-GIT_DIR="$(git rev-parse --git-dir 2>/dev/null || echo "$REPO_ROOT/.git")"
+GIT_DIR="$(git rev-parse --absolute-git-dir 2>/dev/null || echo "$REPO_ROOT/.git")"
 STAMP_FILE="$GIT_DIR/ci-local-passed.stamp"
+FAST_STAMP_FILE="$GIT_DIR/ci-local-fast-passed.stamp"
 
 _log()  { printf '\033[1;34m[ci-local]\033[0m %s\n' "$*"; }
 _ok()   { printf '\033[1;32m[ci-local][PASS]\033[0m %s\n' "$*"; }
 _warn() { printf '\033[1;33m[ci-local][WARN]\033[0m %s\n' "$*" >&2; }
 _die()  { printf '\033[1;31m[ci-local][FAIL]\033[0m %s\n' "$*" >&2; exit 1; }
+
+compute_sha256() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum | awk '{print $1}'
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 | awk '{print $1}'
+  elif command -v python3 >/dev/null 2>&1; then
+    python3 -c "import hashlib, sys; print(hashlib.sha256(sys.stdin.buffer.read()).hexdigest())"
+  else
+    git hash-object --stdin
+  fi
+}
 
 FAST_ONLY=false
 SKIP_INTEGRATION=false
@@ -142,7 +155,15 @@ if [ "$SKIP_OPENAPI" = true ]; then
 else
   _log "Stage 6/6: Verifying OpenAPI client and swagger drift..."
   SWAGGER_TEMP="$(mktemp /tmp/ce-swagger-XXXXXX.json)"
-  API_PORT="${CE_SWAGGER_PORT:-18099}"
+  find_free_port() {
+    if command -v python3 >/dev/null 2>&1; then
+      python3 -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()' 2>/dev/null && return 0
+    fi
+    local hash
+    hash="$(basename "$REPO_ROOT" | compute_sha256 | tr -dc '0-9' | cut -c1-4)"
+    echo "$(( 18100 + (hash % 800) ))"
+  }
+  API_PORT="${CE_SWAGGER_PORT:-$(find_free_port)}"
   API_DLL="$REPO_ROOT/src/Host/ControlEasyReborn.Api/bin/Release/net8.0/ControlEasyReborn.Api.dll"
   API_BIN_DIR="$(dirname "$API_DLL")"
 
@@ -155,9 +176,7 @@ else
     if [ -n "$API_PID" ] && kill -0 "$API_PID" 2>/dev/null; then
       kill "$API_PID" 2>/dev/null || true
       wait "$API_PID" 2>/dev/null || true
-    fi
-    if command -v fuser >/dev/null 2>&1; then
-      fuser -k "${API_PORT}/tcp" >/dev/null 2>&1 || true
+      API_PID=""
     fi
   }
 
@@ -166,11 +185,6 @@ else
     rm -f "$SWAGGER_TEMP"
   }
   trap api_cleanup EXIT
-
-  # Ensure port is not occupied
-  if command -v fuser >/dev/null 2>&1; then
-    fuser -k "${API_PORT}/tcp" >/dev/null 2>&1 || true
-  fi
 
   # Start API compiled DLL directly in background (avoids dotnet run wrapper PID leak)
   ASPNETCORE_ENVIRONMENT=Development \
@@ -230,18 +244,21 @@ fi
 # Stamp Success State
 # ---------------------------------------------------------------------------
 HEAD_SHA="$(git rev-parse HEAD 2>/dev/null || echo "none")"
-DIFF_HASH="$(git diff HEAD 2>/dev/null | sha256sum | awk '{print $1}')"
+DIFF_HASH="$(git diff HEAD 2>/dev/null | compute_sha256)"
+STATUS_HASH="$(git status --porcelain=v1 -uall 2>/dev/null | compute_sha256)"
+TIMESTAMP="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+STAMP_CONTENT="${HEAD_SHA}:${DIFF_HASH}:${STATUS_HASH}:${TIMESTAMP}"
 
 if [ "$FAST_ONLY" = true ] || [ "$SKIP_INTEGRATION" = true ] || [ "$SKIP_DOCKER" = true ] || [ "$SKIP_OPENAPI" = true ]; then
   FAST_STAMP_FILE="$GIT_DIR/ci-local-fast-passed.stamp"
   mkdir -p "$(dirname "$FAST_STAMP_FILE")"
-  printf '%s:%s:%s\n' "$HEAD_SHA" "$DIFF_HASH" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$FAST_STAMP_FILE"
+  printf '%s\n' "$STAMP_CONTENT" > "$FAST_STAMP_FILE"
   _ok "Fast local CI verification checks PASSED (zero Docker downloads)!"
 else
   mkdir -p "$(dirname "$STAMP_FILE")"
-  printf '%s:%s:%s\n' "$HEAD_SHA" "$DIFF_HASH" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$STAMP_FILE"
+  printf '%s\n' "$STAMP_CONTENT" > "$STAMP_FILE"
   # Full pass also satisfies fast stamp
   FAST_STAMP_FILE="$GIT_DIR/ci-local-fast-passed.stamp"
-  printf '%s:%s:%s\n' "$HEAD_SHA" "$DIFF_HASH" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$FAST_STAMP_FILE"
+  printf '%s\n' "$STAMP_CONTENT" > "$FAST_STAMP_FILE"
   _ok "All local CI verification gates (including Docker web build & Testcontainers) PASSED!"
 fi
