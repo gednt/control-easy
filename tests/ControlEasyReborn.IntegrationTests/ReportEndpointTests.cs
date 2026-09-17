@@ -23,9 +23,11 @@ public sealed class ReportEndpointTests
     public async Task GetVisitCountsByDay_ReturnsAggregatedRows()
     {
         var client = _factory.AsTenantA();
+        var apartmentId = await _factory.SeedApartmentForTenantAAsync();
 
-        await client.PostAsJsonAsync("/api/v1/visits",
-            new CreateVisitRequest("Report Visitor", "11122233344", null, null, "Test"));
+        var createResponse = await client.PostAsJsonAsync("/api/v1/visits",
+            new CreateVisitRequest("Report Visitor", "11122233344", null, apartmentId, "Test"));
+        createResponse.EnsureSuccessStatusCode();
 
         var response = await client.GetAsync("/api/v1/reports/visit-counts-by-day");
         response.StatusCode.Should().Be(HttpStatusCode.OK);

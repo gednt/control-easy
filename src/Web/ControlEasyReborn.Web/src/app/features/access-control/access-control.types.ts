@@ -1,5 +1,3 @@
-// Auto-generated placeholder. Real DTOs are produced by ng-openapi-gen at
-// build time from the OpenAPI document. Do not add domain types here.
 export interface AccessCredentialSummary {
   id: string;
   subjectType: 'resident' | 'vehicle';

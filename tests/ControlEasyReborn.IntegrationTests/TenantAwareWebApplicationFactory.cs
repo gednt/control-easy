@@ -88,11 +88,7 @@ public abstract class TenantAwareWebApplicationFactory : WebApplicationFactory<P
         var block = "B-" + (blockSuffix ?? Guid.NewGuid().ToString("N")[..6]);
         var unit = unitSuffix ?? Guid.NewGuid().ToString("N")[..6];
 
-        var connectionString = Environment.GetEnvironmentVariable("CE_ITEST_MYSQL") is { Length: > 0 }
-            ? ResolveConnectionStringFromEnv()
-            : null;
-
-        connectionString ??= "Server=localhost;Port=3306;Database=controleasydb;Uid=root;Pwd=testpw;AllowUserVariables=True;";
+        var connectionString = GetConnectionString();
 
         await using var conn = new MySqlConnection(connectionString);
         await conn.OpenAsync();
@@ -105,6 +101,15 @@ public abstract class TenantAwareWebApplicationFactory : WebApplicationFactory<P
         cmd.Parameters.AddWithValue("@unit", unit);
         await cmd.ExecuteNonQueryAsync();
         return id;
+    }
+
+    protected virtual string GetConnectionString()
+    {
+        if (Environment.GetEnvironmentVariable("CE_ITEST_MYSQL") is { Length: > 0 })
+        {
+            return ResolveConnectionStringFromEnv();
+        }
+        return "Server=localhost;Port=3306;Database=controleasydb;Uid=root;Pwd=testpw;AllowUserVariables=True;";
     }
 
     private static string ResolveConnectionStringFromEnv()

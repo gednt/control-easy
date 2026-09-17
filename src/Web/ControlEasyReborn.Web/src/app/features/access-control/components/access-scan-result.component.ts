@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, input, output, signal, comp
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GatewayControlService } from '../gateway-control.service';
-import { ScanResult, ScanRefusal } from '../../../api/access-control.types';
+import { ScanResult, ScanRefusal } from '../access-control.types';
 
 @Component({
   selector: 'ce-access-scan-result',

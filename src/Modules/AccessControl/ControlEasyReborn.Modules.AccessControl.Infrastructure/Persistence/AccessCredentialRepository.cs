@@ -45,6 +45,10 @@ public sealed class AccessCredentialRepository : IAccessCredentialRepository
             whereClause: "Id = @param0",
             parameters: new object[] { credentialId },
             ct: ct);
+        if (!string.IsNullOrEmpty(db.Error))
+        {
+            throw new InvalidOperationException($"SelectAsync failed in FindByIdAsync: {db.Error}");
+        }
         return MapFirstOrDefault(rows);
     }
 
@@ -107,7 +111,25 @@ public sealed class AccessCredentialRepository : IAccessCredentialRepository
     public async Task ReplaceAsync(AccessCredential predecessor, AccessCredential successor, CredentialLifecycleAction action, CancellationToken ct)
     {
         var db = _factory.Create(_ctx);
-        await db.InsertAsync(
+        var updated = await db.UpdateAsync(
+            new[] { "Status", "ReplacedByCredentialId", "UpdatedAtUtc" },
+            TableName,
+            new[]
+            {
+                ((int)predecessor.Status).ToString(),
+                predecessor.ReplacedByCredentialId?.ToString()!,
+                FormatDateTime(predecessor.UpdatedAtUtc)!
+            },
+            $"Id = '{predecessor.Id}'",
+            Array.Empty<object>(),
+            ct: ct);
+
+        if (!updated || !string.IsNullOrEmpty(db.Error))
+        {
+            throw new InvalidOperationException($"UpdateAsync failed in ReplaceAsync: {db.Error}");
+        }
+
+        var inserted = await db.InsertAsync(
             new[] { "Id", "TenantId", "SubjectType", "SubjectId", "Method", "SecretVerifier", "KeyVersion", "Status", "ValidFromUtc", "ExpiresAtUtc", "ReplacedByCredentialId", "IssuedByProfileId", "CreatedAtUtc", "UpdatedAtUtc", "tenant_id" },
             TableName,
             new object?[] { successor.Id, successor.TenantId, (int)successor.SubjectType, successor.SubjectId, (int)successor.Method, successor.SecretVerifier, successor.KeyVersion, (int)successor.Status, successor.ValidFromUtc, (object?)successor.ExpiresAtUtc ?? DBNull.Value, (object?)successor.ReplacedByCredentialId ?? DBNull.Value, successor.IssuedByProfileId, successor.CreatedAtUtc, (object?)successor.UpdatedAtUtc ?? DBNull.Value, successor.TenantId },
@@ -115,18 +137,10 @@ public sealed class AccessCredentialRepository : IAccessCredentialRepository
             autoIncrement: false,
             ct: ct);
 
-        await db.UpdateAsync(
-            new[] { "Status", "ReplacedByCredentialId", "UpdatedAtUtc" },
-            TableName,
-            new[]
-            {
-                ((int)predecessor.Status).ToString(),
-                predecessor.ReplacedByCredentialId?.ToString() ?? string.Empty,
-                FormatDateTime(predecessor.UpdatedAtUtc) ?? string.Empty
-            },
-            $"Id = '{predecessor.Id}'",
-            Array.Empty<object>(),
-            ct: ct);
+        if (!inserted || !string.IsNullOrEmpty(db.Error))
+        {
+            throw new InvalidOperationException($"InsertAsync failed in ReplaceAsync: {db.Error}");
+        }
 
         await _lifecycle.AddAsync(action, ct);
     }
@@ -134,18 +148,23 @@ public sealed class AccessCredentialRepository : IAccessCredentialRepository
     public async Task UpdateStatusAsync(AccessCredential credential, CancellationToken ct)
     {
         var db = _factory.Create(_ctx);
-        await db.UpdateAsync(
+        var updated = await db.UpdateAsync(
             new[] { "Status", "ReplacedByCredentialId", "UpdatedAtUtc" },
             TableName,
             new[]
             {
                 ((int)credential.Status).ToString(),
-                credential.ReplacedByCredentialId?.ToString() ?? string.Empty,
-                FormatDateTime(credential.UpdatedAtUtc) ?? string.Empty
+                credential.ReplacedByCredentialId?.ToString()!,
+                FormatDateTime(credential.UpdatedAtUtc)!
             },
             $"Id = '{credential.Id}'",
             Array.Empty<object>(),
             ct: ct);
+
+        if (!updated || !string.IsNullOrEmpty(db.Error))
+        {
+            throw new InvalidOperationException($"UpdateAsync failed in UpdateStatusAsync: {db.Error}");
+        }
     }
 
     private static string? FormatDateTime(DateTime? value) =>
@@ -186,10 +205,10 @@ public sealed class AccessCredentialRepository : IAccessCredentialRepository
             keyVersion: Convert.ToInt32(r["KeyVersion"]),
             status: (CredentialStatus)Convert.ToInt32(r["Status"]),
             validFromUtc: Convert.ToDateTime(r["ValidFromUtc"]),
-            expiresAtUtc: string.IsNullOrEmpty(expiresStr) ? null : DateTime.Parse(expiresStr, null, System.Globalization.DateTimeStyles.RoundtripKind),
-            replacedByCredentialId: string.IsNullOrEmpty(replacedByStr) ? null : Guid.Parse(replacedByStr),
+            expiresAtUtc: string.IsNullOrWhiteSpace(expiresStr) ? null : DateTime.Parse(expiresStr, null, System.Globalization.DateTimeStyles.RoundtripKind),
+            replacedByCredentialId: string.IsNullOrWhiteSpace(replacedByStr) ? null : Guid.Parse(replacedByStr),
             issuedByProfileId: Guid.Parse(r["IssuedByProfileId"].ToString() ?? string.Empty),
             createdAtUtc: Convert.ToDateTime(r["CreatedAtUtc"]),
-            updatedAtUtc: string.IsNullOrEmpty(updatedAtStr) ? null : DateTime.Parse(updatedAtStr, null, System.Globalization.DateTimeStyles.RoundtripKind));
+            updatedAtUtc: string.IsNullOrWhiteSpace(updatedAtStr) ? null : DateTime.Parse(updatedAtStr, null, System.Globalization.DateTimeStyles.RoundtripKind));
     }
 }
