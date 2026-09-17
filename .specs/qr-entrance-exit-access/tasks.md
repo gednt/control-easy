@@ -196,7 +196,7 @@
 
 - [ ] T063 [US6] Add reserved value `facial_biometric = 99` to `CredentialMethod` enum with `IsReservedForFuture` flag; ensure no API surface creates credentials with that method. [VERIFY] unit tests reject any attempt to create such a credential.
 - [ ] T064 [P] [US6] Add Swagger filter to exclude biometric endpoints/schemas from the OpenAPI document. [VERIFY] OpenAPI document contains no biometric route or schema.
-- [ ] T065 [US6] Document the reservation in `docs/access-control.md` (new) and link from `spec.md` & `plan.md`; update `quickstart.md` step 7 to mention the exclusion scan. [VERIFY] docs build cleanly; quickstart validation passes.
+- [x] T065 [US6] Document the reservation in `docs/access-control.md` (new) and link from `spec.md` & `plan.md`; update `quickstart.md` step 7 to mention the exclusion scan. [VERIFY] docs build cleanly; quickstart validation passes.
 
 **Checkpoint**: No biometric path shipped; only the reserved vocabulary remains.
 
@@ -206,14 +206,14 @@
 
 **Purpose**: Hardening, performance, observability, and end-to-end validation.
 
-- [ ] T066 [P] Add Serilog enrichers + structured log fields for AccessControl (`TenantId`, `ProfileId`, `ScanAttemptId`, decision kind) while **never** logging raw QR, raw documents, raw names, or full CPFs. [VERIFY] grep over log calls; integration snapshot.
-- [ ] T067 [P] Add `docker compose` worktree override `docker/docker-compose.worktree.feat-qr-entrance-exit-access.yml` (port shift +80, DB volume `ce-feat-qr-entrance-exit-access-mysql-data`, project name already matches). [VERIFY] `docker compose -p ce-feat-qr-entrance-exit-access -f docker/docker-compose.yml config` resolves cleanly.
+- [x] T066 [P] Add Serilog enrichers + structured log fields for AccessControl (`TenantId`, `ProfileId`, `ScanAttemptId`, decision kind) while **never** logging raw QR, raw documents, raw names, or full CPFs. [VERIFY] grep over log calls; integration snapshot.
+- [x] T067 [P] Add `docker compose` worktree override `docker/docker-compose.worktree.feat-qr-entrance-exit-access.yml` (port shift +80, DB volume `ce-feat-qr-entrance-exit-access-mysql-data`, project name already matches). [VERIFY] `docker compose -p ce-feat-qr-entrance-exit-access -f docker/docker-compose.yml config` resolves cleanly.
 - [ ] T068 [P] Performance sweep: ensure `RecordAccessScanHandler` cold-path latency p95 ≤ 3s, manual lookup p95 ≤ 15s in a Testcontainer run. Add `Stopwatch`+Serilog timing on each handler boundary. [VERIFY] integration perf test slices pass.
-- [ ] T069 [P] Angular `entry-workflow` a11y + i18n audit: keyboard navigability, ARIA roles, focus management on result cards, screen-reader announcements for live region. [VERIFY] `npm run lint && npm run e2e` passes.
-- [ ] T070 [P] Playwright E2E `tests/e2e/access-control.spec.ts`: issue → scan entrance → scan exit → revoke → refused scan; manual lookup by CPF/document/name/apartment/block; visit destination recovery; credential administration dialogs. [VERIFY] `npm run e2e` passes against `ce-feat-qr-entrance-exit-access.localhost`.
-- [ ] T071 [P] Architecture-wide test ensuring AccessControl module respects all seven constitution principles (architecture rules: no cross-module raw SQL, module layering, tenant_id everywhere, no biometric, etc.). [VERIFY] `dotnet test tests/ControlEasyReborn.ArchitectureTests` passes.
-- [ ] T072 [P] Update `.planning/PROJECT.md` and `.planning/STATE.md` per spec-kit → GSD ownership rule (spec-kit writes `STATE.md` decision rows; GSD owns roadmap pointer). [VERIFY] diff is minimal, additive only.
-- [ ] T073 Run `quickstart.md` end-to-end in devcontainer — issue → scan → revoke → re-scan → manual lookup → cross-tenant → policy handoff → exclusions. [VERIFY] quickstart validation checklist all PASS.
+- [x] T069 [P] Angular `entry-workflow` a11y + i18n audit: keyboard navigability, ARIA roles, focus management on result cards, screen-reader announcements for live region. [VERIFY] `npm run lint && npm run e2e` passes.
+- [x] T070 [P] Playwright E2E `tests/e2e/access-control.spec.ts`: issue → scan entrance → scan exit → revoke → refused scan; manual lookup by CPF/document/name/apartment/block; visit destination recovery; credential administration dialogs. [VERIFY] `npm run e2e` passes against `ce-feat-qr-entrance-exit-access.localhost`.
+- [x] T071 [P] Architecture-wide test ensuring AccessControl module respects all seven constitution principles (architecture rules: no cross-module raw SQL, module layering, tenant_id everywhere, no biometric, etc.). [VERIFY] `dotnet test tests/ControlEasyReborn.ArchitectureTests` passes.
+- [x] T072 [P] Update `.planning/PROJECT.md` and `.planning/STATE.md` per spec-kit → GSD ownership rule (spec-kit writes `STATE.md` decision rows; GSD owns roadmap pointer). [VERIFY] diff is minimal, additive only.
+- [x] T073 Run `quickstart.md` end-to-end in devcontainer — issue → scan → revoke → re-scan → manual lookup → cross-tenant → policy handoff → exclusions. [VERIFY] quickstart validation checklist all PASS.
 - [ ] T074 Commit and tag: `chore(qr-entrance): post-implementation docs and release notes`. [VERIFY] `git log --oneline feat/qr-entrance-exit-access..HEAD` shows clean atomic commits.
 
 ---
