@@ -25,14 +25,25 @@ public static class Permissions
 
     public static readonly string[] All =
     [
-        VisitsCheckIn, VisitsCheckOut, VisitsRead,
-        ApartmentsRead, ApartmentsWrite,
-        ResidentsRead, ResidentsWrite,
-        VehiclesRead, VehiclesWrite,
-        ServiceProvidersRead, ServiceProvidersWrite,
+        VisitsCheckIn,
+        VisitsCheckOut,
+        VisitsRead,
+        ApartmentsRead,
+        ApartmentsWrite,
+        ResidentsRead,
+        ResidentsWrite,
+        VehiclesRead,
+        VehiclesWrite,
+        ServiceProvidersRead,
+        ServiceProvidersWrite,
         ReportsRead,
-        PhotosRead, PhotosWrite, PhotosDelete,
-        AccessControlIssue, AccessControlReplace, AccessControlRevoke,
-        AccessOperate, AccessRead
+        PhotosRead,
+        PhotosWrite,
+        PhotosDelete,
+        AccessControlIssue,
+        AccessControlReplace,
+        AccessControlRevoke,
+        AccessOperate,
+        AccessRead
     ];
 }

@@ -1,5 +1,9 @@
 ---
-inclusion: always
+paths:
+  - "**/*"
 ---
 
-Follow AGENTS.md
+Follow AGENTS.md.
+
+## Mandatory Completion Gate
+No task, bugfix, or modification is considered "done" until all jobs in the CI pipeline pass locally (`scripts/verify-ci-local.sh` or `make verify-ci`). Agents MUST NOT consider any modification done, mark task checkboxes `[X]`, report completion to the user, or push to remote without running and passing this gate.

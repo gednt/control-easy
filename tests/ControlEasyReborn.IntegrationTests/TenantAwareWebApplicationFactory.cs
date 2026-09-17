@@ -24,13 +24,21 @@ public abstract class TenantAwareWebApplicationFactory : WebApplicationFactory<P
 
     private static readonly string[] TenantAdminPermissions =
     [
-        "Visits.CheckIn", "Visits.CheckOut", "Visits.Read",
-        "Apartments.Read", "Apartments.Write",
-        "Residents.Read", "Residents.Write",
-        "Vehicles.Read", "Vehicles.Write",
-        "ServiceProviders.Read", "ServiceProviders.Write",
+        "Visits.CheckIn",
+        "Visits.CheckOut",
+        "Visits.Read",
+        "Apartments.Read",
+        "Apartments.Write",
+        "Residents.Read",
+        "Residents.Write",
+        "Vehicles.Read",
+        "Vehicles.Write",
+        "ServiceProviders.Read",
+        "ServiceProviders.Write",
         "Reports.Read",
-        "Photos.Read", "Photos.Write", "Photos.Delete",
+        "Photos.Read",
+        "Photos.Write",
+        "Photos.Delete",
     ];
 
     public HttpClient AsTenantA()

@@ -1,0 +1,11 @@
+{
+  "ci-verification-gate": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "./scripts/hooks/verify-ci-agent-stop.sh",
+        "timeout": 300
+      }
+    ]
+  }
+}

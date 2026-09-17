@@ -94,9 +94,19 @@ public sealed class AuditLogRepositoryTests
     {
         return
         [
-            id.ToString(), tenantId.ToString(), tenantId.ToString(), "Security", "AccessDenied", "Resident",
-            (entityId ?? Guid.NewGuid()).ToString(), (int)AuditSeverity.Warning, Guid.NewGuid().ToString(), "Gatehouse", "Entry denied",
-            DBNull.Value, createdAtUtc
+            id.ToString(),
+            tenantId.ToString(),
+            tenantId.ToString(),
+            "Security",
+            "AccessDenied",
+            "Resident",
+            (entityId ?? Guid.NewGuid()).ToString(),
+            (int)AuditSeverity.Warning,
+            Guid.NewGuid().ToString(),
+            "Gatehouse",
+            "Entry denied",
+            DBNull.Value,
+            createdAtUtc
         ];
     }
 

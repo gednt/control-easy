@@ -54,6 +54,14 @@ repos:
         files: ^scripts/.*\.ps(m|d)?1$
         pass_filenames: false
 
+      - id: verify-ci-local
+        name: verify-ci-local (full CI gate)
+        entry: bash scripts/verify-ci-local.sh
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
   # ----- Heavier checks (pre-push) -----
   - repo: https://github.com/hadolint/hadolint-precommit
     rev: v2.12.0

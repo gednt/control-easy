@@ -1,9 +1,11 @@
 <!--
-Sync Impact Report (v1.5.0)
+Sync Impact Report (v1.6.0)
 ===========================
-Version change: 1.4.0 → 1.5.0  (MINOR — new Principle IX formalizing BMAD as
-  the fourth workflow tool with review/analysis/adversarial-quality scope;
-  Constitution now declares four workflow tools, not three)
+Version change: 1.5.0 → 1.6.0  (MINOR — Hardened local CI verification gate
+  across Principle IV and Section 5 Quality Gates; no task or modification is
+  considered "done" until all local CI jobs pass via scripts/verify-ci-local.sh,
+  enforced by automated agent Stop hooks in .agents/, .agent/, .claude/, .codex/,
+  and .cursor/)
 
 
 Deferred items (stable conditions, not point-in-time snapshots):
@@ -85,7 +87,12 @@ the tenant filter interceptor. Every implementation task has a verification
 gate — most tasks ship a `docker compose build && up -d` smoke plus a
 `dotnet test` slice. The post-task Docker rebuild rule from `AGENTS.md`
 (non-optional) is a constitutional requirement: no task is "done" until the
-affected containers are rebuilt, restarted, and observed healthy.
+affected containers are rebuilt, restarted, and observed healthy. Furthermore,
+no task, bugfix, or modification is considered "done" until the entire local
+CI verification gate (`scripts/verify-ci-local.sh` or `make verify-ci`) passes
+cleanly on the final code state (format, build, unit + arch + integration tests,
+web container build, and OpenAPI drift check). Claiming completion without a
+verified green run of the local CI suite is a constitutional violation.
 
 **Rationale:** A modular monolith with 9 feature modules, a multi-tenant data
 model, and a Strangler Fig migration in flight is a regression factory without
@@ -735,9 +742,13 @@ workflow tools. The tools produce the code; the gate verifies the code.
   checkbox is marked `[X]`, (3) the affected Docker services are rebuilt
   and observed healthy
   (`docker compose build api web && up -d --force-recreate api web`),
-  and (4) the task's test slice passes (`dotnet test` for the affected
-  test projects). Architecture tests are non-skippable for any change
-  touching the tenant filter, an entity, or an endpoint.
+  (4) the task's test slice passes (`dotnet test` for the affected
+  test projects), and (5) the entire local CI suite passes cleanly
+  (`scripts/verify-ci-local.sh`). Automated agent Stop hooks in
+  `.agents/hooks.json`, `.agent/hooks.json`, `.claude/settings.local.json`,
+  `.codex/hooks.json`, and `.cursor/hooks.json` enforce this gate prior
+  to allowing any agent loop to finish. Architecture tests are non-skippable
+  for any change touching the tenant filter, an entity, or an endpoint.
 - **Per-phase gate (GSD `/gsd-verify-work`, `/gsd-validate-phase`).**
   Before a phase transitions, the phase's UAT
   (`NN-UAT.md`) must be clean or its gaps closed via

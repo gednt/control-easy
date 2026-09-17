@@ -1,4 +1,4 @@
-.PHONY: up down logs test migrate build restore clean
+.PHONY: up down logs test migrate build restore clean verify-ci
 
 up:
 	docker compose -f docker/docker-compose.yml up -d
@@ -25,3 +25,6 @@ restore:
 clean:
 	dotnet clean src/ControlEasyReborn.sln -nologo
 	rm -rf src/**/bin src/**/obj tests/**/bin tests/**/obj
+
+verify-ci:
+	./scripts/verify-ci-local.sh
