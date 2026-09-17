@@ -188,6 +188,7 @@ jobs:
         working-directory: ${{ env.WEB_DIR }}
 
   docker:
+    if: false
     needs: [build, test-fast, test-integration, openapi]
     runs-on: ubuntu-latest
     steps:
