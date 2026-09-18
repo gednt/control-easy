@@ -1,7 +1,7 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { throwError, from, Observable, switchMap, catchError } from 'rxjs';
+import { Router, NavigationEnd } from '@angular/router';
+import { throwError, from, Observable, switchMap, catchError, filter } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
 let isRefreshing = false;
@@ -9,6 +9,9 @@ let failedQueue: Array<{
   resolve: (value: unknown) => void;
   reject: (error: unknown) => void;
 }> = [];
+
+let isRedirectingToAccessDenied = false;
+let navigationEndSubscriptionInitialized = false;
 
 function processQueue(token: string | null, error: unknown = null): void {
   failedQueue.forEach((p) => {
@@ -21,9 +24,23 @@ function processQueue(token: string | null, error: unknown = null): void {
   failedQueue = [];
 }
 
+function ensureNavigationEndSubscription(router: Router): void {
+  if (navigationEndSubscriptionInitialized) {
+    return;
+  }
+  navigationEndSubscriptionInitialized = true;
+  router.events
+    .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+    .subscribe(() => {
+      isRedirectingToAccessDenied = false;
+    });
+}
+
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
+
+  ensureNavigationEndSubscription(router);
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
@@ -70,7 +87,10 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       }
 
       if (error.status === 403) {
-        router.navigate(['/access-denied']);
+        if (!isRedirectingToAccessDenied && router.url !== '') {
+          isRedirectingToAccessDenied = true;
+          void router.navigate(['/access-denied']);
+        }
       }
 
       return throwError(() => error);

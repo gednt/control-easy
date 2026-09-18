@@ -14,3 +14,16 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-fix-system-audit-records.md`
   summary: Move AuditLog sorting and pagination back to database-side execution once tenant-filter-safe DBTools ordering is available.
   evidence: The current repair must sort and page mapped rows in memory because the interceptor appends predicates after DBTools `whereClause` text; a large audit ledger can therefore load more rows than the requested page size.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-fix-manual-lookup-403-permissions.md`
+  summary: Refresh-error path in errorInterceptor (401 with refreshAuth throwing) is asserted via `logout` side-effect but the catchError branch is not isolated in tests.
+  evidence: `src/Web/ControlEasyReborn.Web/src/app/core/interceptors/error.interceptor.spec.ts` exercises `refreshAuth.and.returnValue(of(null))` (switchMap null-token branch), not `throwError(() => new Error(...))` (catchError branch).
+- source_spec: `_bmad-output/implementation-artifacts/spec-fix-manual-lookup-403-permissions.md`
+  summary: DemoSeederService should reuse PorteiroDefaults.Permissions + a MoradorDefaults.Permissions constant for the seeder permission strings, instead of duplicating the comma-joined strings in the seeder.
+  evidence: `DemoSeederService.cs` allPerms/readPerms/moradorPerms are hand-maintained string literals that must be kept in sync with `PorteiroDefaults.Permissions` and a future `MoradorDefaults.Permissions`.
+- source_spec: `_bmad-output/implementation-artifacts/spec-fix-manual-lookup-403-permissions.md`
+  summary: AttendantProfiles.Permissions column is VARCHAR(2000); the backfill appends tokens without length-check, risking silent MySQL truncation if a future operator hand-crafts a long row.
+  evidence: `docker/mysql/init/05-security-schema.sql` declares `Permissions VARCHAR(2000) NOT NULL DEFAULT ''`. Demo + spec values are well under the limit, but no guard.
+- source_spec: `_bmad-output/implementation-artifacts/spec-fix-manual-lookup-403-permissions.md`
+  summary: AccessDeniedPage does not surface a Sign Out button; a user with a stale but still-valid token who lands on /access-denied cannot recover without manually clearing localStorage.
+  evidence: `src/Web/ControlEasyReborn.Web/src/app/features/auth/access-denied.page.ts` Back button only navigates to a role-default route, never clears the session.

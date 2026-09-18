@@ -18,6 +18,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/change-password.page').then(m => m.ChangePasswordPage),
   },
   {
+    path: 'access-denied',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/auth/access-denied.page').then(m => m.AccessDeniedPage),
+  },
+  {
     path: '',
     canActivate: [authGuard],
     loadComponent: () => import('./layout/shell/app-shell.component').then(m => m.AppShellComponent),

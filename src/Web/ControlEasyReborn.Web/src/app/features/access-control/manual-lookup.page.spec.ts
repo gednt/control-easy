@@ -97,7 +97,7 @@ describe('ManualLookupPage', () => {
       ],
     }));
 
-    component.select(component.state().results[0]);
+    component.select(component.state().results[0]!);
     expect(component.state().mode).toBe('confirm');
 
     component.confirm();
@@ -158,5 +158,25 @@ describe('ManualLookupPage', () => {
     fixture.detectChanges();
     expect(component.state().mode).toBe('confirm');
     expect(component.state().error).toContain('No active destination');
+  });
+
+  it('surfaces a 403 without losing the search state', () => {
+    fixture.detectChanges();
+
+    component.state.update(s => ({ ...s, activeCriterion: 'cpf', cpf: '12345678901' }));
+    fixture.detectChanges();
+
+    component.search();
+
+    const req = httpMock.expectOne('/api/v1/access-subjects/search');
+    req.flush(
+      { detail: 'Caller lacks Access.Access.Operate.' },
+      { status: 403, statusText: 'Forbidden' },
+    );
+
+    fixture.detectChanges();
+    expect(component.state().mode).toBe('search');
+    expect(component.state().busy).toBeFalse();
+    expect(component.state().error).toBeTruthy();
   });
 });
