@@ -114,7 +114,7 @@ try {
 #   FAST_ONLY           (true/false)
 #   INCLUDE_INTEGRATION (true/false)
 # NOTE: base image uses dash for /bin/sh, which does NOT support `set -o pipefail`.
-# Pipefail is implemented manually via `${PIPESTATUS[0]}` checks instead.
+# Use `-eu` only; pipeline exit status is the last command's status.
 set -eu
 
 _log()  { printf '\033[1;34m[ci-local]\033[0m %s\n' "$*"; }
