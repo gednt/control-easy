@@ -96,6 +96,25 @@ function Test-CompletedAllTasks {
 }
 
 function Invoke-LocalCiVerify([string[]]$extraArgs) {
+    # If the host already has CE_ITEST_MYSQL set, propagate it. Otherwise,
+    # auto-detect a developer-local MySQL on the standard test port and
+    # set CE_ITEST_MYSQL ourselves so integration tests can use it
+    # instead of Testcontainers (Docker-in-Docker is unreliable on Windows).
+    # The SDK container (running inside Docker Desktop on Windows) must
+    # reach MySQL via host.docker.internal:3306 because localhost inside
+    # the container points to its own loopback.
+    if (-not $env:CE_ITEST_MYSQL) {
+        $portOpen = $false
+        try {
+            $client = New-Object System.Net.Sockets.TcpClient
+            $iar = $client.BeginConnect("localhost", 3306, $null, $null)
+            $portOpen = $iar.AsyncWaitHandle.WaitOne(500, $false) -and $client.Connected
+            $client.Close()
+        } catch {}
+        if ($portOpen) {
+            $env:CE_ITEST_MYSQL = "host.docker.internal:3306"
+        }
+    }
     $pwshCmd = Get-Command pwsh -ErrorAction SilentlyContinue
     if ($pwshCmd) {
         $output = & pwsh -File $verifyScript @extraArgs 2>&1
