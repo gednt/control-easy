@@ -1,6 +1,6 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
+import { Router, NavigationEnd, NavigationCancel, NavigationError } from '@angular/router';
 import { throwError, from, Observable, switchMap, catchError, filter } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
@@ -30,7 +30,12 @@ function ensureNavigationEndSubscription(router: Router): void {
   }
   navigationEndSubscriptionInitialized = true;
   router.events
-    .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+    .pipe(
+      filter(
+        (event): event is NavigationEnd | NavigationCancel | NavigationError =>
+          event instanceof NavigationEnd || event instanceof NavigationCancel || event instanceof NavigationError,
+      ),
+    )
     .subscribe(() => {
       isRedirectingToAccessDenied = false;
     });
@@ -87,7 +92,11 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       }
 
       if (error.status === 403) {
-        if (!isRedirectingToAccessDenied && router.url !== '') {
+        if (
+          !isRedirectingToAccessDenied
+          && authService.isAuthenticated()
+          && router.url !== '/access-denied'
+        ) {
           isRedirectingToAccessDenied = true;
           void router.navigate(['/access-denied']);
         }

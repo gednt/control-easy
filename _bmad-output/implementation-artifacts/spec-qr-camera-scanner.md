@@ -152,3 +152,39 @@ context: []
   [`qr-scan.page.spec.ts:37`](../../src/Web/ControlEasyReborn.Web/src/app/features/access-control/qr-scan.page.spec.ts#L37)
 - All six specs covering: form render, decode → POST, refusal, permission-denied fallback, busy guard, destroy teardown.
   [`qr-scan.page.spec.ts:60`](../../src/Web/ControlEasyReborn.Web/src/app/features/access-control/qr-scan.page.spec.ts#L60)
+
+### Review Findings (code review 2026-09-18)
+
+- [x] [Review][Decision] Auto-rearm re-scans a QR still in frame — unbounded re-record loop. Decode → submit → stopScanner → scheduleRearm(250ms) restarts the camera while the same QR is in front of the lens; it decodes again and POSTs with a fresh scanAttemptId each cycle, so the server-side idempotency the spec relies on never fires (one access event/second until the QR is removed). The frozen constraint "fresh scanAttemptId so idempotency dedupes accidental double-scans" is in tension with auto-rearm. Needs a human call: same-payload suppression window vs. accept behavior. [qr-scan.page.ts:373-386]
+- [x] [Review][Patch] Any submit permanently kills the camera (high) [qr-scan.page.ts:288-292, 277, 319-329, 344, 373-398] — three cooperating defects: (1) stopScanner()'s track.stop() makes the stream inactive, which fires the video element's 'ended' listener → handleCameraError sets cameraStatus 'unavailable' + CAMERA_IN_USE and schedules a retry; (2) the HTTP response's scheduleRearm() then clears that retry (shared rearmHandle) and its startScanner() bails on cameraStatus === 'unavailable' → camera dead until reload; (3) late decode callbacks re-assign a stale, already-stopped controls object, which makes the `if (this.scannerControls || ...)` guard bail forever even when recovery paths run.
+- [x] [Review][Patch] scheduleRearm() erases error messages 250ms after a failed scan — error handler sets 'Scan service unavailable.' then scheduleRearm() nulls it; also wipes CAMERA_PERMISSION_DENIED on the next submit. [qr-scan.page.ts:255-262, 380-384]
+- [x] [Review][Patch] Transient NotReadableError retries forever with no cap and no steady state — 1500ms loop for as long as another app holds the camera. [qr-scan.page.ts:341-348, 389-399]
+- [x] [Review][Patch] Teardown test asserts the wrong call site — initialControls.stop is already called by submit()'s stopScanner() before fixture.destroy(), so the spec passes even if ngOnDestroy teardown is deleted. [qr-scan.page.spec.ts:192-209]
+- [x] [Review][Patch] Paste path bypasses the 8..1024 length validation the decode path enforces — submit() accepts any non-empty value; input has no maxlength. [qr-scan.page.ts:229-233, 302-305]
+- [x] [Review][Patch] Paste submit landing inside the 250ms rearm window reuses the just-consumed scanAttemptId — regenerate the id at submit time, not only in the rearm timer. [qr-scan.page.ts:229-241, 377-386]
+- [x] [Review][Patch] 'ended' listener accumulates one {once:true} listener per rearm cycle on the same persistent <video> element. [qr-scan.page.ts:283, 319-329]
+- [x] [Review][Defer] No visibilitychange handling — hidden tab suspends tracks, 'ended' fires NotReadableError, retry loop continues while hidden; robustness enhancement. [qr-scan.page.ts:319-329] — deferred, robustness enhancement beyond spec scope
+
+### Review Findings — round 2 (code review 2026-09-18)
+
+Second review pass over the round-1 patches found four regressions/omissions in the camera-death cluster; all fixed in this pass:
+
+- [x] [Review][Patch] Retry cap was defeated by its own reset — scheduleRetry's timer reset retryCount to 0 before startScanner, so the counter oscillated 0↔1 and CAMERA_RETRY_LIMIT never engaged. Reset removed; the cap now counts consecutive NotReadableError retries (5 max, then steady 'unavailable' state).
+- [x] [Review][Patch] Refused credentials never armed suppression — a refused QR left in frame re-POSTed every ~250-400ms indefinitely. Refusal responses now arm the same-payload suppression window and clear the paste input.
+- [x] [Review][Patch] Intentional stopScanner() still tripped the 'ended' listener → camera dead after first submit. The ended handler now ignores 'ended' while scannerControls is non-null (intentional stop in progress); handler is re-attached per startScanner (replace + removeEventListener, no accumulation).
+- [x] [Review][Patch] adoptControls identity guard was a no-op — late/stale decode callbacks re-adopted stopped controls. Replaced with a session counter (currentSessionId): decode callbacks from a superseded session stop their controls and are ignored; stopScanner/handleCameraError bump the session.
+- [x] [Review][Patch] Paste path did not trim before the length check — whitespace-padded payloads POSTed raw. submit() now trims and validates 8..1024; input gains maxlength=1024.
+- [x] [Review][Patch] UiState.scanAttemptId became dead state after the submit-time-fresh-id change — removed from state; the rearm timer no longer touches it (id is generated fresh per submit).
+- [x] [Review][Patch] Interceptor navigation-events subscription had a redundant always-true instanceof branch after the type-guard filter — subscribe body simplified to the reset only.
+
+Remaining accepted tradeoffs (per round-1 decisions):
+- Same payload re-presented after the 3s window re-records once — accepted (bounded by physical re-presentation).
+- Same payload re-presented within 3s with a different direction is suppressed silently — accepted (operator re-presents after the window; result panel still shows the previous outcome).
+
+### Review Findings — round 3 / pre-commit (code review 2026-09-18)
+
+- [x] [Review][Patch] CRITICAL: the round-2 'ended' guard was inverted — stopScanner() nulls scannerControls synchronously but 'ended' dispatches asynchronously, so the guard passed and the first submit still killed the camera; conversely a genuine mid-scan stream death (scannerControls non-null) was silently swallowed. Replaced with a two-signal discriminator: an intentionalStopInProgress flag set during stopScanner() plus a srcObject === null check (stopScanner detaches the stream synchronously; a genuine stream death always has srcObject attached when 'ended' dispatches). Flag is cleared when the rearm/retry timer restarts the scanner.
+- [x] [Review][Patch] retryCount was cumulative for the component lifetime — now reset at each successful startScanner() so the cap counts consecutive failures as documented.
+- [x] [Review][Patch] Generic (non-refusal) HTTP failures armed no suppression — a QR left in frame against a failing API re-POSTed every ~300-500ms. Generic errors now arm suppression too (refusal keeps its own arm so the operator can retry a transient refusal via paste).
+- [x] [Review][Patch] Decode callback cleared error before resubmitting, making error banners flicker — the clear was removed (submit() already clears error when arming busy).
+- [x] [Review][Patch] Teardown test never exercised ngOnDestroy's scanner teardown (controls were only adopted via the decode callback). Now invokes the callback with undefined result before destroy; plus a new spec dispatches a real 'ended' event after a successful submit and asserts the camera is not marked unavailable.

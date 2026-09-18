@@ -238,10 +238,9 @@ export class SidebarComponent {
 
   showGatehouseNav(): boolean {
     return (
-      this.auth.hasPermission('Access.Operate')
+      this.auth.hasPermission('Access.Access.Operate')
       || this.auth.roles().includes('AttendantProfile')
       || this.auth.roles().includes('TenantAdmin')
-      || this.auth.roles().includes('PlatformAdmin')
     );
   }
 

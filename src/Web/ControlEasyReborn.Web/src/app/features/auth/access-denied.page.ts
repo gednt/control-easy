@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -17,13 +17,7 @@ import { AuthService } from '../../core/services/auth.service';
           to grant the required access for your account.
         </p>
         <div class="actions">
-          <a
-            class="ce-button variant-primary size-md"
-            [routerLink]="returnLink()"
-            (click)="onBack()"
-          >
-            Back
-          </a>
+          <a class="ce-button variant-primary size-md" [routerLink]="returnLink()">Back</a>
         </div>
       </section>
     </main>
@@ -67,7 +61,6 @@ import { AuthService } from '../../core/services/auth.service';
 })
 export class AccessDeniedPage {
   private readonly auth = inject(AuthService);
-  private readonly router = inject(Router);
 
   readonly returnLink = computed<string[]>(() => {
     const roles = this.auth.roles();
@@ -77,13 +70,6 @@ export class AccessDeniedPage {
     if (roles.includes('TenantAdmin')) {
       return ['/administration'];
     }
-    if (roles.includes('PlatformAdmin')) {
-      return ['/'];
-    }
     return ['/'];
   });
-
-  onBack(): void {
-    void this.router.navigate(this.returnLink());
-  }
 }

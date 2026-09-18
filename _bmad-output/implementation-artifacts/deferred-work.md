@@ -27,3 +27,10 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-fix-manual-lookup-403-permissions.md`
   summary: AccessDeniedPage does not surface a Sign Out button; a user with a stale but still-valid token who lands on /access-denied cannot recover without manually clearing localStorage.
   evidence: `src/Web/ControlEasyReborn.Web/src/app/features/auth/access-denied.page.ts` Back button only navigates to a role-default route, never clears the session.
+
+## Deferred from: code review of spec-qr-camera-scanner + spec-fix-manual-lookup-403-permissions (2026-09-18)
+
+- No visibilitychange handling on the QR scanner: hidden-tab track suspension triggers the NotReadableError retry loop while the page is hidden (qr-scan.page.ts:319-329).
+- Backfill UPDATE writes string.Join(",") without a length guard against AttendantProfiles.Permissions VARCHAR(2000) truncation (DemoSeederService.cs:310-316).
+- Stop-hook .ps1 uses PS7-only Get-Date -AsUTC but can be dispatched to Windows PowerShell 5.1; error is swallowed by SilentlyContinue, stamping an empty timestamp (scripts/hooks/verify-ci-agent-stop.ps1:189).
+- verify-ci-local.ps1 comment claims PIPESTATUS-based pipefail that the inner dash script does not implement (verify-ci-local.ps1:116-118).

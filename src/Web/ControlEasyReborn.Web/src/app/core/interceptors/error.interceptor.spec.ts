@@ -18,7 +18,9 @@ describe('errorInterceptor', () => {
   let http: HttpClient;
   let httpMock: HttpTestingController;
   let router: Router;
-  let auth: jasmine.SpyObj<Pick<AuthService, 'refreshAuth' | 'logout' | 'accessToken'>>;
+  let auth: jasmine.SpyObj<
+    Pick<AuthService, 'refreshAuth' | 'logout' | 'accessToken' | 'isAuthenticated'>
+  >;
   let navigateSpy: jasmine.Spy;
 
   beforeEach(() => {
@@ -28,6 +30,10 @@ describe('errorInterceptor', () => {
       'accessToken',
     ]);
     auth.accessToken.and.returnValue('stub-token');
+    Object.defineProperty(auth, 'isAuthenticated', {
+      configurable: true,
+      value: () => true,
+    });
 
     TestBed.configureTestingModule({
       providers: [
@@ -63,8 +69,28 @@ describe('errorInterceptor', () => {
     expect(navigateSpy).toHaveBeenCalledWith(['/access-denied']);
   });
 
-  it('does NOT navigate to /access-denied when the current URL is empty (pre-bootstrap)', () => {
-    Object.defineProperty(router, 'url', { configurable: true, value: '' });
+  it('does NOT navigate to /access-denied when the user is unauthenticated (e.g. 403 on /login)', () => {
+    Object.defineProperty(router, 'url', { configurable: true, value: '/login' });
+    Object.defineProperty(auth, 'isAuthenticated', {
+      configurable: true,
+      value: () => false,
+    });
+
+    http.get('/api/v1/auth/login').subscribe({
+      next: () => fail('expected 403 error path'),
+      error: () => {},
+    });
+
+    httpMock.expectOne('/api/v1/auth/login').flush(
+      { detail: 'forbidden while logged out' },
+      { status: 403, statusText: 'Forbidden' },
+    );
+
+    expect(navigateSpy).not.toHaveBeenCalled();
+  });
+
+  it('does NOT re-navigate to /access-denied when already on that URL', () => {
+    Object.defineProperty(router, 'url', { configurable: true, value: '/access-denied' });
 
     http.get('/api/v1/access-events/scans').subscribe({
       next: () => fail('expected 403 error path'),
@@ -72,7 +98,7 @@ describe('errorInterceptor', () => {
     });
 
     httpMock.expectOne('/api/v1/access-events/scans').flush(
-      { detail: 'still forbidden' },
+      { detail: 'stray 403 while on /access-denied' },
       { status: 403, statusText: 'Forbidden' },
     );
 

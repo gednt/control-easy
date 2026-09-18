@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  OnDestroy,
   computed,
   inject,
   signal,
@@ -33,6 +34,7 @@ interface UiState {
   error: string | null;
   lookupId: string | null;
   results: ManualLookupResult[];
+  narrowHint: string | null;
   selected: ManualLookupResult | null;
   direction: 'entrance' | 'exit';
   recorded: {
@@ -62,6 +64,7 @@ const initialState = (): UiState => ({
   error: null,
   lookupId: null,
   results: [],
+  narrowHint: null,
   selected: null,
   direction: 'entrance',
   recorded: null,
@@ -92,6 +95,8 @@ const initialState = (): UiState => ({
               role="tab"
               class="criterion-tab"
               [class.active]="state().activeCriterion === tab.id"
+              [class.busy]="state().busy"
+              [disabled]="state().busy"
               [attr.aria-selected]="state().activeCriterion === tab.id"
               [attr.tabindex]="state().activeCriterion === tab.id ? 0 : -1"
               (click)="onCriterionChange(tab.id)"
@@ -237,6 +242,9 @@ const initialState = (): UiState => ({
       <section class="results" aria-label="Lookup results">
         <h2>Matches</h2>
         <p class="hint">Tap a resident or vehicle to confirm.</p>
+        @if (state().narrowHint) {
+          <p class="hint" data-testid="narrow-hint">{{ state().narrowHint }}</p>
+        }
         <ul class="result-list" role="listbox" aria-label="Manual lookup results">
           @for (result of state().results; track result.subjectId) {
             <li>
@@ -364,6 +372,10 @@ const initialState = (): UiState => ({
         color: var(--color-primary, #2c5cdc);
         border-bottom-color: var(--color-primary, #2c5cdc);
       }
+      .criterion-tab:disabled {
+        opacity: 0.55;
+        cursor: wait;
+      }
       .direction-row { display: flex; gap: var(--space-2, 8px); margin-top: var(--space-1, 4px); }
       .direction-chip {
         padding: var(--space-2, 8px) var(--space-3, 12px);
@@ -410,9 +422,14 @@ const initialState = (): UiState => ({
     `,
   ],
 })
-export class ManualLookupPage {
+export class ManualLookupPage implements OnDestroy {
   private readonly gateway = inject(GatewayControlService);
   private readonly toast = inject(ToastService);
+  private destroyed = false;
+
+  ngOnDestroy(): void {
+    this.destroyed = true;
+  }
 
   readonly criterionTabs: ReadonlyArray<{ id: ManualLookupType; label: string }> = [
     { id: 'cpf', label: 'CPF' },
@@ -427,7 +444,8 @@ export class ManualLookupPage {
   readonly canSearch = computed(() => this.hasSpecificValue(this.state().activeCriterion));
 
   onCriterionChange(criterion: ManualLookupType): void {
-    this.state.update(s => ({ ...s, activeCriterion: criterion, error: null }));
+    if (this.state().busy) return;
+    this.state.update(s => ({ ...s, activeCriterion: criterion, error: null, results: [], lookupId: null, narrowHint: null, selected: null, mode: 'search' }));
   }
 
   onCriterionKeydown(event: KeyboardEvent, criterion: ManualLookupType): void {
@@ -504,6 +522,7 @@ export class ManualLookupPage {
 
     this.gateway.searchSubject(criterion).subscribe({
       next: (response: ManualLookupResponse) => {
+        if (this.destroyed) return;
         this.state.update(s => ({
           ...s,
           busy: false,
@@ -519,6 +538,7 @@ export class ManualLookupPage {
         }
       },
       error: err => {
+        if (this.destroyed) return;
         this.state.update(s => ({
           ...s,
           busy: false,
@@ -542,6 +562,7 @@ export class ManualLookupPage {
       })
       .subscribe({
         next: response => {
+          if (this.destroyed) return;
           this.toast.info('Manual access recorded.');
           this.state.update(s => ({
             ...s,
@@ -558,6 +579,7 @@ export class ManualLookupPage {
           }));
         },
         error: err => {
+          if (this.destroyed) return;
           this.state.update(s => ({
             ...s,
             busy: false,

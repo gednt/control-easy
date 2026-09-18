@@ -19,13 +19,19 @@ import { ScanResult, ScanRefusal } from './access-control.types';
 interface UiState {
   qrPayload: string;
   direction: 'entrance' | 'exit';
-  scanAttemptId: string;
   busy: boolean;
   result: ScanResult | null;
   refusal: ScanRefusal | null;
   error: string | null;
   cameraStatus: 'idle' | 'starting' | 'active' | 'unavailable';
 }
+
+const SCAN_SUPPRESSION_WINDOW_MS = 3000;
+const CAMERA_RETRY_LIMIT = 5;
+const CAMERA_RETRY_DELAY_MS = 1500;
+const REARM_DELAY_MS = 250;
+const PAYLOAD_MIN_LENGTH = 8;
+const PAYLOAD_MAX_LENGTH = 1024;
 
 const CAMERA_PERMISSION_DENIED = 'Camera permission denied. Use the text input below to paste the QR value.';
 const NO_CAMERA = 'No camera detected — paste the QR value below.';
@@ -35,7 +41,6 @@ const CAMERA_START_FAILED = 'Could not start the camera. Use the text input belo
 const initialState = (): UiState => ({
   qrPayload: '',
   direction: 'entrance',
-  scanAttemptId: cryptoRandom(),
   busy: false,
   result: null,
   refusal: null,
@@ -151,6 +156,7 @@ function cryptoRandom(): string {
             placeholder="Paste scanned value"
             autocomplete="off"
             required
+            [maxlength]="1024"
             data-testid="qr-payload-input"
           />
         </label>
@@ -198,7 +204,12 @@ export class QrScanPage implements AfterViewInit, OnDestroy {
   private readonly gateway = inject(GatewayControlService);
   private readonly reader = new BrowserMultiFormatReader();
   private scannerControls: IScannerControls | null = null;
+  private currentSessionId = 0;
   private rearmHandle: ReturnType<typeof setTimeout> | null = null;
+  private retryCount = 0;
+  private lastScannedPayload: string | null = null;
+  private lastScannedAt = 0;
+  private intentionalStopInProgress = false;
   private destroyed = false;
 
   @ViewChild('video', { static: false }) videoRef?: ElementRef<HTMLVideoElement>;
@@ -230,18 +241,23 @@ export class QrScanPage implements AfterViewInit, OnDestroy {
     if (this.destroyed) return;
     const current = this.state();
     if (!current.qrPayload || current.busy) return;
-    this.state.set({ ...current, busy: true, error: null, result: null, refusal: null });
+    const trimmed = current.qrPayload.trim();
+    if (trimmed.length < PAYLOAD_MIN_LENGTH || trimmed.length > PAYLOAD_MAX_LENGTH) return;
+    const scanAttemptId = cryptoRandom();
+    this.currentSessionId += 1;
+    this.state.set({ ...current, qrPayload: trimmed, busy: true, error: null, result: null, refusal: null });
     this.stopScanner();
 
     this.gateway
       .recordScan({
-        qrPayload: current.qrPayload,
+        qrPayload: trimmed,
         direction: current.direction,
-        scanAttemptId: current.scanAttemptId,
+        scanAttemptId,
       })
       .subscribe({
         next: (result: ScanResult) => {
           if (this.destroyed) return;
+          this.armSuppression(trimmed);
           this.state.update(s => ({ ...s, busy: false, result, refusal: null, qrPayload: '' }));
           this.scheduleRearm();
         },
@@ -252,13 +268,20 @@ export class QrScanPage implements AfterViewInit, OnDestroy {
             problem?.failureCode && problem?.decision
               ? { failureCode: problem.failureCode, decision: problem.decision }
               : null;
+          if (refusal) {
+            this.armSuppression(trimmed);
+          }
           this.state.update(s => ({
             ...s,
             busy: false,
             refusal,
             result: null,
             error: refusal ? null : 'Scan service unavailable.',
+            qrPayload: refusal ? '' : s.qrPayload,
           }));
+          if (!refusal) {
+            this.armSuppression(trimmed);
+          }
           this.scheduleRearm();
         },
       });
@@ -282,10 +305,12 @@ export class QrScanPage implements AfterViewInit, OnDestroy {
     }
     this.attachVideoLifecycleListeners(videoEl);
     this.state.update(s => ({ ...s, cameraStatus: 'starting' }));
+    const sessionId = this.currentSessionId;
+    this.retryCount = 0;
 
     this.reader
       .decodeFromVideoDevice(undefined, videoEl, (result, _err, controls) => {
-        if (this.destroyed) {
+        if (this.destroyed || sessionId !== this.currentSessionId) {
           controls.stop();
           return;
         }
@@ -300,32 +325,52 @@ export class QrScanPage implements AfterViewInit, OnDestroy {
           return;
         }
         const text = result.getText();
-        if (!text || text.length > 1024) return;
+        if (!text || text.length > PAYLOAD_MAX_LENGTH) return;
         const trimmed = text.trim();
-        if (!trimmed || trimmed.length < 8) return;
+        if (!trimmed || trimmed.length < PAYLOAD_MIN_LENGTH) return;
+        if (this.isSuppressedRescan(trimmed)) return;
         this.state.update(s => ({
           ...s,
           qrPayload: trimmed,
-          error: null,
         }));
         this.submit();
       })
       .catch((err: unknown) => {
-        if (this.destroyed) return;
+        if (this.destroyed || sessionId !== this.currentSessionId) return;
         this.handleCameraError(err);
       });
   }
 
+  private armSuppression(payload: string): void {
+    this.lastScannedPayload = payload;
+    this.lastScannedAt = Date.now();
+  }
+
+  private isSuppressedRescan(payload: string): boolean {
+    if (payload !== this.lastScannedPayload) return false;
+    return Date.now() - this.lastScannedAt < SCAN_SUPPRESSION_WINDOW_MS;
+  }
+
   private attachVideoLifecycleListeners(videoEl: HTMLVideoElement): void {
-    videoEl.addEventListener(
-      'ended',
-      () => {
-        if (!this.destroyed && this.state().cameraStatus !== 'unavailable') {
-          this.handleCameraError({ name: 'NotReadableError' });
-        }
-      },
-      { once: true },
-    );
+    const el = videoEl as HTMLVideoElement & { __ceEndedHandler?: () => void };
+    if (el.__ceEndedHandler) {
+      videoEl.removeEventListener('ended', el.__ceEndedHandler);
+    }
+    const handler = (): void => {
+      if (this.destroyed) return;
+      if (this.intentionalStopInProgress || videoEl.srcObject === null) {
+        // Either an intentional stop (submit/destroy) or a detached stream:
+        // the track going inactive is expected and must not be treated as a
+        // camera failure. A genuine mid-scan stream death always has an
+        // attached srcObject when the event dispatches.
+        return;
+      }
+      if (this.state().cameraStatus !== 'unavailable') {
+        this.handleCameraError({ name: 'NotReadableError' });
+      }
+    };
+    el.__ceEndedHandler = handler;
+    videoEl.addEventListener('ended', handler);
   }
 
   private handleCameraError(err: unknown): void {
@@ -341,15 +386,19 @@ export class QrScanPage implements AfterViewInit, OnDestroy {
     } else if (name === 'NotReadableError') {
       message = CAMERA_IN_USE;
     }
+    this.currentSessionId += 1;
     this.state.update(s => ({ ...s, cameraStatus: 'unavailable', error: message }));
-    this.stopScanner();
-    if (!terminal && !this.destroyed) {
+    this.scannerControls = null;
+    if (!terminal && !this.destroyed && this.retryCount < CAMERA_RETRY_LIMIT) {
+      this.retryCount += 1;
       this.scheduleRetry();
     }
   }
 
   private stopScanner(): void {
+    this.currentSessionId += 1;
     if (this.scannerControls) {
+      this.intentionalStopInProgress = true;
       this.scannerControls.stop();
       this.scannerControls = null;
     }
@@ -377,13 +426,9 @@ export class QrScanPage implements AfterViewInit, OnDestroy {
     this.rearmHandle = setTimeout(() => {
       this.rearmHandle = null;
       if (this.destroyed) return;
-      this.state.update(s => ({
-        ...s,
-        scanAttemptId: cryptoRandom(),
-        error: null,
-      }));
+      this.intentionalStopInProgress = false;
       this.startScanner();
-    }, 250);
+    }, REARM_DELAY_MS);
   }
 
   private scheduleRetry(): void {
@@ -393,8 +438,9 @@ export class QrScanPage implements AfterViewInit, OnDestroy {
     this.rearmHandle = setTimeout(() => {
       this.rearmHandle = null;
       if (this.destroyed) return;
-      this.state.update(s => ({ ...s, cameraStatus: 'idle', error: null }));
+      this.intentionalStopInProgress = false;
+      this.state.update(s => ({ ...s, cameraStatus: 'idle' }));
       this.startScanner();
-    }, 1500);
+    }, CAMERA_RETRY_DELAY_MS);
   }
 }

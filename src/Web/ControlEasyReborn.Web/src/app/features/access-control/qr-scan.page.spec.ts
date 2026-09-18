@@ -189,23 +189,59 @@ describe('QrScanPage', () => {
     drainPendingScanner();
   }));
 
-  it('tears down the scanner on destroy', fakeAsync(() => {
+  it('tears down the scanner on destroy even when no scan was submitted', fakeAsync(() => {
     fixture.detectChanges();
     tick();
     const initialControls = makeControls();
     decodePromise!.resolve(initialControls);
     tick();
-    decodeCallback!(fakeResult('opaque-token'), undefined, initialControls);
+    decodeCallback!(undefined, undefined, initialControls);
     tick();
 
     fixture.destroy();
-    httpMock.expectOne('/api/v1/access-events/scans').flush(
-      { failureCode: 'invalid_credential', decision: 'refused' },
-      { status: 422, statusText: 'Unprocessable Entity' },
-    );
     drainPendingScanner();
 
     expect(initialControls.stop).toHaveBeenCalled();
+  }));
+
+  it('does not treat an intentional stop as a camera failure', fakeAsync(() => {
+    fixture.detectChanges();
+    tick();
+    const controls = makeControls();
+    decodePromise!.resolve(controls);
+    tick();
+
+    decodeCallback!(fakeResult('opaque-token'), undefined, controls);
+    tick();
+
+    const req = httpMock.expectOne('/api/v1/access-events/scans');
+    req.flush({
+      decision: 'recorded',
+      accessEventId: '00000000-0000-0000-0000-000000000001',
+      subjectType: 'resident',
+      subjectId: '00000000-0000-0000-0000-000000000002',
+      credentialId: null,
+      lookupAuditId: null,
+      accessMethod: 'qr',
+      direction: 'entrance',
+      policyOutcome: 'permit',
+      destinationApartmentId: '00000000-0000-0000-0000-000000000003',
+      destinationBlock: 'A',
+      destinationUnit: '101',
+    });
+    tick(500);
+    fixture.detectChanges();
+
+    const videoEl = fixture.nativeElement.querySelector('video') as HTMLVideoElement | null;
+    if (videoEl) {
+      videoEl.dispatchEvent(new Event('ended'));
+      tick();
+      fixture.detectChanges();
+    }
+
+    expect(component.state().cameraStatus).not.toBe('unavailable');
+    expect(component.state().error).toBeNull();
+    drainPendingScanner();
   }));
 });
 
