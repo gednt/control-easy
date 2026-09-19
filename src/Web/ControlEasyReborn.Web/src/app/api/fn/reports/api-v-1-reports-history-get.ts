@@ -8,16 +8,28 @@ import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
 
-export interface ApiV1ReportsVisitCountsByDayGet$Params {
+export interface ApiV1ReportsHistoryGet$Params {
+  page?: number;
+  pageSize?: number;
   from?: string;
   to?: string;
+  status?: string;
+  carrierCode?: string;
+  q?: string;
+  apartmentId?: string;
 }
 
-export function apiV1ReportsVisitCountsByDayGet(http: HttpClient, rootUrl: string, params?: ApiV1ReportsVisitCountsByDayGet$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-  const rb = new RequestBuilder(rootUrl, apiV1ReportsVisitCountsByDayGet.PATH, 'get');
+export function apiV1ReportsHistoryGet(http: HttpClient, rootUrl: string, params?: ApiV1ReportsHistoryGet$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+  const rb = new RequestBuilder(rootUrl, apiV1ReportsHistoryGet.PATH, 'get');
   if (params) {
+    rb.query('page', params.page, {});
+    rb.query('pageSize', params.pageSize, {});
     rb.query('from', params.from, {});
     rb.query('to', params.to, {});
+    rb.query('status', params.status, {});
+    rb.query('carrierCode', params.carrierCode, {});
+    rb.query('q', params.q, {});
+    rb.query('apartmentId', params.apartmentId, {});
   }
 
   return http.request(
@@ -30,4 +42,4 @@ export function apiV1ReportsVisitCountsByDayGet(http: HttpClient, rootUrl: strin
   );
 }
 
-apiV1ReportsVisitCountsByDayGet.PATH = '/api/v1/reports/visit-counts-by-day';
+apiV1ReportsHistoryGet.PATH = '/api/v1/reports/history';
